@@ -17,6 +17,9 @@ export default {
         heading: ['Playfair Display', 'Georgia', 'serif'],
         body: ['DM Sans', 'system-ui', 'sans-serif'],
       },
+      letterSpacing: {
+        'widest-xl': '0.2em',
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

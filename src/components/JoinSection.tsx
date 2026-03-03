@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const bullets = [
   "Daily prompts + honest conversations",
@@ -19,6 +19,9 @@ const JoinSection = () => (
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
+            <p className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark mb-4">
+              Get Involved
+            </p>
             <h2 className="font-heading text-3xl md:text-4xl font-semibold text-foreground">
               Join the WhatsApp community
             </h2>
@@ -48,7 +51,7 @@ const JoinSection = () => (
                 [Insert WhatsApp Invite QR Code Here]
               </p>
             </div>
-            <Button className="mt-6 bg-accent text-accent-foreground hover:bg-blush-dark font-body w-full max-w-xs" asChild>
+            <Button className="mt-6 bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full max-w-xs h-11" asChild>
               <a href="https://chat.whatsapp.com/YOUR_INVITE_LINK" target="_blank" rel="noopener noreferrer">
                 Open WhatsApp Invite Link
               </a>
@@ -72,8 +75,8 @@ const JoinSection = () => (
               placeholder="Your email"
               className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-body focus:outline-none focus:ring-2 focus:ring-ring"
             />
-            <Button type="submit" variant="outline" className="font-body">
-              I want updates
+            <Button type="submit" variant="outline" className="font-body uppercase tracking-widest text-xs">
+              Subscribe
             </Button>
           </form>
         </div>
