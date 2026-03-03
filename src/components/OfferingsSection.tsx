@@ -78,7 +78,7 @@ const OfferingsSection = () => (
         >
           <img
             src={coachingImg}
-            alt="FEmpower coaching circle"
+            alt="Fempower coaching circle"
             className="rounded-2xl shadow-lg object-cover w-full aspect-square"
           />
         </motion.div>

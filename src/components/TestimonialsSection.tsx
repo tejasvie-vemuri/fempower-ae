@@ -3,7 +3,7 @@ import { Quote } from "lucide-react";
 
 const testimonials = [
   {
-    quote: "FEmpower gave me the courage to negotiate my salary for the first time. The coaching circle changed everything.",
+    quote: "Fempower gave me the courage to negotiate my salary for the first time. The coaching circle changed everything.",
   },
   {
     quote: "I moved to Dubai alone. This community made me feel like I belong. The mentor walks are my favourite part.",

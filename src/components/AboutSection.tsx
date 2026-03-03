@@ -24,7 +24,7 @@ const AboutSection = () => (
         viewport={{ once: true }}
         className="font-heading text-3xl md:text-4xl font-semibold text-foreground"
       >
-        Why FEmpower
+        Why Fempower
       </motion.h2>
       <motion.p
         initial={{ opacity: 0, y: 20 }}
@@ -33,7 +33,7 @@ const AboutSection = () => (
         transition={{ delay: 0.1 }}
         className="mt-6 text-lg text-muted-foreground font-body leading-relaxed"
       >
-        FEmpower is a safe, energizing space for women in the UAE—newcomers, professionals, founders—who want community that's practical and deeply human.
+        Fempower is a safe, energizing space for women in the UAE—newcomers, professionals, founders—who want community that's practical and deeply human.
       </motion.p>
 
       <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8">

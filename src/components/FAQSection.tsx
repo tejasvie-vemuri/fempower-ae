@@ -8,8 +8,8 @@ import {
 
 const faqs = [
   {
-    q: "Is FEmpower only for women in Dubai?",
-    a: "Not at all! FEmpower welcomes women from all emirates across the UAE. Our events happen in different cities, and the WhatsApp community connects women everywhere.",
+    q: "Is Fempower only for women in Dubai?",
+    a: "Not at all! Fempower welcomes women from all emirates across the UAE. Our events happen in different cities, and the WhatsApp community connects women everywhere.",
   },
   {
     q: "How does the WhatsApp community work?",
@@ -29,11 +29,11 @@ const faqs = [
   },
   {
     q: "Is this for founders or corporate professionals?",
-    a: "Both! FEmpower is for any woman who wants growth—whether you're building a startup, climbing the corporate ladder, or exploring a career pivot.",
+    a: "Both! Fempower is for any woman who wants growth—whether you're building a startup, climbing the corporate ladder, or exploring a career pivot.",
   },
   {
     q: "What if I'm new to the UAE?",
-    a: "Even better! FEmpower is the perfect place to build your tribe. Many of our members joined when they first moved to the UAE.",
+    a: "Even better! Fempower is the perfect place to build your tribe. Many of our members joined when they first moved to the UAE.",
   },
   {
     q: "How do I join?",

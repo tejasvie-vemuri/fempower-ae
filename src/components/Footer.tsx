@@ -5,8 +5,8 @@ const Footer = () => (
   <footer className="py-12 border-t border-border">
     <div className="container flex flex-col md:flex-row items-center justify-between gap-6">
       <div className="flex items-center gap-4">
-        <img src={logo} alt="FEmpower" className="h-8 w-auto" />
-        <span className="text-sm text-muted-foreground font-body">FEmpower · UAE</span>
+        <img src={logo} alt="Fempower" className="h-8 w-auto" />
+        <span className="text-sm text-muted-foreground font-body">Fempower · UAE</span>
       </div>
 
       <div className="flex items-center gap-5">
@@ -22,7 +22,7 @@ const Footer = () => (
       </div>
 
       <p className="text-xs text-muted-foreground font-body">
-        © {new Date().getFullYear()} FEmpower. All rights reserved.
+        © {new Date().getFullYear()} Fempower. All rights reserved.
       </p>
     </div>
   </footer>

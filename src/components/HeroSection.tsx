@@ -6,7 +6,7 @@ const HeroSection = () => (
   <section className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden">
     {/* Background image */}
     <div className="absolute inset-0">
-      <img src={heroImg} alt="FEmpower community gathering" className="w-full h-full object-cover" />
+      <img src={heroImg} alt="Fempower community gathering" className="w-full h-full object-cover" />
       <div className="absolute inset-0 bg-background/75" />
     </div>
 
