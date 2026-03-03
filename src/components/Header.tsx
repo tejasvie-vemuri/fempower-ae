@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Menu, X, Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ContactFormDialog from "@/components/ContactFormDialog";
 import logo from "@/assets/fempower-logo.jpg";
 
 const navLinks = [
@@ -38,6 +39,7 @@ const Header = () => {
         </nav>
 
         <div className="hidden lg:flex items-center gap-3">
+          <ContactFormDialog />
           <a href="https://www.instagram.com/fempower.ae" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
             <Instagram size={18} />
           </a>
@@ -69,7 +71,14 @@ const Header = () => {
                 {link.label}
               </a>
             ))}
-            <Button className="mt-2 bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full" asChild>
+            <ContactFormDialog
+              trigger={
+                <Button variant="outline" className="font-body uppercase tracking-widest text-xs w-full">
+                  Contact Us
+                </Button>
+              }
+            />
+            <Button className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full" asChild>
               <a href="#join" onClick={() => setOpen(false)}>Join Us</a>
             </Button>
           </nav>
