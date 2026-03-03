@@ -8,7 +8,7 @@ import networkingImg from "@/assets/community-networking.jpg";
 import walkImg from "@/assets/community-walk.jpg";
 
 const images = [
-  { src: heroImg, alt: "FEmpower networking event" },
+  { src: heroImg, alt: "Fempower networking event" },
   { src: coachingImg, alt: "Coaching circle session" },
   { src: eventImg, alt: "Community dinner event" },
   { src: networkingImg, alt: "Networking evening" },
@@ -30,7 +30,7 @@ const GallerySection = () => {
           Community Moments
         </motion.h2>
         <p className="mt-4 text-center text-muted-foreground font-body">
-          A few moments from FEmpower—connection in motion.
+          A few moments from Fempower—connection in motion.
         </p>
 
         <div className="mt-12 columns-2 md:columns-3 gap-4 space-y-4">

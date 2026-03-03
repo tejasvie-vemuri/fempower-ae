@@ -7,7 +7,9 @@ const navLinks = [
   { label: "About", href: "#about" },
   { label: "What We Do", href: "#offerings" },
   { label: "Programs", href: "#programs" },
-  { label: "Events", href: "#gallery" },
+  { label: "Events", href: "#events-calendar" },
+  { label: "Gallery", href: "#gallery" },
+  { label: "Newsletter", href: "#newsletter" },
   { label: "Join", href: "#join" },
   { label: "FAQs", href: "#faqs" },
 ];
@@ -19,7 +21,7 @@ const Header = () => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
       <div className="container flex items-center justify-between h-16 md:h-20">
         <a href="#" className="flex-shrink-0">
-          <img src={logo} alt="FEmpower" className="h-10 md:h-12 w-auto" />
+          <img src={logo} alt="Fempower" className="h-10 md:h-12 w-auto" />
         </a>
 
         {/* Desktop nav */}
