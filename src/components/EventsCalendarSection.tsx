@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarHeart, MapPin, Clock, Loader2 } from "lucide-react";
+import { CalendarHeart, MapPin, Clock, Loader2, MessageCircle } from "lucide-react";
+
+const WHATSAPP_NUMBER = "971547911282";
+
+function getWhatsAppRSVPLink(event: CalendarEvent) {
+  const dateStr = event.date.toLocaleDateString("en-AE", { weekday: "long", month: "long", day: "numeric" });
+  const message = encodeURIComponent(`Hi! I'd like to RSVP for "${event.title}" on ${dateStr} at ${event.time} 🙋‍♀️`);
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
+}
 
 interface CalendarEvent {
   date: Date;
@@ -113,7 +121,7 @@ const EventsCalendarSection = () => {
                       <div className="w-10 h-10 rounded-lg bg-blush-light flex items-center justify-center flex-shrink-0">
                         <CalendarHeart size={20} className="text-blush-dark" />
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <h4 className="font-heading text-base font-semibold text-foreground">{event.title}</h4>
                         <div className="mt-1.5 flex flex-col gap-1">
                           <span className="flex items-center gap-1.5 text-sm text-muted-foreground font-body">
@@ -123,6 +131,14 @@ const EventsCalendarSection = () => {
                             <MapPin size={14} /> {event.location}
                           </span>
                         </div>
+                        <a
+                          href={getWhatsAppRSVPLink(event)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-3 inline-flex items-center gap-1.5 text-xs font-body font-semibold uppercase tracking-widest-xl text-green-700 hover:text-green-900 transition-colors"
+                        >
+                          <MessageCircle size={14} /> RSVP via WhatsApp
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -150,6 +166,16 @@ const EventsCalendarSection = () => {
                             {event.date.toLocaleDateString("en-AE", { weekday: "short", month: "short", day: "numeric" })} · {event.time} · {event.location}
                           </p>
                         </div>
+                        <a
+                          href={getWhatsAppRSVPLink(event)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex-shrink-0 text-green-700 hover:text-green-900 transition-colors"
+                          title="RSVP via WhatsApp"
+                        >
+                          <MessageCircle size={16} />
+                        </a>
                       </div>
                     </div>
                   ))}
