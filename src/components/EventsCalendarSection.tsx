@@ -1,48 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarHeart, MapPin, Clock } from "lucide-react";
+import { CalendarHeart, MapPin, Clock, Loader2 } from "lucide-react";
 
-const placeholderEvents = [
-  {
-    date: new Date(2026, 2, 7),
-    title: "Networking Walk – Dubai Marina",
-    time: "7:00 AM",
-    location: "Dubai Marina Walk",
-  },
-  {
-    date: new Date(2026, 2, 15),
-    title: "Busy Girl Glam Up",
-    time: "5:00 PM",
-    location: "Downtown Dubai",
-  },
-  {
-    date: new Date(2026, 2, 22),
-    title: "Coaching Circle: Personal Brand",
-    time: "6:30 PM",
-    location: "Business Bay, Dubai",
-  },
-  {
-    date: new Date(2026, 3, 5),
-    title: "Mentor Walks Cohort Launch",
-    time: "8:00 AM",
-    location: "Al Qudra Lakes",
-  },
-  {
-    date: new Date(2026, 3, 18),
-    title: "Book Club Meetup",
-    time: "4:00 PM",
-    location: "Abu Dhabi Corniche",
-  },
-];
+interface CalendarEvent {
+  date: Date;
+  title: string;
+  time: string;
+  location: string;
+}
+
+const SUPABASE_URL = "https://uaiymunelgvvnznkxeik.supabase.co";
 
 const EventsCalendarSection = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const eventDates = placeholderEvents.map((e) => e.date);
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/fetch-events`);
+        const data = await res.json();
+        const parsed: CalendarEvent[] = (data.events || []).map(
+          (e: { title: string; date: string; time: string; location: string }) => ({
+            title: e.title,
+            time: e.time,
+            location: e.location,
+            date: new Date(e.date + "T00:00:00"),
+          })
+        );
+        setEvents(parsed);
+      } catch (err) {
+        console.error("Failed to fetch events:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  const eventDates = events.map((e) => e.date);
 
   const eventsForDate = selectedDate
-    ? placeholderEvents.filter(
+    ? events.filter(
         (e) =>
           e.date.getFullYear() === selectedDate.getFullYear() &&
           e.date.getMonth() === selectedDate.getMonth() &&
@@ -79,78 +80,88 @@ const EventsCalendarSection = () => {
           Tap a highlighted date to see what's coming up.
         </motion.p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2 }}
-          className="mt-10 grid md:grid-cols-2 gap-10 items-start"
-        >
-          <div className="flex justify-center">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              modifiers={{ event: eventDates }}
-              modifiersClassNames={{
-                event: "bg-accent text-accent-foreground font-bold rounded-full",
-              }}
-              className="rounded-xl border border-border bg-card shadow-sm p-4"
-            />
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="animate-spin text-muted-foreground" size={32} />
           </div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="mt-10 grid md:grid-cols-2 gap-10 items-start"
+          >
+            <div className="flex justify-center">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                modifiers={{ event: eventDates }}
+                modifiersClassNames={{
+                  event: "bg-accent text-accent-foreground font-bold rounded-full",
+                }}
+                className="rounded-xl border border-border bg-card shadow-sm p-4"
+              />
+            </div>
 
-          <div className="space-y-4 min-h-[280px]">
-            {selectedDate && eventsForDate.length > 0 ? (
-              eventsForDate.map((event, i) => (
-                <div key={i} className="bg-card border border-border rounded-xl p-5 shadow-sm">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-blush-light flex items-center justify-center flex-shrink-0">
-                      <CalendarHeart size={20} className="text-blush-dark" />
-                    </div>
-                    <div>
-                      <h4 className="font-heading text-base font-semibold text-foreground">{event.title}</h4>
-                      <div className="mt-1.5 flex flex-col gap-1">
-                        <span className="flex items-center gap-1.5 text-sm text-muted-foreground font-body">
-                          <Clock size={14} /> {event.time}
-                        </span>
-                        <span className="flex items-center gap-1.5 text-sm text-muted-foreground font-body">
-                          <MapPin size={14} /> {event.location}
-                        </span>
+            <div className="space-y-4 min-h-[280px]">
+              {selectedDate && eventsForDate.length > 0 ? (
+                eventsForDate.map((event, i) => (
+                  <div key={i} className="bg-card border border-border rounded-xl p-5 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-blush-light flex items-center justify-center flex-shrink-0">
+                        <CalendarHeart size={20} className="text-blush-dark" />
+                      </div>
+                      <div>
+                        <h4 className="font-heading text-base font-semibold text-foreground">{event.title}</h4>
+                        <div className="mt-1.5 flex flex-col gap-1">
+                          <span className="flex items-center gap-1.5 text-sm text-muted-foreground font-body">
+                            <Clock size={14} /> {event.time}
+                          </span>
+                          <span className="flex items-center gap-1.5 text-sm text-muted-foreground font-body">
+                            <MapPin size={14} /> {event.location}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
+                ))
+              ) : selectedDate ? (
+                <div className="bg-card border border-border rounded-xl p-8 text-center">
+                  <p className="text-muted-foreground font-body text-sm">No events on this date. Try selecting a highlighted date!</p>
                 </div>
-              ))
-            ) : selectedDate ? (
-              <div className="bg-card border border-border rounded-xl p-8 text-center">
-                <p className="text-muted-foreground font-body text-sm">No events on this date. Try selecting a highlighted date!</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground font-body font-medium mb-3">All upcoming events:</p>
-                {placeholderEvents.map((event, i) => (
-                  <div
-                    key={i}
-                    className="bg-card border border-border rounded-xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => setSelectedDate(event.date)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-blush-light flex items-center justify-center flex-shrink-0">
-                        <CalendarHeart size={16} className="text-blush-dark" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-body text-sm font-semibold text-foreground truncate">{event.title}</h4>
-                        <p className="text-xs text-muted-foreground font-body">
-                          {event.date.toLocaleDateString("en-AE", { weekday: "short", month: "short", day: "numeric" })} · {event.time} · {event.location}
-                        </p>
+              ) : events.length > 0 ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground font-body font-medium mb-3">All upcoming events:</p>
+                  {events.map((event, i) => (
+                    <div
+                      key={i}
+                      className="bg-card border border-border rounded-xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setSelectedDate(event.date)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-blush-light flex items-center justify-center flex-shrink-0">
+                          <CalendarHeart size={16} className="text-blush-dark" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-body text-sm font-semibold text-foreground truncate">{event.title}</h4>
+                          <p className="text-xs text-muted-foreground font-body">
+                            {event.date.toLocaleDateString("en-AE", { weekday: "short", month: "short", day: "numeric" })} · {event.time} · {event.location}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-card border border-border rounded-xl p-8 text-center">
+                  <p className="text-muted-foreground font-body text-sm">No upcoming events yet. Check back soon!</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
       </div>
     </section>
   );
