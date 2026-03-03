@@ -16,13 +16,13 @@ const fadeIn = {
 };
 
 const AboutSection = () => (
-  <section id="about" className="py-24 md:py-32">
+  <section id="about" className="py-16 md:py-20">
     <div className="container max-w-3xl text-center">
       <motion.p
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark mb-4"
+        className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark mb-3"
       >
         Our Story
       </motion.p>
@@ -39,12 +39,12 @@ const AboutSection = () => (
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ delay: 0.1 }}
-        className="mt-6 text-lg text-muted-foreground font-body leading-relaxed"
+        className="mt-4 text-lg text-muted-foreground font-body leading-relaxed"
       >
         Fempower is a safe, energizing space for women in the UAE—newcomers, professionals, founders—who want community that's practical and deeply human.
       </motion.p>
 
-      <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8">
+      <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6">
         {pillars.map((p, i) => (
           <motion.div
             key={p.label}
@@ -53,7 +53,7 @@ const AboutSection = () => (
             whileInView="visible"
             viewport={{ once: true }}
             variants={fadeIn}
-            className="flex flex-col items-center gap-4"
+            className="flex flex-col items-center gap-3"
           >
             <div className="w-14 h-14 rounded-full bg-blush-light flex items-center justify-center">
               <p.icon size={24} className="text-blush-dark" />

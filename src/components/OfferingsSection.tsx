@@ -30,15 +30,15 @@ const offerings = [
 ];
 
 const OfferingsSection = () => (
-  <section id="offerings" className="py-24 md:py-32 bg-secondary">
+  <section id="offerings" className="py-16 md:py-20 bg-secondary">
     <div className="container">
-      <div className="grid lg:grid-cols-2 gap-16 items-center">
+      <div className="grid lg:grid-cols-2 gap-12 items-center">
         <div>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark mb-4"
+            className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark mb-3"
           >
             How We Show Up
           </motion.p>
@@ -51,7 +51,7 @@ const OfferingsSection = () => (
             What We Do
           </motion.h2>
 
-          <div className="mt-10 grid gap-6">
+          <div className="mt-8 grid gap-5">
             {offerings.map((o, i) => (
               <motion.div
                 key={o.title}
@@ -59,7 +59,7 @@ const OfferingsSection = () => (
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="bg-card rounded-xl p-6 shadow-sm border border-border hover:shadow-md transition-shadow"
+                className="bg-card rounded-xl p-5 shadow-sm border border-border hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 rounded-lg bg-blush-light flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -70,7 +70,7 @@ const OfferingsSection = () => (
                       <h3 className="font-heading text-lg font-semibold text-foreground">{o.title}</h3>
                       <span className="text-xs font-body font-medium text-blush-dark bg-blush-light px-2 py-0.5 rounded-full">{o.tag}</span>
                     </div>
-                    <p className="mt-2 text-sm text-muted-foreground font-body leading-relaxed">{o.desc}</p>
+                    <p className="mt-1.5 text-sm text-muted-foreground font-body leading-relaxed">{o.desc}</p>
                   </div>
                 </div>
               </motion.div>
