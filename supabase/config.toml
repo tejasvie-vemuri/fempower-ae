@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.fetch-gallery]
 verify_jwt = false
+
+[functions.fetch-resources]
+verify_jwt = false
