@@ -2,3 +2,6 @@ project_id = "uaiymunelgvvnznkxeik"
 
 [functions.fetch-events]
 verify_jwt = false
+
+[functions.fetch-gallery]
+verify_jwt = false
