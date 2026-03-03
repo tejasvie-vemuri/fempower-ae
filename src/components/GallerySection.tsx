@@ -21,6 +21,14 @@ const GallerySection = () => {
   return (
     <section id="gallery" className="py-24 md:py-32 bg-secondary">
       <div className="container">
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark text-center mb-4"
+        >
+          In Motion
+        </motion.p>
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

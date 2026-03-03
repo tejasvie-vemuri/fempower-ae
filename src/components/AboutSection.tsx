@@ -18,6 +18,14 @@ const fadeIn = {
 const AboutSection = () => (
   <section id="about" className="py-24 md:py-32">
     <div className="container max-w-3xl text-center">
+      <motion.p
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark mb-4"
+      >
+        Our Story
+      </motion.p>
       <motion.h2
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}

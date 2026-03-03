@@ -16,6 +16,14 @@ const testimonials = [
 const TestimonialsSection = () => (
   <section className="py-24 md:py-32 bg-blush-light">
     <div className="container max-w-5xl">
+      <motion.p
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark text-center mb-4"
+      >
+        Voices
+      </motion.p>
       <motion.h2
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -39,7 +47,7 @@ const TestimonialsSection = () => (
             <p className="text-sm text-foreground font-body leading-relaxed italic">
               "{t.quote}"
             </p>
-            <p className="mt-4 text-xs text-muted-foreground font-body font-medium">
+            <p className="mt-4 text-xs text-muted-foreground font-body font-medium uppercase tracking-widest">
               — Community Member
             </p>
           </motion.div>

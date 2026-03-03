@@ -34,6 +34,14 @@ const OfferingsSection = () => (
     <div className="container">
       <div className="grid lg:grid-cols-2 gap-16 items-center">
         <div>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark mb-4"
+          >
+            How We Show Up
+          </motion.p>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

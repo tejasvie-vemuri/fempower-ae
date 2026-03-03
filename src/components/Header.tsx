@@ -30,7 +30,7 @@ const Header = () => {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-body font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="text-xs font-body font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
             >
               {link.label}
             </a>
@@ -44,8 +44,8 @@ const Header = () => {
           <a href="https://www.linkedin.com/company/fempowerae/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
           </a>
-          <Button size="sm" className="ml-2 bg-accent text-accent-foreground hover:bg-blush-dark font-body" asChild>
-            <a href="#join">Join on WhatsApp</a>
+          <Button size="sm" className="ml-2 bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs px-5" asChild>
+            <a href="#join">Join Us</a>
           </Button>
         </div>
 
@@ -63,14 +63,14 @@ const Header = () => {
               <a
                 key={link.href}
                 href={link.href}
-                className="text-base font-body text-muted-foreground hover:text-foreground transition-colors"
+                className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
                 onClick={() => setOpen(false)}
               >
                 {link.label}
               </a>
             ))}
-            <Button className="mt-2 bg-accent text-accent-foreground hover:bg-blush-dark font-body w-full" asChild>
-              <a href="#join" onClick={() => setOpen(false)}>Join on WhatsApp</a>
+            <Button className="mt-2 bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full" asChild>
+              <a href="#join" onClick={() => setOpen(false)}>Join Us</a>
             </Button>
           </nav>
         </div>

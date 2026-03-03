@@ -1,170 +1,142 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { Calendar } from "@/components/ui/calendar";
-import { CalendarHeart, MapPin, Clock } from "lucide-react";
+import { MapPin, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import eventBanner1 from "@/assets/event-banner-1.jpg";
+import eventBanner2 from "@/assets/event-banner-2.jpg";
+import eventBanner3 from "@/assets/event-banner-3.jpg";
 
-// Placeholder events — will be replaced with real data from an Excel upload
-const placeholderEvents = [
+const upcomingEvents = [
   {
-    date: new Date(2026, 2, 7),
-    title: "Networking Walk – Dubai Marina",
-    time: "7:00 AM",
-    location: "Dubai Marina Walk",
+    banner: eventBanner1,
+    type: "In-Person",
+    location: "Dubai Marina, UAE",
+    date: "Sat, Mar 7, 2026",
+    title: "Fempower @ Networking Walk",
+    rsvpLink: "#join",
   },
   {
-    date: new Date(2026, 2, 15),
-    title: "Busy Girl Glam Up",
-    time: "5:00 PM",
-    location: "Downtown Dubai",
-  },
-  {
-    date: new Date(2026, 2, 22),
-    title: "Coaching Circle: Personal Brand",
-    time: "6:30 PM",
+    banner: eventBanner2,
+    type: "In-Person",
     location: "Business Bay, Dubai",
+    date: "Sun, Mar 22, 2026",
+    title: "Fempower @ Coaching Circle",
+    rsvpLink: "#join",
   },
   {
-    date: new Date(2026, 3, 5),
-    title: "Mentor Walks Cohort Launch",
-    time: "8:00 AM",
-    location: "Al Qudra Lakes",
-  },
-  {
-    date: new Date(2026, 3, 18),
-    title: "Book Club Meetup",
-    time: "4:00 PM",
+    banner: eventBanner3,
+    type: "In-Person",
     location: "Abu Dhabi Corniche",
+    date: "Sat, Apr 5, 2026",
+    title: "Fempower @ Book Club",
+    rsvpLink: "#join",
   },
 ];
 
-const EventsCalendarSection = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-
-  const eventDates = placeholderEvents.map((e) => e.date);
-
-  const eventsForDate = selectedDate
-    ? placeholderEvents.filter(
-        (e) =>
-          e.date.getFullYear() === selectedDate.getFullYear() &&
-          e.date.getMonth() === selectedDate.getMonth() &&
-          e.date.getDate() === selectedDate.getDate()
-      )
-    : [];
-
-  return (
-    <section id="events-calendar" className="py-24 md:py-32 bg-secondary">
-      <div className="container max-w-5xl">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="font-heading text-3xl md:text-4xl font-semibold text-foreground text-center"
-        >
-          Upcoming Events
-        </motion.h2>
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.1 }}
-          className="mt-4 text-center text-muted-foreground font-body"
-        >
-          Tap a highlighted date to see what's coming up.
-        </motion.p>
-
+const EventsCalendarSection = () => (
+  <section id="events-calendar" className="py-24 md:py-32">
+    <div className="container">
+      {/* Header row */}
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-14">
+        <div>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark mb-4"
+          >
+            Event Calendar
+          </motion.p>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="font-heading text-3xl md:text-4xl font-semibold text-foreground"
+          >
+            Upcoming Events
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="mt-3 text-muted-foreground font-body max-w-lg"
+          >
+            Here are a few of our upcoming in-person events across the UAE.
+          </motion.p>
+        </div>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.2 }}
-          className="mt-12 grid md:grid-cols-2 gap-10 items-start"
         >
-          {/* Calendar */}
-          <div className="flex justify-center">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              modifiers={{ event: eventDates }}
-              modifiersClassNames={{
-                event: "bg-accent text-accent-foreground font-bold rounded-full",
-              }}
-              className="rounded-xl border border-border bg-card shadow-sm p-4"
-            />
-          </div>
-
-          {/* Event list */}
-          <div className="space-y-4 min-h-[280px]">
-            {selectedDate && eventsForDate.length > 0 ? (
-              eventsForDate.map((event, i) => (
-                <div
-                  key={i}
-                  className="bg-card border border-border rounded-xl p-5 shadow-sm"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-blush-light flex items-center justify-center flex-shrink-0">
-                      <CalendarHeart size={20} className="text-blush-dark" />
-                    </div>
-                    <div>
-                      <h4 className="font-heading text-base font-semibold text-foreground">
-                        {event.title}
-                      </h4>
-                      <div className="mt-1.5 flex flex-col gap-1">
-                        <span className="flex items-center gap-1.5 text-sm text-muted-foreground font-body">
-                          <Clock size={14} /> {event.time}
-                        </span>
-                        <span className="flex items-center gap-1.5 text-sm text-muted-foreground font-body">
-                          <MapPin size={14} /> {event.location}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : selectedDate ? (
-              <div className="bg-card border border-border rounded-xl p-8 text-center">
-                <p className="text-muted-foreground font-body text-sm">
-                  No events on this date. Try selecting a highlighted date!
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground font-body font-medium mb-4">
-                  All upcoming events:
-                </p>
-                {placeholderEvents.map((event, i) => (
-                  <div
-                    key={i}
-                    className="bg-card border border-border rounded-xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => setSelectedDate(event.date)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-blush-light flex items-center justify-center flex-shrink-0">
-                        <CalendarHeart size={16} className="text-blush-dark" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-body text-sm font-semibold text-foreground truncate">
-                          {event.title}
-                        </h4>
-                        <p className="text-xs text-muted-foreground font-body">
-                          {event.date.toLocaleDateString("en-AE", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                          })}{" "}
-                          · {event.time} · {event.location}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <Button
+            variant="outline"
+            className="font-body uppercase tracking-widest text-xs border-foreground text-foreground hover:bg-foreground hover:text-primary-foreground transition-colors h-11 px-6"
+            asChild
+          >
+            <a href="#join">
+              View Full Calendar <ArrowRight size={14} className="ml-2" />
+            </a>
+          </Button>
         </motion.div>
       </div>
-    </section>
-  );
-};
+
+      {/* Event cards */}
+      <div className="grid md:grid-cols-3 gap-8">
+        {upcomingEvents.map((event, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.1 }}
+            className="group"
+          >
+            {/* Banner image */}
+            <div className="overflow-hidden rounded-xl aspect-[4/3]">
+              <img
+                src={event.banner}
+                alt={event.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+            </div>
+
+            {/* Event details */}
+            <div className="mt-5">
+              {/* Type + Location */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="inline-block text-xs font-body font-semibold uppercase tracking-widest border border-foreground text-foreground px-3 py-1">
+                  {event.type}
+                </span>
+                <span className="flex items-center gap-1 text-sm text-muted-foreground font-body">
+                  <MapPin size={13} /> {event.location}
+                </span>
+              </div>
+
+              {/* Date */}
+              <p className="mt-3 text-sm text-blush-dark font-body font-medium">
+                {event.date}
+              </p>
+
+              {/* Title */}
+              <h3 className="mt-1 font-heading text-lg font-semibold text-foreground leading-snug">
+                {event.title}
+              </h3>
+
+              {/* RSVP */}
+              <a
+                href={event.rsvpLink}
+                className="mt-3 inline-block text-xs font-body font-semibold uppercase tracking-widest text-foreground border-b border-foreground pb-0.5 hover:text-blush-dark hover:border-blush-dark transition-colors"
+              >
+                RSVP Here
+              </a>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
 
 export default EventsCalendarSection;

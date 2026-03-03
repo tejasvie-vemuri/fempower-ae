@@ -44,6 +44,14 @@ const faqs = [
 const FAQSection = () => (
   <section id="faqs" className="py-24 md:py-32">
     <div className="container max-w-3xl">
+      <motion.p
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark text-center mb-4"
+      >
+        Common Questions
+      </motion.p>
       <motion.h2
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
