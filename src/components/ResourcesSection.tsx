@@ -80,13 +80,7 @@ const ResourcesSection = () => {
                 className="group bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col"
               >
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-lg bg-blush-light flex items-center justify-center flex-shrink-0">
-                    {resource.type === "pdf" ? (
-                      <FileText size={18} className="text-blush-dark" />
-                    ) : (
-                      <ExternalLink size={18} className="text-blush-dark" />
-                    )}
-                  </div>
+                  <span className="text-xl flex-shrink-0 mt-0.5">🦋</span>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-heading text-sm font-semibold text-foreground group-hover:text-blush-dark transition-colors line-clamp-2">
                       {resource.title}
