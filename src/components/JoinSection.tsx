@@ -1,0 +1,85 @@
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { CheckCircle } from "lucide-react";
+
+const bullets = [
+  "Daily prompts + honest conversations",
+  "Priority access to mentor walks + coaching circles",
+  "Events every 15 days across UAE",
+];
+
+const JoinSection = () => (
+  <section id="join" className="py-24 md:py-32">
+    <div className="container max-w-4xl">
+      <div className="bg-card rounded-2xl border border-border shadow-lg p-8 md:p-14">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          {/* Left */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="font-heading text-3xl md:text-4xl font-semibold text-foreground">
+              Join the WhatsApp community
+            </h2>
+            <p className="mt-4 text-muted-foreground font-body">
+              Get daily prompts, event updates, and access to mentorship + circles.
+            </p>
+            <ul className="mt-6 space-y-3">
+              {bullets.map((b) => (
+                <li key={b} className="flex items-start gap-3 text-sm font-body text-foreground">
+                  <CheckCircle size={18} className="text-blush-dark flex-shrink-0 mt-0.5" />
+                  {b}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+
+          {/* Right - QR / CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-center"
+          >
+            <div className="w-48 h-48 mx-auto bg-muted rounded-xl border-2 border-dashed border-border flex items-center justify-center">
+              <p className="text-sm text-muted-foreground font-body px-4">
+                [Insert WhatsApp Invite QR Code Here]
+              </p>
+            </div>
+            <Button className="mt-6 bg-accent text-accent-foreground hover:bg-blush-dark font-body w-full max-w-xs" asChild>
+              <a href="https://chat.whatsapp.com/YOUR_INVITE_LINK" target="_blank" rel="noopener noreferrer">
+                Open WhatsApp Invite Link
+              </a>
+            </Button>
+          </motion.div>
+        </div>
+
+        {/* Optional email form */}
+        <div className="mt-12 pt-8 border-t border-border">
+          <p className="text-sm text-muted-foreground font-body text-center mb-4">
+            Prefer email updates instead?
+          </p>
+          <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" onSubmit={(e) => e.preventDefault()}>
+            <input
+              type="text"
+              placeholder="Your name"
+              className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-body focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <input
+              type="email"
+              placeholder="Your email"
+              className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-body focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <Button type="submit" variant="outline" className="font-body">
+              I want updates
+            </Button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+export default JoinSection;
