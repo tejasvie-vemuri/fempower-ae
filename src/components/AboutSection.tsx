@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Heart, TrendingUp, Sparkles } from "lucide-react";
+import { PalmDivider, SkylineSilhouette } from "./GulfDecoratives";
 
 const pillars = [
   { icon: Heart, label: "Belonging", desc: "A safe space where you feel seen." },
@@ -16,7 +17,7 @@ const fadeIn = {
 };
 
 const AboutSection = () => (
-  <section id="about" className="py-16 md:py-20">
+  <section id="about" className="py-16 md:py-20 relative overflow-hidden">
     <div className="container max-w-3xl text-center">
       <motion.p
         initial={{ opacity: 0, y: 20 }}
@@ -44,6 +45,8 @@ const AboutSection = () => (
         Fempower is a safe, energizing space for women in the UAE—newcomers, professionals, founders—who want community that's practical and deeply human.
       </motion.p>
 
+      <PalmDivider className="mt-8 mb-8" />
+
       <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6">
         {pillars.map((p, i) => (
           <motion.div
@@ -62,6 +65,10 @@ const AboutSection = () => (
             <p className="text-sm text-muted-foreground font-body">{p.desc}</p>
           </motion.div>
         ))}
+      </div>
+
+      <div className="flex justify-center mt-10">
+        <SkylineSilhouette className="text-foreground" />
       </div>
     </div>
   </section>
