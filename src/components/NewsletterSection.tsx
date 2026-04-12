@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import communityImg from "@/assets/community-networking.jpg";
+import { CrescentStar } from "./GulfDecoratives";
 
 const NewsletterSection = () => (
   <section id="newsletter" className="py-16 md:py-20 bg-foreground text-primary-foreground">

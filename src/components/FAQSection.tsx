@@ -5,6 +5,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { PalmDivider } from "./GulfDecoratives";
 
 const faqs = [
   { q: "Is Fempower only for women in Dubai?", a: "Not at all! Fempower welcomes women from all emirates across the UAE. Our events happen in different cities, and the WhatsApp community connects women everywhere." },

@@ -53,6 +53,7 @@ const HeroSection = () => (
         </div>
       </motion.div>
     </div>
+    <DuneWave className="absolute bottom-0 left-0 z-10" />
   </section>
 );
 

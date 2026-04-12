@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Quote } from "lucide-react";
+import { SkylineSilhouette } from "./GulfDecoratives";
 
 const testimonials = [
   { quote: "Fempower gave me the courage to negotiate my salary for the first time. The coaching circle changed everything." },

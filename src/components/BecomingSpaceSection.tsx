@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
+import { CrescentStar } from "./GulfDecoratives";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

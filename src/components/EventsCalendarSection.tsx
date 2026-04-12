@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarHeart, MapPin, Clock, Loader2, MessageCircle } from "lucide-react";
+import { PalmDivider } from "./GulfDecoratives";
 
 const WHATSAPP_NUMBER = "971547911282";
 

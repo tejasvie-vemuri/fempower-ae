@@ -5,6 +5,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { SkylineSilhouette } from "./GulfDecoratives";
 
 const programs = [
   { id: "whatsapp", title: "WhatsApp Community", content: ["Daily prompts to spark honest conversations", "Book club discussions & reading challenges", "UAE-focused workplace conversations", "Fitness challenge threads", "Support circle energy—real wins, real struggles"] },

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2 } from "lucide-react";
+import { DuneWave } from "./GulfDecoratives";
 
 interface GalleryImage {
   id: string;

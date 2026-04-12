@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { MessageCircle, Footprints, Users, CalendarHeart } from "lucide-react";
 import coachingImg from "@/assets/community-coaching.jpg";
+import { PalmDivider } from "./GulfDecoratives";
 
 const offerings = [
   {
