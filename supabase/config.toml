@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.fetch-resources]
 verify_jwt = false
+
+[functions.fetch-substacks]
+verify_jwt = false
