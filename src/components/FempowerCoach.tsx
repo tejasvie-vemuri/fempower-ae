@@ -23,15 +23,6 @@ const FempowerCoach = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [showLabel, setShowLabel] = useState(true);
-
-  useEffect(() => {
-    if (!open) {
-      setShowLabel(true);
-      const timer = setTimeout(() => setShowLabel(false), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [open]);
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
@@ -81,20 +72,15 @@ const FempowerCoach = () => {
       <AnimatePresence>
         {!open && (
           <div className="fixed bottom-6 right-6 z-[60] flex items-center gap-3">
-            <AnimatePresence>
-              {showLabel && (
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.3 }}
-                  className="rounded-full px-4 py-2 shadow-md text-sm font-body font-medium whitespace-nowrap"
-                  style={{ background: "#FDF8F3", color: "#4A2040", border: "1px solid #D4A85360" }}
-                >
-                  Talk to me 💜
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="rounded-full px-4 py-2 shadow-md text-sm font-body font-medium whitespace-nowrap"
+              style={{ background: "#FDF8F3", color: "#4A2040", border: "1px solid #D4A85360" }}
+            >
+              Talk to me 💜
+            </motion.div>
             <motion.button
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
