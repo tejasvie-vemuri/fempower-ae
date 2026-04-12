@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import desertDunes from "@/assets/desert-dunes.jpg";
+import { PalmDivider } from "./GulfDecoratives";
 
 const bullets = [
   "Daily prompts + honest conversations",
@@ -9,8 +11,13 @@ const bullets = [
 ];
 
 const JoinSection = () => (
-  <section id="join" className="py-16 md:py-20">
-    <div className="container max-w-4xl">
+  <section id="join" className="py-16 md:py-20 relative overflow-hidden">
+    {/* Desert dunes background */}
+    <div className="absolute inset-0 pointer-events-none">
+      <img src={desertDunes} alt="" className="w-full h-full object-cover opacity-[0.08]" loading="lazy" width={1920} height={640} />
+    </div>
+    <div className="container max-w-4xl relative z-10">
+      <PalmDivider className="mb-10" />
       <div className="bg-card rounded-2xl border border-border shadow-lg p-8 md:p-12">
         <div className="grid md:grid-cols-2 gap-10 items-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
