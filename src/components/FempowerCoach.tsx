@@ -76,11 +76,25 @@ const FempowerCoach = () => {
             animate={{ scale: 1 }}
             exit={{ scale: 0 }}
             onClick={() => setOpen(true)}
-            className="fixed bottom-6 right-6 z-[60] w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110"
+            className="fixed bottom-6 right-6 z-[60] w-16 h-16 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
             style={{ background: "#4A2040" }}
             aria-label="Open Fempower Coach"
           >
-            <img src={butterflyIcon} alt="Fempower Coach" width={32} height={32} />
+            <motion.img
+              src={butterflyIcon}
+              alt="Fempower Coach"
+              width={34}
+              height={34}
+              animate={{
+                scale: [1, 1.12, 1],
+                rotateY: [0, 15, -15, 0],
+              }}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
           </motion.button>
         )}
       </AnimatePresence>
