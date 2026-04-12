@@ -111,6 +111,7 @@ const BecomingSpaceSection = () => {
   return (
     <section id="becoming-space" className="py-16 md:py-20 bg-secondary/40">
       <div className="container max-w-4xl">
+        <CrescentStar size={24} className="text-blush-dark mx-auto mb-6" />
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

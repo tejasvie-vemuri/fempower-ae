@@ -32,6 +32,7 @@ const offerings = [
 
 const OfferingsSection = () => (
   <section id="offerings" className="py-16 md:py-20 bg-secondary">
+    <PalmDivider className="mb-10" />
     <div className="container">
       <div className="grid lg:grid-cols-2 gap-12 items-center">
         <div>

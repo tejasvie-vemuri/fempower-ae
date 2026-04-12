@@ -7,6 +7,9 @@ import { CrescentStar } from "./GulfDecoratives";
 const NewsletterSection = () => (
   <section id="newsletter" className="py-16 md:py-20 bg-foreground text-primary-foreground">
     <div className="container">
+      <div className="flex justify-center mb-8">
+        <CrescentStar size={20} className="text-accent" />
+      </div>
       <div className="grid md:grid-cols-2 gap-12 items-center">
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
           <p className="text-xs font-body font-medium uppercase tracking-widest-xl text-accent mb-5">The Fempower Newsletter</p>

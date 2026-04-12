@@ -17,6 +17,7 @@ const programs = [
 const ProgramsSection = () => (
   <section id="programs" className="py-16 md:py-20">
     <div className="container max-w-3xl">
+      <SkylineSilhouette className="text-foreground mx-auto mb-8" />
       <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark text-center mb-3">Deep Dive</motion.p>
       <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="font-heading text-3xl md:text-4xl font-semibold text-foreground text-center">Programs Spotlight</motion.h2>
       <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="mt-3 text-center text-muted-foreground font-body">Explore what each program offers in detail.</motion.p>
