@@ -71,31 +71,43 @@ const FempowerCoach = () => {
       {/* Floating button */}
       <AnimatePresence>
         {!open && (
-          <motion.button
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0 }}
-            onClick={() => setOpen(true)}
-            className="fixed bottom-6 right-6 z-[60] w-16 h-16 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-            style={{ background: "#4A2040" }}
-            aria-label="Open Fempower Coach"
-          >
-            <motion.img
-              src={butterflyIcon}
-              alt="Fempower Coach"
-              width={34}
-              height={34}
-              animate={{
-                scale: [1, 1.12, 1],
-                rotateY: [0, 15, -15, 0],
-              }}
-              transition={{
-                duration: 2.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          </motion.button>
+          <div className="fixed bottom-6 right-6 z-[60] flex items-center gap-3">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ delay: 0.3 }}
+              className="rounded-full px-4 py-2 shadow-md text-sm font-body font-medium whitespace-nowrap"
+              style={{ background: "#FDF8F3", color: "#4A2040", border: "1px solid #D4A85360" }}
+            >
+              Talk to me 💜
+            </motion.div>
+            <motion.button
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0 }}
+              onClick={() => setOpen(true)}
+              className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+              style={{ background: "#4A2040" }}
+              aria-label="Open Fempower Coach"
+            >
+              <motion.img
+                src={butterflyIcon}
+                alt="Fempower Coach"
+                width={34}
+                height={34}
+                animate={{
+                  scale: [1, 1.12, 1],
+                  rotateY: [0, 15, -15, 0],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+            </motion.button>
+          </div>
         )}
       </AnimatePresence>
 
