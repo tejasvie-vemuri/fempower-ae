@@ -12,6 +12,7 @@ import JoinSection from "@/components/JoinSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
+import FempowerCoach from "@/components/FempowerCoach";
 
 const Index = () => (
   <>
@@ -31,6 +32,7 @@ const Index = () => (
       <FAQSection />
     </main>
     <Footer />
+    <FempowerCoach />
   </>
 );
 
