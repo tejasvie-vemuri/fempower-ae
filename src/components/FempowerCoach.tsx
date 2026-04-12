@@ -23,6 +23,15 @@ const FempowerCoach = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [showLabel, setShowLabel] = useState(true);
+
+  useEffect(() => {
+    if (!open) {
+      setShowLabel(true);
+      const timer = setTimeout(() => setShowLabel(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
