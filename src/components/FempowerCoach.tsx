@@ -80,7 +80,7 @@ const FempowerCoach = () => {
             style={{ background: "#4A2040" }}
             aria-label="Open Fempower Coach"
           >
-            <MessageCircle className="text-white" size={26} />
+            <img src={butterflyIcon} alt="Fempower Coach" width={32} height={32} />
           </motion.button>
         )}
       </AnimatePresence>
