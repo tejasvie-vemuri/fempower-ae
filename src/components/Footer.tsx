@@ -1,11 +1,15 @@
 import { Instagram } from "lucide-react";
 import logo from "@/assets/fempower-logo.jpg";
+import { CrescentStar, DuneWave } from "./GulfDecoratives";
 
 const Footer = () => (
-  <footer className="py-12 border-t border-border">
+  <footer className="border-t border-border">
+    <DuneWave className="-mt-[1px]" />
+    <div className="py-12">
     <div className="container flex flex-col md:flex-row items-center justify-between gap-6">
       <div className="flex items-center gap-4">
         <img src={logo} alt="Fempower" className="h-8 w-auto" />
+        <CrescentStar size={14} className="text-blush-dark" />
         <span className="text-xs text-muted-foreground font-body uppercase tracking-widest">Fempower · UAE</span>
       </div>
 
@@ -24,6 +28,7 @@ const Footer = () => (
       <p className="text-xs text-muted-foreground font-body">
         © {new Date().getFullYear()} Fempower. All rights reserved.
       </p>
+    </div>
     </div>
   </footer>
 );
