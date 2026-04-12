@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2 } from "lucide-react";
+import { DuneWave } from "./GulfDecoratives";
 
 interface GalleryImage {
   id: string;
@@ -63,8 +64,9 @@ const GallerySection = () => {
   }, [images.length]);
 
   return (
-    <section id="gallery" className="py-16 md:py-20 bg-secondary">
-      <div className="container max-w-4xl">
+    <section id="gallery" className="py-16 md:py-20 bg-secondary relative">
+      <DuneWave className="absolute top-0 left-0 rotate-180" />
+      <div className="container max-w-4xl relative z-10">
         <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark text-center mb-3">In Motion</motion.p>
         <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="font-heading text-3xl md:text-4xl font-semibold text-foreground text-center">Community Moments</motion.h2>
         <p className="mt-3 text-center text-muted-foreground font-body">A few moments from Fempower—connection in motion.</p>

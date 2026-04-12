@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarHeart, MapPin, Clock, Loader2, MessageCircle } from "lucide-react";
+import { PalmDivider } from "./GulfDecoratives";
 
 const WHATSAPP_NUMBER = "971547911282";
 
@@ -61,6 +62,7 @@ const EventsCalendarSection = () => {
 
   return (
     <section id="events-calendar" className="py-16 md:py-20">
+      <PalmDivider className="mb-10" />
       <div className="container max-w-5xl">
         <motion.p
           initial={{ opacity: 0, y: 20 }}

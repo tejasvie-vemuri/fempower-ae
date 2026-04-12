@@ -5,6 +5,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { PalmDivider } from "./GulfDecoratives";
 
 const faqs = [
   { q: "Is Fempower only for women in Dubai?", a: "Not at all! Fempower welcomes women from all emirates across the UAE. Our events happen in different cities, and the WhatsApp community connects women everywhere." },
@@ -19,6 +20,7 @@ const faqs = [
 
 const FAQSection = () => (
   <section id="faqs" className="py-16 md:py-20">
+    <PalmDivider className="mb-10" />
     <div className="container max-w-3xl">
       <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark text-center mb-3">Common Questions</motion.p>
       <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="font-heading text-3xl md:text-4xl font-semibold text-foreground text-center">Frequently Asked Questions</motion.h2>

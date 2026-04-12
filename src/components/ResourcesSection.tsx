@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ExternalLink, FileText, Loader2 } from "lucide-react";
+import { PalmDivider } from "./GulfDecoratives";
 
 interface Resource {
   title: string;
@@ -34,6 +35,7 @@ const ResourcesSection = () => {
 
   return (
     <section id="resources" className="py-16 md:py-20">
+      <PalmDivider className="mb-10" />
       <div className="container max-w-5xl">
         <motion.p
           initial={{ opacity: 0, y: 20 }}

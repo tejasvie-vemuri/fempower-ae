@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Instagram } from "lucide-react";
 import heroImg from "@/assets/hero-community.jpg";
+import { DuneWave } from "./GulfDecoratives";
 
 const HeroSection = () => (
   <section className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden">
@@ -52,6 +53,7 @@ const HeroSection = () => (
         </div>
       </motion.div>
     </div>
+    <DuneWave className="absolute bottom-0 left-0 z-10" />
   </section>
 );
 
