@@ -32,6 +32,7 @@ const Index = () => (
       <FAQSection />
     </main>
     <Footer />
+    <FempowerCoach />
   </>
 );
 
