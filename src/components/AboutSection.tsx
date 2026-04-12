@@ -17,7 +17,7 @@ const fadeIn = {
 };
 
 const AboutSection = () => (
-  <section id="about" className="py-16 md:py-20 relative overflow-hidden">
+  <section id="about" className="py-10 md:py-14 relative overflow-hidden">
     <div className="container max-w-3xl text-center">
       <motion.p
         initial={{ opacity: 0, y: 20 }}
@@ -45,7 +45,7 @@ const AboutSection = () => (
         Fempower is a safe, energizing space for women in the UAE—newcomers, professionals, founders—who want community that's practical and deeply human.
       </motion.p>
 
-      <PalmDivider className="mt-8 mb-8" />
+      <PalmDivider className="mt-5 mb-5" />
 
       <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6">
         {pillars.map((p, i) => (

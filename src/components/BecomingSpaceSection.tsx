@@ -109,7 +109,7 @@ const BecomingSpaceSection = () => {
   if (!loading && frameworks.length === 0) return null;
 
   return (
-    <section id="becoming-space" className="py-16 md:py-20 bg-secondary/40">
+    <section id="becoming-space" className="py-10 md:py-14 bg-secondary/40">
       <div className="container max-w-4xl">
         <CrescentStar size={24} className="text-blush-dark mx-auto mb-6" />
         <motion.p

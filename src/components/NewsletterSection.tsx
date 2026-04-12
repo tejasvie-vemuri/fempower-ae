@@ -5,9 +5,9 @@ import communityImg from "@/assets/community-networking.jpg";
 import { CrescentStar } from "./GulfDecoratives";
 
 const NewsletterSection = () => (
-  <section id="newsletter" className="py-16 md:py-20 bg-foreground text-primary-foreground">
+  <section id="newsletter" className="py-10 md:py-14 bg-foreground text-primary-foreground">
     <div className="container">
-      <div className="flex justify-center mb-8">
+      <div className="flex justify-center mb-5">
         <CrescentStar size={20} className="text-accent" />
       </div>
       <div className="grid md:grid-cols-2 gap-12 items-center">

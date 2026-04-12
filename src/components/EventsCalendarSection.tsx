@@ -61,8 +61,8 @@ const EventsCalendarSection = () => {
     : [];
 
   return (
-    <section id="events-calendar" className="py-16 md:py-20">
-      <PalmDivider className="mb-10" />
+    <section id="events-calendar" className="py-10 md:py-14">
+      <PalmDivider className="mb-6" />
       <div className="container max-w-5xl">
         <motion.p
           initial={{ opacity: 0, y: 20 }}
