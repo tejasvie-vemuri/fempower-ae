@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, Send, MessageCircle, Sparkles } from "lucide-react";
+import { X, Send, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
 import { streamChat, type Msg } from "@/lib/streamChat";
 import { motion, AnimatePresence } from "framer-motion";
+import butterflyIcon from "@/assets/butterfly-icon.png";
 
 const STARTERS = [
   "I have a difficult conversation coming up...",
