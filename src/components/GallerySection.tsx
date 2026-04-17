@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2 } from "lucide-react";
 import { DuneWave } from "./GulfDecoratives";
@@ -9,8 +9,9 @@ interface GalleryImage {
 }
 
 const SUPABASE_URL = "https://uaiymunelgvvnznkxeik.supabase.co";
+const MAX_IMAGES = 10;
 const VISIBLE_COUNT = 5;
-const ROTATE_INTERVAL = 3000;
+const ROTATE_INTERVAL = 5000;
 
 const GallerySection = () => {
   const [selected, setSelected] = useState<number | null>(null);
@@ -18,13 +19,16 @@ const GallerySection = () => {
   const [loading, setLoading] = useState(true);
   const [visibleIndices, setVisibleIndices] = useState<number[]>([]);
   const [nextHidden, setNextHidden] = useState(VISIBLE_COUNT);
+  const [inView, setInView] = useState(false);
+  const sectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const fetchGallery = async () => {
       try {
         const res = await fetch(`${SUPABASE_URL}/functions/v1/fetch-gallery`);
         const data = await res.json();
-        setImages(data.images || []);
+        const all: GalleryImage[] = data.images || [];
+        setImages(all.slice(0, MAX_IMAGES));
       } catch (err) {
         console.error("Failed to fetch gallery:", err);
       } finally {
@@ -44,27 +48,45 @@ const GallerySection = () => {
     }
   }, [images]);
 
-  // Rotate one image at a time every 3s
+  // Track whether the section is in view
   useEffect(() => {
+    const node = sectionRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { threshold: 0.25 }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  // Rotate one image at a time every 5s, only while in view
+  useEffect(() => {
+    if (!inView) return;
     if (images.length <= VISIBLE_COUNT) return;
 
     const interval = setInterval(() => {
       setVisibleIndices((prev) => {
+        // Pick a hidden image (not currently visible)
+        const visibleSet = new Set(prev);
+        let candidate = nextHidden % images.length;
+        let safety = images.length;
+        while (visibleSet.has(candidate) && safety-- > 0) {
+          candidate = (candidate + 1) % images.length;
+        }
         const slotToReplace = Math.floor(Math.random() * prev.length);
         const newIndices = [...prev];
-        setNextHidden((nh) => {
-          newIndices[slotToReplace] = nh % images.length;
-          return nh + 1;
-        });
+        newIndices[slotToReplace] = candidate;
+        setNextHidden(candidate + 1);
         return newIndices;
       });
     }, ROTATE_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [images.length]);
+  }, [images.length, inView, nextHidden]);
 
   return (
-    <section id="gallery" className="py-10 md:py-14 bg-secondary relative">
+    <section ref={sectionRef} id="gallery" className="py-10 md:py-14 bg-secondary relative">
       <DuneWave className="absolute top-0 left-0 rotate-180" />
       <div className="container max-w-4xl relative z-10">
         <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark text-center mb-3">In Motion</motion.p>
@@ -83,7 +105,7 @@ const GallerySection = () => {
                 if (!img) return null;
                 return (
                   <motion.div
-                    key={img.id}
+                    key={`${slot}-${img.id}`}
                     layout
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
