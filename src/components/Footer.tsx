@@ -14,7 +14,7 @@ const Footer = () => (
       </div>
 
       <div className="flex items-center gap-5">
-        <a href="https://www.instagram.com/fempowerae" target="_blank" rel="noopener noreferrer" aria-label="Fempower on Instagram" className="text-muted-foreground hover:text-foreground transition-colors">
+        <a href="https://www.instagram.com/fempower.ae" target="_blank" rel="noopener noreferrer" aria-label="Fempower on Instagram" className="text-muted-foreground hover:text-foreground transition-colors">
           <Instagram size={20} />
         </a>
         <a href="https://www.linkedin.com/company/fempowerae/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
