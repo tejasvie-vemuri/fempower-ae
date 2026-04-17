@@ -15,7 +15,7 @@ const faqs = [
   { q: "How often are events and where do they happen?", a: "We host events every 15 days across the UAE—from Dubai Marina to Abu Dhabi. Locations vary to keep things fresh and accessible." },
   { q: "Is this for founders or corporate professionals?", a: "Both! Fempower is for any woman who wants growth—whether you're building a startup, climbing the corporate ladder, or exploring a career pivot." },
   { q: "What if I'm new to the UAE?", a: "Even better! Fempower is the perfect place to build your tribe. Many of our members joined when they first moved to the UAE." },
-  { q: "How do I join?", a: "Simply scan the WhatsApp QR code or click the invite link in the Join section above. You'll be added to the community instantly!" },
+  { q: "How do I join?", a: "Simply DM us on our Instagram. We will respond promptly." },
 ];
 
 const FAQSection = () => (
