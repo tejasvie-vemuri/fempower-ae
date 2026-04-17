@@ -31,7 +31,7 @@ const HeroSection = () => (
 
         <div className="mt-7 flex flex-col sm:flex-row gap-4">
           <Button size="lg" className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs px-10 h-12" asChild>
-            <a href="#join">Join WhatsApp</a>
+            <a href="#join">Join Us</a>
           </Button>
           <Button size="lg" variant="outline" className="font-body uppercase tracking-widest text-xs px-10 h-12 border-foreground/20" asChild>
             <a href="#programs">Explore Programs</a>
