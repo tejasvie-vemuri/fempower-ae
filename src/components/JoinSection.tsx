@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import desertDunes from "@/assets/desert-dunes.jpg";
 import { PalmDivider } from "./GulfDecoratives";
+
+const INSTAGRAM_URL = "https://www.instagram.com/fempower.ae?igsh=cDB1OXNxcmhxanY5&utm_source=qr";
 
 const bullets = [
   "Daily prompts + honest conversations",
@@ -22,7 +24,7 @@ const JoinSection = () => (
         <div className="grid md:grid-cols-2 gap-10 items-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <p className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark mb-3">Get Involved</p>
-            <h2 className="font-heading text-3xl md:text-4xl font-semibold text-foreground">Join the WhatsApp community</h2>
+            <h2 className="font-heading text-3xl md:text-4xl font-semibold text-foreground">Join the WhatsApp community by following us</h2>
             <p className="mt-3 text-muted-foreground font-body">Get daily prompts, event updates, and access to mentorship + circles.</p>
             <ul className="mt-5 space-y-2.5">
               {bullets.map((b) => (
@@ -35,11 +37,18 @@ const JoinSection = () => (
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="text-center">
-            <div className="w-48 h-48 mx-auto bg-muted rounded-xl border-2 border-dashed border-border flex items-center justify-center">
-              <p className="text-sm text-muted-foreground font-body px-4">[Insert WhatsApp Invite QR Code Here]</p>
-            </div>
+            <a
+              href={INSTAGRAM_URL}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Follow Fempower on Instagram"
+              className="block w-48 h-48 mx-auto rounded-xl border border-border bg-blush-light hover:bg-blush-light/80 transition-colors flex flex-col items-center justify-center gap-3 group"
+            >
+              <Instagram size={48} className="text-blush-dark group-hover:scale-110 transition-transform" />
+              <p className="text-sm font-body font-medium text-foreground px-4">@fempower.ae</p>
+            </a>
             <Button className="mt-5 bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full max-w-xs h-11" asChild>
-              <a href="https://chat.whatsapp.com/YOUR_INVITE_LINK" target="_blank" rel="noopener noreferrer">Open WhatsApp Invite Link</a>
+              <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer">DM on Instagram</a>
             </Button>
           </motion.div>
         </div>
