@@ -118,10 +118,21 @@ serve(async (req) => {
   }
 
   try {
+    // If sheet ID hasn't been configured yet, return empty (component will hide itself)
+    if (SHEET_ID === "PLACEHOLDER_SHEET_ID") {
+      return new Response(JSON.stringify({ posts: [] }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Fetch publication list from Google Sheet
     const sheetRes = await fetch(CSV_URL);
     if (!sheetRes.ok) {
-      throw new Error(`Google Sheets fetch failed: ${sheetRes.status}`);
+      // Gracefully degrade — return empty list instead of 500
+      console.error(`Google Sheets fetch failed: ${sheetRes.status}`);
+      return new Response(JSON.stringify({ posts: [] }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const csv = await sheetRes.text();
