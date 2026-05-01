@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SHEET_ID = "1CwYwxc8DjXYsMIvHxn5SXdRjuCBx8Jx0";
+const SHEET_ID = Deno.env.get("FRAMEWORKS_SHEET_ID") ?? "";
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
 
 function parseCSVLine(line: string): string[] {
