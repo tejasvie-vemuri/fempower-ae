@@ -5,9 +5,15 @@ import heroImg from "@/assets/hero-community.jpg";
 import { DuneWave } from "./GulfDecoratives";
 
 const HeroSection = () => (
-  <section className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden">
+  <section className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden" aria-label="Fempower hero">
     <div className="absolute inset-0">
-      <img src={heroImg} alt="Fempower community gathering" className="w-full h-full object-cover" />
+      <img
+        src={heroImg}
+        alt="Women of the Fempower community gathering in Dubai, UAE"
+        className="w-full h-full object-cover"
+        fetchPriority="high"
+        decoding="async"
+      />
       <div className="absolute inset-0 bg-background/80" />
     </div>
 
@@ -19,14 +25,13 @@ const HeroSection = () => (
         className="max-w-2xl"
       >
         <p className="text-base md:text-lg font-body font-bold uppercase tracking-widest-xl text-blush-dark mb-5">
-          Women-first community · UAE
+          Women-first community · Dubai &amp; UAE
         </p>
         <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight tracking-tight text-foreground">
           Rooted Together, Rising Together.
         </h1>
         <p className="mt-5 text-lg md:text-xl text-muted-foreground font-body leading-relaxed max-w-xl">
-          Daily WhatsApp prompts. Mentor walks. Peer coaching circles. Events every 15 days.
-          For women who want real conversations and real momentum.
+          Fempower is a women-only community in Dubai and across the UAE. Join 300+ women from 15+ nationalities for daily WhatsApp prompts, mentor walks, peer coaching circles, and women's networking events every 15 days.
         </p>
 
         <div className="mt-7 flex flex-col sm:flex-row gap-4">
