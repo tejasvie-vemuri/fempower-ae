@@ -4,7 +4,7 @@ import { PalmDivider, SkylineSilhouette } from "./GulfDecoratives";
 
 const stats = [
   { icon: Globe2, value: "15+", label: "Nationalities" },
-  { icon: Users, value: "400+", label: "Members" },
+  { icon: Users, value: "300+", label: "Members" },
 ];
 
 const pillars = [
