@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Footprints, Users, CalendarHeart } from "lucide-react";
 import whatsappImg from "@/assets/community-networking.jpg";
-import walkImg from "@/assets/community-walk.jpg";
+import walkImg from "@/assets/mentor-walk-women.jpg";
 import coachingImg from "@/assets/community-coaching.jpg";
 import eventImg from "@/assets/community-event.jpg";
 import { PalmDivider } from "./GulfDecoratives";

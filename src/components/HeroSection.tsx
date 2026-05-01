@@ -8,7 +8,7 @@ const HeroSection = () => (
   <section className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden">
     <div className="absolute inset-0">
       <img src={heroImg} alt="Fempower community gathering" className="w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-background/45" />
+      <div className="absolute inset-0 bg-background/80" />
     </div>
 
     <div className="container relative z-10 py-16 md:py-24">
@@ -18,9 +18,9 @@ const HeroSection = () => (
         transition={{ duration: 0.8 }}
         className="max-w-2xl"
       >
-        <span className="inline-block text-sm md:text-base font-body font-bold uppercase tracking-widest-xl text-primary-foreground bg-foreground/85 backdrop-blur-sm px-4 py-2 rounded-sm mb-6 shadow-md">
+        <p className="text-xs font-body font-bold uppercase tracking-widest-xl text-blush-dark mb-5">
           Women-first community · UAE
-        </span>
+        </p>
         <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight tracking-tight text-foreground">
           Rooted Together, Rising Together.
         </h1>
