@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const FOLDER_ID = "1YCaVQ4cCWq6RR3bm3O5TwRDXjmnqaoNW";
+const FOLDER_ID = Deno.env.get("GALLERY_FOLDER_ID") ?? "";
 const EMBED_URL = `https://drive.google.com/embeddedfolderview?id=${FOLDER_ID}#grid`;
 
 serve(async (req) => {
