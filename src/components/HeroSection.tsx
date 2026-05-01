@@ -18,7 +18,7 @@ const HeroSection = () => (
         transition={{ duration: 0.8 }}
         className="max-w-2xl"
       >
-        <p className="text-xs font-body font-bold uppercase tracking-widest-xl text-blush-dark mb-5">
+        <p className="text-base md:text-lg font-body font-bold uppercase tracking-widest-xl text-blush-dark mb-5">
           Women-first community · UAE
         </p>
         <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight tracking-tight text-foreground">
