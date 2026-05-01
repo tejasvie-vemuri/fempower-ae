@@ -14,11 +14,13 @@ import TestimonialsSection from "@/components/TestimonialsSection";
 import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
 import FempowerCoach from "@/components/FempowerCoach";
+import SeoSummary from "@/components/SeoSummary";
 
 const Index = () => (
   <>
     <Header />
-    <main>
+    <main id="main">
+      <SeoSummary />
       <HeroSection />
       <AboutSection />
       <OfferingsSection />
