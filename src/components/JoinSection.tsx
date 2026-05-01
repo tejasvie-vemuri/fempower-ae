@@ -53,14 +53,6 @@ const JoinSection = () => (
           </motion.div>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-border">
-          <p className="text-sm text-muted-foreground font-body text-center mb-3">Prefer email updates instead?</p>
-          <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" onSubmit={(e) => e.preventDefault()}>
-            <input type="text" placeholder="Your name" className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-body focus:outline-none focus:ring-2 focus:ring-ring" />
-            <input type="email" placeholder="Your email" className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-body focus:outline-none focus:ring-2 focus:ring-ring" />
-            <Button type="submit" variant="outline" className="font-body uppercase tracking-widest text-xs">Subscribe</Button>
-          </form>
-        </div>
       </div>
     </div>
   </section>
