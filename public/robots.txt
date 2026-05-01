@@ -82,4 +82,4 @@ Allow: /
 User-agent: Meta-ExternalFetcher
 Allow: /
 
-Sitemap: https://fempower.ae/sitemap.xml
+Sitemap: https://fempowerae.com/sitemap.xml
