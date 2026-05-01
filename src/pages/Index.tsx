@@ -28,7 +28,7 @@ const Index = () => (
       <GallerySection />
       <SubstackFeedSection />
       <ResourcesSection />
-      <NewsletterSection />
+      {/* <NewsletterSection /> hidden for now */}
       <JoinSection />
       <TestimonialsSection />
       <FAQSection />
