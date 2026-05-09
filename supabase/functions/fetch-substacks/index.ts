@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 // TODO: Replace with actual Sheet ID once user provides it
-const SHEET_ID = "PLACEHOLDER_SHEET_ID";
+const SHEET_ID = Deno.env.get("SUBSTACKS_SHEET_ID") ?? "";
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
 
 function parseCSVLine(line: string): string[] {
