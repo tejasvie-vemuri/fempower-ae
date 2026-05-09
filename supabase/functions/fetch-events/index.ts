@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const SHEET_ID = Deno.env.get("EVENTS_SHEET_ID") ?? "";
-const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
 function parseCSVLine(line: string): string[] {
   const result: string[] = [];
@@ -47,7 +47,7 @@ serve(async (req) => {
   }
 
   try {
-    const res = await fetch(CSV_URL);
+    const res = await fetch(`${CSV_URL}&_=${Date.now()}`, { cache: "no-store", redirect: "follow" });
     if (!res.ok) {
       throw new Error(`Google Sheets fetch failed: ${res.status}`);
     }
