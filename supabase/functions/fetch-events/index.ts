@@ -47,7 +47,7 @@ serve(async (req) => {
   }
 
   try {
-    const res = await fetch(CSV_URL);
+    const res = await fetch(`${CSV_URL}&_=${Date.now()}`, { cache: "no-store" });
     if (!res.ok) {
       throw new Error(`Google Sheets fetch failed: ${res.status}`);
     }
