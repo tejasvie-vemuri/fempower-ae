@@ -354,8 +354,22 @@ const AdminRegistrations = () => {
                   const p = profiles[r.user_id];
                   return (
                     <TableRow key={r.id}>
-                      <TableCell className="font-medium">
-                        {p?.name ?? "—"}
+                      <TableCell className="font-medium align-top">
+                        <div>{p?.name ?? "—"}</div>
+                        {questions.length > 0 && r.responses && (
+                          <div className="mt-1 space-y-0.5 text-xs font-normal text-muted-foreground">
+                            {questions.map((q) => {
+                              const v = (r.responses as Record<string, unknown>)[q.id];
+                              if (v == null || v === "") return null;
+                              return (
+                                <div key={q.id} className="truncate max-w-[220px]" title={`${q.label}: ${String(v)}`}>
+                                  <span className="text-foreground/70">{q.label}:</span>{" "}
+                                  {String(v)}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="text-sm">
                         <div>{p?.email ?? "—"}</div>
