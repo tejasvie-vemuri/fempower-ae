@@ -92,6 +92,9 @@ const MyTickets = () => {
   const navigate = useNavigate();
   const [tickets, setTickets] = useState<TicketRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cancelTarget, setCancelTarget] = useState<TicketRow | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -99,24 +102,47 @@ const MyTickets = () => {
     }
   }, [authLoading, user, navigate]);
 
-  useEffect(() => {
+  const loadTickets = async () => {
     if (!user) return;
-    const load = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("registrations")
-        .select(
-          "id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, event:events(id, slug, title, starts_at, ends_at, location, cover_image_url)",
-        )
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (!error && data) {
-        setTickets(data as unknown as TicketRow[]);
-      }
-      setLoading(false);
-    };
-    load();
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("registrations")
+      .select(
+        "id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, cancellation_requested_at, cancellation_reason, event:events(id, slug, title, starts_at, ends_at, location, cover_image_url)",
+      )
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    if (!error && data) {
+      setTickets(data as unknown as TicketRow[]);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadTickets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  const submitCancellation = async () => {
+    if (!cancelTarget) return;
+    setCancelling(true);
+    const { error } = await supabase
+      .from("registrations")
+      .update({
+        cancellation_requested_at: new Date().toISOString(),
+        cancellation_reason: cancelReason.trim() || null,
+      })
+      .eq("id", cancelTarget.id);
+    setCancelling(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Cancellation request sent. Our team will review it shortly.");
+    setCancelTarget(null);
+    setCancelReason("");
+    loadTickets();
+  };
 
   return (
     <div className="min-h-screen bg-background">
