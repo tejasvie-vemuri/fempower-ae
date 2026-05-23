@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { toast } from "sonner";
+import { AddToCalendarButton } from "@/components/AddToCalendarButton";
 import {
   Loader2,
   Calendar as CalendarIcon,
@@ -380,6 +381,21 @@ const EventDetail = () => {
                   </span>
                 </div>
               )}
+            </div>
+
+            <div>
+              <AddToCalendarButton
+                event={{
+                  title: event.title,
+                  description: event.description,
+                  location: event.location,
+                  startsAt: event.starts_at,
+                  endsAt: event.ends_at,
+                  url: typeof window !== "undefined" ? window.location.href : undefined,
+                  uid: `event-${event.id}@fempowerae.com`,
+                }}
+                size="sm"
+              />
             </div>
 
             {event.description && (

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { AddToCalendarButton } from "@/components/AddToCalendarButton";
 
 interface TicketRow {
   id: string;
@@ -250,6 +251,18 @@ const MyTickets = () => {
                             <Download className="w-4 h-4 mr-1" />
                             Download QR
                           </Button>
+                        )}
+                        {isConfirmed && event && (
+                          <AddToCalendarButton
+                            size="sm"
+                            event={{
+                              title: event.title,
+                              location: event.location,
+                              startsAt: event.starts_at,
+                              endsAt: event.ends_at,
+                              uid: `ticket-${t.id}@fempowerae.com`,
+                            }}
+                          />
                         )}
                         {isConfirmed && !t.cancellation_requested_at && (
                           <Button
