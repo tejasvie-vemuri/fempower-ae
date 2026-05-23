@@ -151,6 +151,11 @@ const AdminRegistrations = () => {
     return { confirmed, checkedIn, pending };
   }, [regs]);
 
+  const questions: AttendeeQuestion[] = useMemo(
+    () => parseQuestions(event?.attendee_questions),
+    [event?.attendee_questions],
+  );
+
   const toggleCheckIn = async (r: Registration) => {
     setBusyId(r.id);
     const next = r.checked_in_at ? null : new Date().toISOString();
