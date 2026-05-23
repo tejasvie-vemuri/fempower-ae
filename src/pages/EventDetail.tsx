@@ -357,13 +357,6 @@ const EventDetail = () => {
                     {acting ? "Loading…" : "Resume checkout"}
                   </Button>
                 </>
-              ) : (
-                null
-              )}
-              {!myReg && event.status === "published" && (
-                <></div>
-                  Your payment is pending. Refresh after completing checkout.
-                </div>
               ) : isFull ? (
                 event.waitlist_enabled ? (
                   onWaitlist ? (
