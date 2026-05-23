@@ -24,11 +24,12 @@ export const MemberDrawer = ({
         <SheetHeader className="text-left">
           <div className="flex items-center gap-4">
             <div className="h-20 w-20 rounded-full bg-secondary flex items-center justify-center overflow-hidden ring-2 ring-primary/10">
-              {member.photo_url ? (
-                <img src={member.photo_url} alt={member.name} className="h-full w-full object-cover" />
-              ) : (
-                <span className="font-heading text-2xl text-primary">{initials(member.name) || "·"}</span>
-              )}
+              <MemberAvatar
+                path={member.photo_url}
+                alt={member.name}
+                className="h-full w-full object-cover"
+                fallback={<span className="font-heading text-2xl text-primary">{initials(member.name) || "·"}</span>}
+              />
             </div>
             <div>
               <SheetTitle className="font-heading text-2xl">{member.name}</SheetTitle>
