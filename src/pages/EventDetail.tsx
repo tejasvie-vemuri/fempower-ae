@@ -22,6 +22,15 @@ import {
   type AttendeeResponses,
 } from "@/lib/attendeeQuestions";
 import { AttendeeQuestionsForm } from "@/components/AttendeeQuestionsForm";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  MAX_QUANTITY,
+  sanitizeGuests,
+  validateGuests,
+  type Guest,
+} from "@/lib/guests";
+import { Minus, Plus } from "lucide-react";
 import {
   Loader2,
   Calendar as CalendarIcon,
