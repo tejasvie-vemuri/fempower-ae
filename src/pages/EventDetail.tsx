@@ -66,6 +66,13 @@ const EventDetail = () => {
   const [checkoutSecret, setCheckoutSecret] = useState<string | null>(null);
   const [checkoutSessionId, setCheckoutSessionId] = useState<string | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [responses, setResponses] = useState<AttendeeResponses>({});
+  const [responseErrors, setResponseErrors] = useState<Record<string, string>>({});
+
+  const questions: AttendeeQuestion[] = useMemo(
+    () => parseQuestions(event?.attendee_questions),
+    [event?.attendee_questions],
+  );
 
   const load = async () => {
     if (!slug) return;
