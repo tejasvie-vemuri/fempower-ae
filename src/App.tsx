@@ -11,7 +11,11 @@ import AdminEvents from "./pages/AdminEvents";
 import AdminRegistrations from "./pages/AdminRegistrations";
 import EventDetail from "./pages/EventDetail";
 import MyTickets from "./pages/MyTickets";
+import Directory from "./pages/Directory";
+import MemberProfileEdit from "./pages/MemberProfileEdit";
+import AdminMembers from "./pages/AdminMembers";
 import { AdminRoute } from "@/components/AdminRoute";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
