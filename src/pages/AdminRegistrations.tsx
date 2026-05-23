@@ -224,21 +224,24 @@ const AdminRegistrations = () => {
   };
 
   const exportCsv = () => {
+    const baseHeaders = [
+      "Name",
+      "Email",
+      "Phone",
+      "Status",
+      "Ticket code",
+      "Amount",
+      "Currency",
+      "Checked in",
+      "Registered at",
+      "Payment intent",
+    ];
+    const questionHeaders = questions.map((q) => q.label);
     const rows = [
-      [
-        "Name",
-        "Email",
-        "Phone",
-        "Status",
-        "Ticket code",
-        "Amount",
-        "Currency",
-        "Checked in",
-        "Registered at",
-        "Payment intent",
-      ],
+      [...baseHeaders, ...questionHeaders],
       ...filtered.map((r) => {
         const p = profiles[r.user_id];
+        const answers = (r.responses ?? {}) as Record<string, unknown>;
         return [
           p?.name ?? "",
           p?.email ?? "",
@@ -250,6 +253,10 @@ const AdminRegistrations = () => {
           r.checked_in_at ?? "",
           r.created_at,
           r.stripe_payment_intent_id ?? "",
+          ...questions.map((q) => {
+            const v = answers[q.id];
+            return v == null ? "" : String(v);
+          }),
         ];
       }),
     ];
