@@ -209,20 +209,30 @@ const FempowerCoach = () => {
               {messages.length === 0 && (
                 <div className="space-y-3">
                   <p className="text-sm font-body" style={{ color: "#4A2040" }}>
-                    Hi, I'm Zara — your Fempower coach. Tell me what's on your plate this week, or pick a starting point below.
+                    Hi, I'm Zara — your Fempower coach.
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    {STARTERS.map((s) => (
+                  <p className="text-xs font-body uppercase tracking-widest" style={{ color: "#4A204090" }}>
+                    Where would you like to start?
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {starters.map((s) => (
                       <button
-                        key={s}
-                        onClick={() => sendMessage(s)}
-                        className="text-xs font-body px-3 py-1.5 rounded-full border transition-colors hover:bg-opacity-10"
-                        style={{ borderColor: "#D4A853", color: "#4A2040" }}
+                        key={s.id}
+                        onClick={() => sendMessage(s.full)}
+                        className="text-left text-xs font-body px-3 py-2 rounded-full border transition-colors hover:bg-[#4A2040]/5"
+                        style={{ borderColor: "#4A2040", color: "#C9A84C", background: "transparent" }}
                       >
-                        {s}
+                        <span style={{ color: "#4A2040" }}>{s.label}</span>
                       </button>
                     ))}
                   </div>
+                  <button
+                    onClick={() => setStarters(pickStarters())}
+                    className="text-[11px] font-body underline-offset-2 hover:underline"
+                    style={{ color: "#4A204080" }}
+                  >
+                    Show me different options
+                  </button>
                 </div>
               )}
               {messages.map((msg, i) => (
