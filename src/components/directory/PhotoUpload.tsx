@@ -37,8 +37,7 @@ export const PhotoUpload = ({ userId, value, onChange }: Props) => {
         cacheControl: "3600", upsert: true, contentType: file.type,
       });
       if (error) throw error;
-      const { data } = supabase.storage.from("member-photos").getPublicUrl(path);
-      onChange(data.publicUrl);
+      onChange(path);
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });
     } finally {
