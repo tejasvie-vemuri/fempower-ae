@@ -161,6 +161,55 @@ const AdminRegistrations = () => {
     );
   };
 
+  const refund = async (r: Registration) => {
+    if (
+      !confirm(
+        `Refund ${r.currency} ${(r.amount_paid_cents / 100).toFixed(2)}? This will mark the ticket as refunded and free up a seat.`,
+      )
+    )
+      return;
+    setBusyId(r.id);
+    const { data, error } = await supabase.functions.invoke("refund-registration", {
+      body: { registration_id: r.id, environment: getStripeEnvironment() },
+    });
+    setBusyId(null);
+    if (error || data?.error) {
+      toast.error(error?.message ?? data?.error ?? "Refund failed");
+      return;
+    }
+    toast.success("Refunded");
+    setRegs((prev) =>
+      prev.map((x) => (x.id === r.id ? { ...x, status: "refunded" } : x)),
+    );
+  };
+
+  const promoteFromWaitlist = async (entry: WaitlistEntry) => {
+    if (!confirm("Promote this person off the waitlist? They'll need to complete payment.")) return;
+    setBusyId(entry.id);
+    const { error: insErr } = await supabase
+      .from("registrations")
+      .insert({
+        event_id: eventId!,
+        user_id: entry.user_id,
+        status: "pending",
+        amount_paid_cents: 0,
+        currency: event?.id ? "AED" : "AED",
+      });
+    if (insErr && !insErr.message.includes("duplicate")) {
+      setBusyId(null);
+      toast.error(insErr.message);
+      return;
+    }
+    const { error: delErr } = await supabase.from("waitlist").delete().eq("id", entry.id);
+    setBusyId(null);
+    if (delErr) {
+      toast.error(delErr.message);
+      return;
+    }
+    toast.success("Promoted — share the event link with them to complete payment.");
+    load();
+  };
+
   const exportCsv = () => {
     const rows = [
       [
