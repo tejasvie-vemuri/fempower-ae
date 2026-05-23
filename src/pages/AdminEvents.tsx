@@ -30,6 +30,11 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Loader2, Pencil, Plus, Trash2, ArrowLeft, Users } from "lucide-react";
+import {
+  AttendeeQuestion,
+  parseQuestions,
+} from "@/lib/attendeeQuestions";
+import { AttendeeQuestionsEditor } from "@/components/admin/AttendeeQuestionsEditor";
 
 type EventStatus = "draft" | "published" | "cancelled" | "completed";
 
@@ -48,6 +53,7 @@ interface EventRow {
   capacity: number;
   status: EventStatus;
   waitlist_enabled: boolean;
+  attendee_questions: unknown;
 }
 
 const emptyForm = {
@@ -65,6 +71,7 @@ const emptyForm = {
   capacity: "0",
   status: "draft" as EventStatus,
   waitlist_enabled: true,
+  attendee_questions: [] as AttendeeQuestion[],
 };
 
 const slugify = (s: string) =>
@@ -125,6 +132,7 @@ const AdminEvents = () => {
       capacity: e.capacity.toString(),
       status: e.status,
       waitlist_enabled: e.waitlist_enabled,
+      attendee_questions: parseQuestions(e.attendee_questions),
     });
     setOpen(true);
   };
@@ -151,6 +159,9 @@ const AdminEvents = () => {
       capacity: parseInt(form.capacity || "0", 10),
       status: form.status,
       waitlist_enabled: form.waitlist_enabled,
+      attendee_questions: JSON.parse(
+        JSON.stringify(form.attendee_questions.filter((q) => q.label.trim())),
+      ),
     };
     const { error } = form.id
       ? await supabase.from("events").update(payload).eq("id", form.id)
@@ -333,6 +344,13 @@ const AdminEvents = () => {
                     Enable waitlist when full
                   </Label>
                 </div>
+
+                <AttendeeQuestionsEditor
+                  value={form.attendee_questions}
+                  onChange={(next) =>
+                    setForm((f) => ({ ...f, attendee_questions: next }))
+                  }
+                />
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                     Cancel

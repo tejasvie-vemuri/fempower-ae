@@ -16,6 +16,13 @@ import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { toast } from "sonner";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
 import {
+  parseQuestions,
+  validateResponses,
+  type AttendeeQuestion,
+  type AttendeeResponses,
+} from "@/lib/attendeeQuestions";
+import { AttendeeQuestionsForm } from "@/components/AttendeeQuestionsForm";
+import {
   Loader2,
   Calendar as CalendarIcon,
   MapPin,
@@ -40,6 +47,7 @@ interface EventData {
   capacity: number;
   status: string;
   waitlist_enabled: boolean;
+  attendee_questions: unknown;
 }
 
 const EventDetail = () => {
@@ -58,6 +66,13 @@ const EventDetail = () => {
   const [checkoutSecret, setCheckoutSecret] = useState<string | null>(null);
   const [checkoutSessionId, setCheckoutSessionId] = useState<string | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [responses, setResponses] = useState<AttendeeResponses>({});
+  const [responseErrors, setResponseErrors] = useState<Record<string, string>>({});
+
+  const questions: AttendeeQuestion[] = useMemo(
+    () => parseQuestions(event?.attendee_questions),
+    [event?.attendee_questions],
+  );
 
   const load = async () => {
     if (!slug) return;
@@ -170,6 +185,15 @@ const EventDetail = () => {
       navigate(`/auth?redirect=/events/${event.slug}`);
       return;
     }
+    if (questions.length) {
+      const v = validateResponses(questions, responses);
+      setResponseErrors(v.errors);
+      if (!v.ok) {
+        toast.error("Please answer the required questions");
+        return;
+      }
+    }
+    const responsesPayload = JSON.parse(JSON.stringify(responses));
     setActing(true);
     if (isFree) {
       const { data: existing } = await supabase
@@ -182,7 +206,12 @@ const EventDetail = () => {
       if (existing) {
         const r = await supabase
           .from("registrations")
-          .update({ status: "confirmed", amount_paid_cents: 0, currency: event.currency })
+          .update({
+            status: "confirmed",
+            amount_paid_cents: 0,
+            currency: event.currency,
+            responses: responsesPayload,
+          })
           .eq("id", existing.id);
         error = r.error;
       } else {
@@ -192,6 +221,7 @@ const EventDetail = () => {
           status: "confirmed",
           amount_paid_cents: 0,
           currency: event.currency,
+          responses: responsesPayload,
         });
         error = r.error;
       }
@@ -208,6 +238,7 @@ const EventDetail = () => {
           event_id: event.id,
           origin: window.location.origin,
           environment: getStripeEnvironment(),
+          responses: responsesPayload,
         },
       });
       setActing(false);
@@ -403,6 +434,22 @@ const EventDetail = () => {
                 {event.description}
               </div>
             )}
+
+            {questions.length > 0 &&
+              (!myReg || myReg.status !== "confirmed") &&
+              event.status === "published" &&
+              !isFull && (
+                <AttendeeQuestionsForm
+                  questions={questions}
+                  values={responses}
+                  errors={responseErrors}
+                  onChange={(next) => {
+                    setResponses(next);
+                    if (Object.keys(responseErrors).length) setResponseErrors({});
+                  }}
+                  disabled={acting}
+                />
+              )}
           </div>
 
           <aside className="md:col-span-1">

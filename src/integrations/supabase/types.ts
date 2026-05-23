@@ -108,6 +108,7 @@ export type Database = {
       }
       events: {
         Row: {
+          attendee_questions: Json
           capacity: number
           cover_image_url: string | null
           created_at: string
@@ -127,6 +128,7 @@ export type Database = {
           waitlist_enabled: boolean
         }
         Insert: {
+          attendee_questions?: Json
           capacity?: number
           cover_image_url?: string | null
           created_at?: string
@@ -146,6 +148,7 @@ export type Database = {
           waitlist_enabled?: boolean
         }
         Update: {
+          attendee_questions?: Json
           capacity?: number
           cover_image_url?: string | null
           created_at?: string
@@ -206,6 +209,7 @@ export type Database = {
           currency: string
           event_id: string
           id: string
+          responses: Json
           status: string
           stripe_payment_intent_id: string | null
           stripe_session_id: string | null
@@ -222,6 +226,7 @@ export type Database = {
           currency?: string
           event_id: string
           id?: string
+          responses?: Json
           status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
@@ -238,6 +243,7 @@ export type Database = {
           currency?: string
           event_id?: string
           id?: string
+          responses?: Json
           status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null

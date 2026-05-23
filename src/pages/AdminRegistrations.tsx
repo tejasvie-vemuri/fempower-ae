@@ -14,6 +14,10 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Check, Download, Loader2, Undo2, RefreshCcw, UserPlus } from "lucide-react";
 import { getStripeEnvironment } from "@/lib/stripe";
+import {
+  parseQuestions,
+  type AttendeeQuestion,
+} from "@/lib/attendeeQuestions";
 
 interface WaitlistEntry {
   id: string;
@@ -35,6 +39,7 @@ interface Registration {
   stripe_payment_intent_id: string | null;
   cancellation_requested_at: string | null;
   cancellation_reason: string | null;
+  responses: Record<string, unknown> | null;
 }
 
 interface Profile {
@@ -50,6 +55,7 @@ interface EventInfo {
   slug: string;
   starts_at: string;
   capacity: number;
+  attendee_questions: unknown;
 }
 
 const fmtDate = (iso: string | null) =>
@@ -80,13 +86,13 @@ const AdminRegistrations = () => {
     const [{ data: ev }, { data: regsData, error }, { data: wl }] = await Promise.all([
       supabase
         .from("events")
-        .select("id, title, slug, starts_at, capacity")
+        .select("id, title, slug, starts_at, capacity, attendee_questions")
         .eq("id", eventId)
         .maybeSingle(),
       supabase
         .from("registrations")
         .select(
-          "id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, stripe_payment_intent_id, cancellation_requested_at, cancellation_reason",
+          "id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, stripe_payment_intent_id, cancellation_requested_at, cancellation_reason, responses",
         )
         .eq("event_id", eventId)
         .order("created_at", { ascending: false }),
@@ -144,6 +150,11 @@ const AdminRegistrations = () => {
     const pending = regs.filter((r) => r.status === "pending").length;
     return { confirmed, checkedIn, pending };
   }, [regs]);
+
+  const questions: AttendeeQuestion[] = useMemo(
+    () => parseQuestions(event?.attendee_questions),
+    [event?.attendee_questions],
+  );
 
   const toggleCheckIn = async (r: Registration) => {
     setBusyId(r.id);
@@ -213,21 +224,24 @@ const AdminRegistrations = () => {
   };
 
   const exportCsv = () => {
+    const baseHeaders = [
+      "Name",
+      "Email",
+      "Phone",
+      "Status",
+      "Ticket code",
+      "Amount",
+      "Currency",
+      "Checked in",
+      "Registered at",
+      "Payment intent",
+    ];
+    const questionHeaders = questions.map((q) => q.label);
     const rows = [
-      [
-        "Name",
-        "Email",
-        "Phone",
-        "Status",
-        "Ticket code",
-        "Amount",
-        "Currency",
-        "Checked in",
-        "Registered at",
-        "Payment intent",
-      ],
+      [...baseHeaders, ...questionHeaders],
       ...filtered.map((r) => {
         const p = profiles[r.user_id];
+        const answers = (r.responses ?? {}) as Record<string, unknown>;
         return [
           p?.name ?? "",
           p?.email ?? "",
@@ -239,6 +253,10 @@ const AdminRegistrations = () => {
           r.checked_in_at ?? "",
           r.created_at,
           r.stripe_payment_intent_id ?? "",
+          ...questions.map((q) => {
+            const v = answers[q.id];
+            return v == null ? "" : String(v);
+          }),
         ];
       }),
     ];
@@ -336,8 +354,22 @@ const AdminRegistrations = () => {
                   const p = profiles[r.user_id];
                   return (
                     <TableRow key={r.id}>
-                      <TableCell className="font-medium">
-                        {p?.name ?? "—"}
+                      <TableCell className="font-medium align-top">
+                        <div>{p?.name ?? "—"}</div>
+                        {questions.length > 0 && r.responses && (
+                          <div className="mt-1 space-y-0.5 text-xs font-normal text-muted-foreground">
+                            {questions.map((q) => {
+                              const v = (r.responses as Record<string, unknown>)[q.id];
+                              if (v == null || v === "") return null;
+                              return (
+                                <div key={q.id} className="truncate max-w-[220px]" title={`${q.label}: ${String(v)}`}>
+                                  <span className="text-foreground/70">{q.label}:</span>{" "}
+                                  {String(v)}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="text-sm">
                         <div>{p?.email ?? "—"}</div>
