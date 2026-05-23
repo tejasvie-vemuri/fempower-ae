@@ -242,6 +242,8 @@ const AdminRegistrations = () => {
       "Checked in",
       "Registered at",
       "Payment intent",
+      "Seats",
+      "Guests",
     ];
     const questionHeaders = questions.map((q) => q.label);
     const rows = [
@@ -249,6 +251,12 @@ const AdminRegistrations = () => {
       ...filtered.map((r) => {
         const p = profiles[r.user_id];
         const answers = (r.responses ?? {}) as Record<string, unknown>;
+        const guestsText = Array.isArray(r.guests)
+          ? r.guests
+              .map((g) => (g?.email ? `${g?.name ?? ""} <${g.email}>` : g?.name ?? ""))
+              .filter(Boolean)
+              .join("; ")
+          : "";
         return [
           p?.name ?? "",
           p?.email ?? "",
@@ -260,6 +268,8 @@ const AdminRegistrations = () => {
           r.checked_in_at ?? "",
           r.created_at,
           r.stripe_payment_intent_id ?? "",
+          String(r.quantity ?? 1),
+          guestsText,
           ...questions.map((q) => {
             const v = answers[q.id];
             return v == null ? "" : String(v);
