@@ -1,7 +1,9 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { createStripeClient, type StripeEnv } from "../_shared/stripe.ts";
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/stripe/v1";
+const isStripeEnv = (value: unknown): value is StripeEnv =>
+  value === "sandbox" || value === "live";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -9,11 +11,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    const STRIPE_API_KEY = Deno.env.get("STRIPE_SANDBOX_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-    if (!STRIPE_API_KEY) throw new Error("STRIPE_SANDBOX_API_KEY is not configured");
-
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -41,6 +38,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const eventId: string | undefined = body.event_id;
+    const environment: StripeEnv = isStripeEnv(body.environment) ? body.environment : "sandbox";
     const origin: string =
       body.origin ?? req.headers.get("origin") ?? req.headers.get("referer") ?? "";
     if (!eventId) {
@@ -133,40 +131,30 @@ Deno.serve(async (req) => {
       registrationId = reg.id;
     }
 
-    const successUrl = `${origin}/events/${ev.slug}?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${origin}/events/${ev.slug}?checkout=cancelled`;
-
-    // Build x-www-form-urlencoded body for Stripe API
-    const params = new URLSearchParams();
-    params.append("mode", "payment");
-    params.append("success_url", successUrl);
-    params.append("cancel_url", cancelUrl);
-    if (userEmail) params.append("customer_email", userEmail);
-    params.append("line_items[0][quantity]", "1");
-    params.append("line_items[0][price_data][currency]", ev.currency.toLowerCase());
-    params.append("line_items[0][price_data][unit_amount]", String(ev.price_cents));
-    params.append("line_items[0][price_data][product_data][name]", ev.title);
-    params.append("metadata[event_id]", ev.id);
-    params.append("metadata[user_id]", userId);
-    params.append("metadata[registration_id]", registrationId!);
-
-    const stripeRes = await fetch(`${GATEWAY_URL}/checkout/sessions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "X-Connection-Api-Key": STRIPE_API_KEY,
-        "Content-Type": "application/x-www-form-urlencoded",
+    const returnUrl = `${origin}/events/${ev.slug}?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
+    const stripe = createStripeClient(environment);
+    const stripeData = await stripe.checkout.sessions.create({
+      mode: "payment",
+      ui_mode: "embedded_page",
+      return_url: returnUrl,
+      ...(userEmail && { customer_email: userEmail }),
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: ev.currency.toLowerCase(),
+            unit_amount: ev.price_cents,
+            product_data: { name: ev.title },
+          },
+        },
+      ],
+      payment_intent_data: { description: ev.title },
+      metadata: {
+        event_id: ev.id,
+        user_id: userId,
+        registration_id: registrationId!,
       },
-      body: params.toString(),
     });
-    const stripeData = await stripeRes.json();
-    if (!stripeRes.ok) {
-      console.error("Stripe error:", stripeRes.status, stripeData);
-      return new Response(
-        JSON.stringify({ error: `Stripe error: ${JSON.stringify(stripeData)}` }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
 
     // Save session id on the registration
     await supabaseAdmin
@@ -175,7 +163,7 @@ Deno.serve(async (req) => {
       .eq("id", registrationId!);
 
     return new Response(
-      JSON.stringify({ url: stripeData.url, session_id: stripeData.id }),
+      JSON.stringify({ clientSecret: stripeData.client_secret, session_id: stripeData.id }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e: unknown) {
