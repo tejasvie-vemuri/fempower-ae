@@ -19,7 +19,7 @@ const optionalUrl = (host?: RegExp) =>
 
 export const memberProfileSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(120),
-  photo_url: z.string().url().max(500).optional().or(z.literal("")).transform(v => v || null),
+  photo_url: z.string().max(500).optional().or(z.literal("")).transform(v => v || null),
   role: z.string().trim().max(120).optional().or(z.literal("")).transform(v => v || null),
   company: z.string().trim().max(120).optional().or(z.literal("")).transform(v => v || null),
   city: z.string().trim().max(80).optional().or(z.literal("")).transform(v => v || null),
