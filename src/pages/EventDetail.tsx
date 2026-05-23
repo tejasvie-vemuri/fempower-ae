@@ -171,13 +171,29 @@ const EventDetail = () => {
     }
     setActing(true);
     if (isFree) {
-      const { error } = await supabase.from("registrations").insert({
-        event_id: event.id,
-        user_id: user.id,
-        status: "confirmed",
-        amount_paid_cents: 0,
-        currency: event.currency,
-      });
+      const { data: existing } = await supabase
+        .from("registrations")
+        .select("id, status")
+        .eq("event_id", event.id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      let error: { message: string } | null = null;
+      if (existing) {
+        const r = await supabase
+          .from("registrations")
+          .update({ status: "confirmed", amount_paid_cents: 0, currency: event.currency })
+          .eq("id", existing.id);
+        error = r.error;
+      } else {
+        const r = await supabase.from("registrations").insert({
+          event_id: event.id,
+          user_id: user.id,
+          status: "confirmed",
+          amount_paid_cents: 0,
+          currency: event.currency,
+        });
+        error = r.error;
+      }
       setActing(false);
       if (error) {
         toast.error(error.message);
