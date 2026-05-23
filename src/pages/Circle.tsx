@@ -111,7 +111,7 @@ const Circle = () => {
       .order("created_at", { ascending: true });
 
     // Fetch author info for replies (replies are always attributed)
-    const replierIds = Array.from(new Set((replyRows ?? []).map((r: any) => r.user_id)));
+    const replierIds: string[] = Array.from(new Set((replyRows ?? []).map((r: any) => r.user_id as string)));
     let authorMap: Record<string, { name: string | null; photo_url: string | null }> = {};
     if (replierIds.length) {
       const { data: members } = await supabase
