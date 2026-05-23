@@ -49,7 +49,7 @@ const statusVariant = (status: string) => {
 };
 
 const downloadQr = (ticketCode: string, eventTitle: string) => {
-  const svg = document.getElementById(`qr-${ticketCode}`) as SVGSVGElement | null;
+  const svg = document.getElementById(`qr-${ticketCode}`) as unknown as SVGSVGElement | null;
   if (!svg) return;
   const serializer = new XMLSerializer();
   const svgString = serializer.serializeToString(svg);
