@@ -5,6 +5,39 @@ import { createStripeClient, type StripeEnv } from "../_shared/stripe.ts";
 const isStripeEnv = (value: unknown): value is StripeEnv =>
   value === "sandbox" || value === "live";
 
+async function resolveOrCreateCustomer(
+  stripe: ReturnType<typeof createStripeClient>,
+  options: { email?: string; userId?: string },
+): Promise<string> {
+  if (options.userId && !/^[a-zA-Z0-9_-]+$/.test(options.userId)) {
+    throw new Error("Invalid userId");
+  }
+  if (options.userId) {
+    const found = await stripe.customers.search({
+      query: `metadata['userId']:'${options.userId}'`,
+      limit: 1,
+    });
+    if (found.data.length) return found.data[0].id;
+  }
+  if (options.email) {
+    const existing = await stripe.customers.list({ email: options.email, limit: 1 });
+    if (existing.data.length) {
+      const customer = existing.data[0];
+      if (options.userId && customer.metadata?.userId !== options.userId) {
+        await stripe.customers.update(customer.id, {
+          metadata: { ...customer.metadata, userId: options.userId },
+        });
+      }
+      return customer.id;
+    }
+  }
+  const created = await stripe.customers.create({
+    ...(options.email && { email: options.email }),
+    ...(options.userId && { metadata: { userId: options.userId } }),
+  });
+  return created.id;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -133,11 +166,15 @@ Deno.serve(async (req) => {
 
     const returnUrl = `${origin}/events/${ev.slug}?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
     const stripe = createStripeClient(environment);
+    const customerId = await resolveOrCreateCustomer(stripe, {
+      email: userEmail,
+      userId,
+    });
     const stripeData = await stripe.checkout.sessions.create({
       mode: "payment",
       ui_mode: "embedded_page",
       return_url: returnUrl,
-      ...(userEmail && { customer_email: userEmail }),
+      customer: customerId,
       line_items: [
         {
           quantity: 1,
