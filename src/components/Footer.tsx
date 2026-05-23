@@ -28,6 +28,10 @@ const Footer = () => (
           Privacy Policy
         </Link>
         <span className="hidden md:inline">·</span>
+        <Link to="/terms" className="hover:text-foreground transition-colors">
+          Terms &amp; Conditions
+        </Link>
+        <span className="hidden md:inline">·</span>
         <p>© {new Date().getFullYear()} Fempower. All rights reserved.</p>
       </div>
     </div>

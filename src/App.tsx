@@ -19,6 +19,7 @@ import Circle from "./pages/Circle";
 import AdminCircle from "./pages/AdminCircle";
 import Meetups from "./pages/Meetups";
 import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/admin/circle" element={<AdminRoute><AdminCircle /></AdminRoute>} />
             <Route path="/meetups" element={<Meetups />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             <Route
               path="/admin/events"
               element={
