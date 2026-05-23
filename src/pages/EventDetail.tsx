@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
 
@@ -139,6 +139,18 @@ const EventDetail = () => {
     event.capacity > 0 &&
     confirmedCount >= event.capacity;
 
+  const checkoutOptions = useMemo(
+    () => ({
+      clientSecret: checkoutSecret,
+      onComplete: () => {
+        setCheckoutOpen(false);
+        load();
+      },
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [checkoutSecret],
+  );
+
 
   const handleRegister = async () => {
     if (!event) return;
@@ -277,13 +289,7 @@ const EventDetail = () => {
             <div className="px-2 pb-6 sm:px-6">
               <EmbeddedCheckoutProvider
                 stripe={getStripe()}
-                options={{
-                  clientSecret: checkoutSecret,
-                  onComplete: () => {
-                    setCheckoutOpen(false);
-                    load();
-                  },
-                }}
+                options={checkoutOptions}
               >
                 <EmbeddedCheckout />
               </EmbeddedCheckoutProvider>
