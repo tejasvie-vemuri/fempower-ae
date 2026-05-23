@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { EMIRATES, MEETUP_REPORT_REASONS, hostDisplayName, formatMeetupWhen, type Meetup } from "@/lib/meetups";
+import { MemberAvatar } from "@/components/directory/MemberAvatar";
 
 type EnrichedMeetup = Meetup & {
   host?: { name: string | null; photo_url: string | null };
