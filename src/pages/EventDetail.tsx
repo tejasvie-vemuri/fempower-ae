@@ -185,6 +185,15 @@ const EventDetail = () => {
       navigate(`/auth?redirect=/events/${event.slug}`);
       return;
     }
+    if (questions.length) {
+      const v = validateResponses(questions, responses);
+      setResponseErrors(v.errors);
+      if (!v.ok) {
+        toast.error("Please answer the required questions");
+        return;
+      }
+    }
+    const responsesPayload = JSON.parse(JSON.stringify(responses));
     setActing(true);
     if (isFree) {
       const { data: existing } = await supabase
@@ -197,7 +206,12 @@ const EventDetail = () => {
       if (existing) {
         const r = await supabase
           .from("registrations")
-          .update({ status: "confirmed", amount_paid_cents: 0, currency: event.currency })
+          .update({
+            status: "confirmed",
+            amount_paid_cents: 0,
+            currency: event.currency,
+            responses: responsesPayload,
+          })
           .eq("id", existing.id);
         error = r.error;
       } else {
@@ -207,6 +221,7 @@ const EventDetail = () => {
           status: "confirmed",
           amount_paid_cents: 0,
           currency: event.currency,
+          responses: responsesPayload,
         });
         error = r.error;
       }
@@ -223,6 +238,7 @@ const EventDetail = () => {
           event_id: event.id,
           origin: window.location.origin,
           environment: getStripeEnvironment(),
+          responses: responsesPayload,
         },
       });
       setActing(false);
