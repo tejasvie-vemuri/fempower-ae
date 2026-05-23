@@ -33,6 +33,8 @@ interface Registration {
   checked_in_at: string | null;
   created_at: string;
   stripe_payment_intent_id: string | null;
+  cancellation_requested_at: string | null;
+  cancellation_reason: string | null;
 }
 
 interface Profile {
@@ -84,7 +86,7 @@ const AdminRegistrations = () => {
       supabase
         .from("registrations")
         .select(
-          "id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, stripe_payment_intent_id",
+          "id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, stripe_payment_intent_id, cancellation_requested_at, cancellation_reason",
         )
         .eq("event_id", eventId)
         .order("created_at", { ascending: false }),
