@@ -331,7 +331,8 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    let systemContent = SYSTEM_PROMPT;
+    const eventsBlock = await fetchUpcomingEvents();
+    let systemContent = SYSTEM_PROMPT + eventsBlock;
     if (userProfile) {
       systemContent += `\n\nUSER PROFILE:\n- Name: ${userProfile.name}\n- Role/Industry: ${userProfile.role_industry || 'Not specified'}\n- Experience: ${userProfile.experience_level || 'Not specified'}\n- Growth Area: ${userProfile.growth_area || 'Not specified'}`;
     }
