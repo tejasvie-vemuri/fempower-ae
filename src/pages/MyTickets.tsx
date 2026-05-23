@@ -109,7 +109,7 @@ const MyTickets = () => {
     const { data, error } = await supabase
       .from("registrations")
       .select(
-        "id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, cancellation_requested_at, cancellation_reason, event:events(id, slug, title, starts_at, ends_at, location, cover_image_url)",
+        "id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, cancellation_requested_at, cancellation_reason, quantity, guests, event:events(id, slug, title, starts_at, ends_at, location, cover_image_url)",
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
