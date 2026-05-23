@@ -2,13 +2,23 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";
-import { Calendar, MapPin, Ticket, ArrowLeft, Download } from "lucide-react";
+import { Calendar, MapPin, Ticket, ArrowLeft, Download, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 interface TicketRow {
   id: string;
@@ -18,6 +28,8 @@ interface TicketRow {
   currency: string;
   checked_in_at: string | null;
   created_at: string;
+  cancellation_requested_at: string | null;
+  cancellation_reason: string | null;
   event: {
     id: string;
     slug: string;
