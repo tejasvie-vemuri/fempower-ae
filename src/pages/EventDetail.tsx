@@ -112,7 +112,7 @@ const EventDetail = () => {
     if (checkout === "success" && sessionId && user) {
       (async () => {
         const { data, error } = await supabase.functions.invoke("verify-checkout-session", {
-          body: { session_id: sessionId },
+          body: { session_id: sessionId, environment: getStripeEnvironment() },
         });
         if (error) {
           toast.error(error.message ?? "Could not verify payment");
@@ -147,7 +147,7 @@ const EventDetail = () => {
         setCheckoutOpen(false);
         if (checkoutSessionId) {
           const { data, error } = await supabase.functions.invoke("verify-checkout-session", {
-            body: { session_id: checkoutSessionId },
+            body: { session_id: checkoutSessionId, environment: getStripeEnvironment() },
           });
           if (error) {
             toast.error(error.message ?? "Could not verify payment");
