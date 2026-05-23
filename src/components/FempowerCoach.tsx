@@ -89,11 +89,11 @@ const FempowerCoach = () => {
               onClick={() => setOpen(true)}
               className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg"
               style={{ background: "#4A2040" }}
-              aria-label="Open Fempower Coach"
+              aria-label="Open Zara, your Fempower Coach"
             >
               <motion.img
                 src={butterflyIcon}
-                alt="Fempower Coach"
+                alt="Zara, Fempower Coach"
                 width={34}
                 height={34}
                 animate={{
@@ -126,7 +126,10 @@ const FempowerCoach = () => {
             <div className="flex items-center justify-between px-4 py-3 border-b" style={{ background: "#4A2040", borderColor: "#4A204040" }}>
               <div className="flex items-center gap-2">
                 <Sparkles size={20} style={{ color: "#D4A853" }} />
-                <span className="font-heading text-base font-semibold text-white">Fempower Coach</span>
+                <div className="flex flex-col leading-tight">
+                  <span className="font-heading text-base font-semibold text-white">Zara</span>
+                  <span className="font-body text-[10px] uppercase tracking-widest text-white/70">Your Fempower Coach</span>
+                </div>
               </div>
               <button onClick={() => setOpen(false)} className="text-white/70 hover:text-white transition-colors">
                 <X size={20} />
@@ -138,7 +141,7 @@ const FempowerCoach = () => {
               {messages.length === 0 && (
                 <div className="space-y-3">
                   <p className="text-sm font-body" style={{ color: "#4A2040" }}>
-                    Hi! I'm your Fempower Coach 💜 I'm here to help you thrive at work. What would you like to work on today?
+                    Hi, I'm Zara — your Fempower coach. Tell me what's on your plate this week, or pick a starting point below.
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {STARTERS.map((s) => (
