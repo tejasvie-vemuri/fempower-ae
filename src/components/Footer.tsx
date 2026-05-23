@@ -1,5 +1,5 @@
 import { Instagram } from "lucide-react";
-import logo from "@/assets/fempower-logo.jpg";
+import logo from "@/assets/fempower-logo.png";
 import { CrescentStar, DuneWave } from "./GulfDecoratives";
 
 const Footer = () => (

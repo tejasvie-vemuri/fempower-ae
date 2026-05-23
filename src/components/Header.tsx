@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Menu, X, Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/fempower-logo.jpg";
+import logo from "@/assets/fempower-logo.png";
 
 const navLinks = [
   { label: "About", href: "#about", showFrom: "md" as const },
