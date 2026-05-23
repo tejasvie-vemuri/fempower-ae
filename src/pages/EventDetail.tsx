@@ -473,6 +473,47 @@ const EventDetail = () => {
                   You'll need to sign in to register.
                 </p>
               )}
+
+              {!isFree && (
+                <div className="mt-4 pt-4 border-t border-border/60">
+                  <details className="group text-xs">
+                    <summary className="cursor-pointer font-medium text-foreground/80 hover:text-primary list-none flex items-center justify-between">
+                      <span>Refund policy</span>
+                      <span className="text-muted-foreground group-open:rotate-180 transition-transform">⌄</span>
+                    </summary>
+                    <div className="mt-3 space-y-2 text-muted-foreground leading-relaxed">
+                      <p>
+                        At Fempower UAE, we want every experience to feel safe —
+                        including how you manage your bookings.
+                      </p>
+                      <ul className="space-y-1.5 list-none">
+                        <li>
+                          <span className="font-medium text-foreground">Full refund</span> if we cancel the event
+                        </li>
+                        <li>
+                          <span className="font-medium text-foreground">Credit or transfer</span> to another event if you cancel at least 72 hours before
+                        </li>
+                        <li>
+                          <span className="font-medium text-foreground">No refund or credit</span> for cancellations within 72 hours or no-shows
+                        </li>
+                      </ul>
+                      <p>
+                        To cancel or transfer, reach out to us on{" "}
+                        <a
+                          href="https://instagram.com/fempower.ae"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          Instagram
+                        </a>{" "}
+                        or via our contact form.
+                      </p>
+                      <p className="pt-1">Thank you for being part of this community. 🤍</p>
+                    </div>
+                  </details>
+                </div>
+              )}
             </div>
           </aside>
         </div>
