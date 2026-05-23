@@ -99,7 +99,7 @@ const Meetups = () => {
     const hostMap: Record<string, any> = {};
     (hosts ?? []).forEach((h: any) => { hostMap[h.user_id] = h; });
 
-    const rsvpUserIds = Array.from(new Set((rsvps ?? []).map((r: any) => r.user_id as string)));
+    const rsvpUserIds: string[] = Array.from(new Set((rsvps ?? []).map((r: any) => r.user_id as string)));
     let attendeeMap: Record<string, any> = {};
     if (rsvpUserIds.length) {
       const { data: people } = await supabase
