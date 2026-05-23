@@ -1,25 +1,21 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarHeart, MapPin, Clock, Loader2, MessageCircle } from "lucide-react";
+import { CalendarHeart, MapPin, Clock, Loader2, ArrowRight } from "lucide-react";
 import { PalmDivider } from "./GulfDecoratives";
-
-const WHATSAPP_NUMBER = "971547911282";
-
-function getWhatsAppRSVPLink(event: CalendarEvent) {
-  const dateStr = event.date.toLocaleDateString("en-AE", { weekday: "long", month: "long", day: "numeric" });
-  const message = encodeURIComponent(`Hi! I'd like to RSVP for "${event.title}" on ${dateStr} at ${event.time} 🙋‍♀️`);
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
-}
+import { supabase } from "@/integrations/supabase/client";
 
 interface CalendarEvent {
-  date: Date;
+  id: string;
+  slug: string;
   title: string;
+  date: Date;
   time: string;
   location: string;
+  price_cents: number;
+  currency: string;
 }
-
-const SUPABASE_URL = "https://uaiymunelgvvnznkxeik.supabase.co";
 
 const EventsCalendarSection = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -29,16 +25,26 @@ const EventsCalendarSection = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch(`${SUPABASE_URL}/functions/v1/fetch-events`);
-        const data = await res.json();
-        const parsed: CalendarEvent[] = (data.events || []).map(
-          (e: { title: string; date: string; time: string; location: string }) => ({
+        const { data, error } = await supabase
+          .from("events")
+          .select("id, slug, title, starts_at, location, price_cents, currency")
+          .in("status", ["published"])
+          .gte("starts_at", new Date().toISOString())
+          .order("starts_at", { ascending: true });
+        if (error) throw error;
+        const parsed: CalendarEvent[] = (data ?? []).map((e) => {
+          const d = new Date(e.starts_at);
+          return {
+            id: e.id,
+            slug: e.slug,
             title: e.title,
-            time: e.time,
-            location: e.location,
-            date: new Date(e.date + "T00:00:00"),
-          })
-        );
+            location: e.location ?? "TBD",
+            price_cents: e.price_cents,
+            currency: e.currency,
+            date: d,
+            time: d.toLocaleTimeString("en-AE", { hour: "2-digit", minute: "2-digit" }),
+          };
+        });
         setEvents(parsed);
       } catch (err) {
         console.error("Failed to fetch events:", err);
@@ -59,6 +65,9 @@ const EventsCalendarSection = () => {
           e.date.getDate() === selectedDate.getDate()
       )
     : [];
+
+  const priceLabel = (e: CalendarEvent) =>
+    e.price_cents === 0 ? "Free" : `${e.currency} ${(e.price_cents / 100).toFixed(0)}`;
 
   return (
     <section id="events-calendar" className="py-10 md:py-14">
@@ -87,7 +96,7 @@ const EventsCalendarSection = () => {
           transition={{ delay: 0.1 }}
           className="mt-3 text-center text-muted-foreground font-body"
         >
-          Tap a highlighted date to see what's coming up.
+          Tap a highlighted date or an event to register.
         </motion.p>
 
         {loading ? (
@@ -117,14 +126,20 @@ const EventsCalendarSection = () => {
 
             <div className="space-y-4 min-h-[280px]">
               {selectedDate && eventsForDate.length > 0 ? (
-                eventsForDate.map((event, i) => (
-                  <div key={i} className="bg-card border border-border rounded-xl p-5 shadow-sm">
+                eventsForDate.map((event) => (
+                  <Link
+                    key={event.id}
+                    to={`/events/${event.slug}`}
+                    className="block bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow"
+                  >
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-lg bg-blush-light flex items-center justify-center flex-shrink-0">
                         <CalendarHeart size={20} className="text-blush-dark" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-heading text-base font-semibold text-foreground">{event.title}</h4>
+                        <h4 className="font-heading text-base font-semibold text-foreground">
+                          {event.title}
+                        </h4>
                         <div className="mt-1.5 flex flex-col gap-1">
                           <span className="flex items-center gap-1.5 text-sm text-muted-foreground font-body">
                             <Clock size={14} /> {event.time}
@@ -133,58 +148,64 @@ const EventsCalendarSection = () => {
                             <MapPin size={14} /> {event.location}
                           </span>
                         </div>
-                        <a
-                          href={getWhatsAppRSVPLink(event)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-3 inline-flex items-center gap-1.5 text-xs font-body font-semibold uppercase tracking-widest-xl text-green-700 hover:text-green-900 transition-colors"
-                        >
-                          <MessageCircle size={14} /> RSVP via WhatsApp
-                        </a>
+                        <div className="mt-3 flex items-center justify-between">
+                          <span className="text-xs font-body font-semibold uppercase tracking-widest-xl text-primary">
+                            {priceLabel(event)}
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-xs font-body font-semibold uppercase tracking-widest-xl text-blush-dark">
+                            Register <ArrowRight size={12} />
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))
               ) : selectedDate ? (
                 <div className="bg-card border border-border rounded-xl p-8 text-center">
-                  <p className="text-muted-foreground font-body text-sm">No events on this date. Try selecting a highlighted date!</p>
+                  <p className="text-muted-foreground font-body text-sm">
+                    No events on this date. Try selecting a highlighted date!
+                  </p>
                 </div>
               ) : events.length > 0 ? (
                 <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground font-body font-medium mb-3">All upcoming events:</p>
-                  {events.map((event, i) => (
-                    <div
-                      key={i}
-                      className="bg-card border border-border rounded-xl p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => setSelectedDate(event.date)}
+                  <p className="text-sm text-muted-foreground font-body font-medium mb-3">
+                    All upcoming events:
+                  </p>
+                  {events.map((event) => (
+                    <Link
+                      key={event.id}
+                      to={`/events/${event.slug}`}
+                      className="block bg-card border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-blush-light flex items-center justify-center flex-shrink-0">
                           <CalendarHeart size={16} className="text-blush-dark" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-body text-sm font-semibold text-foreground truncate">{event.title}</h4>
+                          <h4 className="font-body text-sm font-semibold text-foreground truncate">
+                            {event.title}
+                          </h4>
                           <p className="text-xs text-muted-foreground font-body">
-                            {event.date.toLocaleDateString("en-AE", { weekday: "short", month: "short", day: "numeric" })} · {event.time} · {event.location}
+                            {event.date.toLocaleDateString("en-AE", {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                            })}{" "}
+                            · {event.time} · {event.location}
                           </p>
                         </div>
-                        <a
-                          href={getWhatsAppRSVPLink(event)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="flex-shrink-0 text-green-700 hover:text-green-900 transition-colors"
-                          title="RSVP via WhatsApp"
-                        >
-                          <MessageCircle size={16} />
-                        </a>
+                        <span className="text-xs font-body font-semibold uppercase tracking-widest-xl text-primary flex-shrink-0">
+                          {priceLabel(event)}
+                        </span>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               ) : (
                 <div className="bg-card border border-border rounded-xl p-8 text-center">
-                  <p className="text-muted-foreground font-body text-sm">No upcoming events yet. Check back soon!</p>
+                  <p className="text-muted-foreground font-body text-sm">
+                    No upcoming events yet. Check back soon!
+                  </p>
                 </div>
               )}
             </div>
