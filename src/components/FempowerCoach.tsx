@@ -92,6 +92,13 @@ const FempowerCoach = () => {
   const [starters, setStarters] = useState<Starter[]>(() => pickStarters());
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Allow other components (e.g. HeroSection) to open Zara via a global event
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("open-zara", handler);
+    return () => window.removeEventListener("open-zara", handler);
+  }, []);
+
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
       if (scrollRef.current) {
@@ -139,15 +146,26 @@ const FempowerCoach = () => {
       {/* Floating button */}
       <AnimatePresence>
         {!open && (
-          <div className="fixed bottom-6 right-6 z-[60] flex items-center gap-3">
+          <div className="fixed bottom-6 right-6 z-[60] flex items-end gap-3 max-w-[calc(100vw-3rem)]">
+            <motion.button
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+              onClick={() => setOpen(true)}
+              className="hidden sm:block rounded-2xl px-4 py-2.5 shadow-md text-sm font-body font-medium text-left leading-snug max-w-[260px] hover:shadow-lg transition-shadow"
+              style={{ background: "#FDF8F3", color: "#4A2040", border: "1px solid #D4A85360" }}
+              aria-label="Ask Zara anything about growing your career in UAE"
+            >
+              Ask Zara anything about growing your career in UAE.
+            </motion.button>
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className="rounded-full px-4 py-2 shadow-md text-sm font-body font-medium whitespace-nowrap"
+              className="sm:hidden rounded-full px-3 py-1.5 shadow-md text-xs font-body font-medium whitespace-nowrap"
               style={{ background: "#FDF8F3", color: "#4A2040", border: "1px solid #D4A85360" }}
             >
-              Talk to me 💜
+              Ask Zara 💜
             </motion.div>
             <motion.button
               initial={{ scale: 0 }}
