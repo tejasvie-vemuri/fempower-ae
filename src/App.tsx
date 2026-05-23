@@ -11,7 +11,11 @@ import AdminEvents from "./pages/AdminEvents";
 import AdminRegistrations from "./pages/AdminRegistrations";
 import EventDetail from "./pages/EventDetail";
 import MyTickets from "./pages/MyTickets";
+import Directory from "./pages/Directory";
+import MemberProfileEdit from "./pages/MemberProfileEdit";
+import AdminMembers from "./pages/AdminMembers";
 import { AdminRoute } from "@/components/AdminRoute";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +31,9 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/events/:slug" element={<EventDetail />} />
             <Route path="/account/tickets" element={<MyTickets />} />
+            <Route path="/directory" element={<ProtectedRoute><Directory /></ProtectedRoute>} />
+            <Route path="/account/profile" element={<ProtectedRoute><MemberProfileEdit /></ProtectedRoute>} />
+            <Route path="/admin/members" element={<AdminRoute><AdminMembers /></AdminRoute>} />
             <Route
               path="/admin/events"
               element={

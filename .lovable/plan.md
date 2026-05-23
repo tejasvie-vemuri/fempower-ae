@@ -1,107 +1,69 @@
+# Member Directory — Plan
 
-# Paid Event Registration Flow (Luma-style)
+A searchable directory of Fempower members. Profiles are created automatically on signup, but only appear publicly to other members once an admin approves them. Built on Lovable Cloud (Postgres + Storage + RLS) so it stays stable well past 500+ members.
 
-A full registration system for Fempower events: browse → sign in → pay with Stripe → receive emailed QR ticket. Capacity is enforced, sold-out events flip to a waitlist.
+## User experience
 
-## User journey
+**For members**
+- New route `/directory` (logged-in only). Shows approved members in a responsive card grid.
+- Search bar (name / role / company / bio) + filter chips: Industry, City, "Open to".
+- Click a card → member detail drawer with full bio, LinkedIn, Instagram, website, interests.
+- New route `/account/profile` — member edits their own profile, uploads a photo, fills tags, and sees their approval status badge (Pending / Approved / Hidden).
 
-```text
-Calendar / Event card
-        │
-        ▼
-Event detail page  ──── (sold out?) ──── Join waitlist
-        │
-        ▼
-Sign in / Sign up  (email+password or Google)
-        │
-        ▼
-Stripe Checkout (hosted)
-        │
-        ▼
-Success page  ◄──── Stripe webhook confirms payment
-        │
-        ▼
-Confirmation email with QR code ticket
-        │
-        ▼
-"My tickets" dashboard (view / re-download QR)
-```
+**For admins**
+- New route `/admin/members` — list of all profiles with status filter, search, and Approve / Reject / Hide actions. Pending profiles surface at the top with a count badge.
 
-Admin side: a protected `/admin` area to create/edit events, set price + capacity, view registrations, mark check-ins, export CSV. (Check-in scanner can be a fast-follow if you want to keep v1 lean — flag it in feedback.)
+**Entry points**
+- New "Directory" link in the header (only visible to signed-in users).
+- Card on the member's `/account/tickets` style hub linking to "Edit your profile".
 
-## What gets built
+## Data model (new table `member_profiles`)
 
-### 1. Data model (Lovable Cloud database)
-- `events` — title, description, date, time, location, cover image, price (AED, in fils), capacity, status (draft/published/cancelled), slug
-- `registrations` — event_id, user_id, status (`paid` / `refunded` / `cancelled`), stripe_session_id, stripe_payment_intent, ticket_code (UUID for QR), amount_paid, checked_in_at
-- `waitlist` — event_id, user_id, position, notified_at
-- `profiles` — name, email, phone (created on signup via trigger)
-- `user_roles` + `app_role` enum (`admin`, `user`) with `has_role()` security-definer function — controls admin area access
-- RLS on every table: users see only their own registrations/waitlist; events are public-read when `published`; admins can do everything via `has_role()`
+Fields:
+- `name`, `photo_url`, `role`, `company`, `city`, `bio` (short)
+- `linkedin_url`, `instagram_url`, `website_url`
+- `industry` (single select), `expertise_tags` (text[]), `interests` (text[])
+- `looking_for` (text[]: mentoring, collabs, hiring, friendship, etc.)
+- `why_here` (short text — "Why are you part of Fempower?")
+- `status` ('pending' | 'approved' | 'hidden' | 'rejected'), `approved_at`, `approved_by`
 
-Capacity is enforced server-side inside the webhook (atomic check using a Postgres function), not on the client — prevents double-booking.
+A row is auto-created on signup via the existing `handle_new_user` trigger with `status='pending'`. The existing `profiles` table stays as-is for auth/contact info; `member_profiles` holds the public-facing directory data.
 
-### 2. Authentication
-- Email + password and Google sign-in (Lovable Cloud managed OAuth — no Google Cloud setup needed)
-- Auto-confirm OFF (users verify their email — standard)
-- `/auth` page with sign-in + sign-up tabs
-- Profile row auto-created on signup via DB trigger
+## Access rules (RLS)
 
-### 3. Stripe payments (Lovable's built-in seamless Stripe)
-- No Stripe account needed to start; test mode immediately, live after verification
-- Tax handling: I'll suggest "tax calculation only" (Stripe collects correct VAT/tax, you handle filing) — confirm in feedback if you'd prefer full compliance handling or no tax automation
-- Each event becomes a Stripe Product + Price; created via admin form
-- **Edge functions:**
-  - `create-checkout` — verifies seats available, creates Stripe Checkout Session, returns hosted URL
-  - `stripe-webhook` — on `checkout.session.completed`: writes `registration` row (atomic capacity check), generates ticket code, queues confirmation email
-  - `event-actions` — RPC for waitlist join/leave, registration cancel
+- Member can read & update **their own** `member_profiles` row at any time.
+- Any signed-in user can read rows where `status='approved'` (this powers the directory).
+- Admins can read/update/delete all rows (approval workflow).
+- Anonymous visitors see nothing.
 
-### 4. Frontend pages / components
-- **Event detail page** (`/events/:slug`): cover, description, price, seats remaining, "Register" or "Join waitlist" CTA, "Sold out" state
-- **Registration confirmation** (`/events/:slug/success?session_id=...`): success state, ticket preview, "view in my tickets" link
-- **My tickets** (`/account/tickets`): list of paid registrations with QR codes (rendered client-side via `qrcode` lib), downloadable
-- **Admin** (`/admin/events`): table + create/edit form, registration list per event, check-in toggle, CSV export, waitlist view
-- Existing calendar section + event cards link to new detail pages instead of WhatsApp RSVP (WhatsApp RSVP stays as a fallback for non-ticketed/free events — toggleable per event)
+## Search & performance (handles 500–10k+ rows easily)
 
-### 5. Capacity + waitlist
-- Event card and detail page show "X seats left" (or "Sold out")
-- When sold out, CTA becomes "Join waitlist"
-- Admin can manually promote from waitlist → sends email "a seat opened, register here" with a 24h hold link
-- Waitlist position is shown to the user
+- Postgres `GIN` index on a generated `tsvector` of name+role+company+bio+tags → fast full-text search.
+- Indexes on `status`, `industry`, `city`.
+- Query in pages of 24 with infinite scroll (React Query). Filters applied server-side.
+- Photos stored in a new `member-photos` Storage bucket, served via CDN, resized at upload (max 800px) to keep payloads small.
 
-### 6. Email + QR ticket
-- Custom sender domain (`hello@fempowerae.com` or similar — you confirm) via Lovable Email
-- Transactional template: branded confirmation with event details + embedded QR (ticket_code)
-- QR encodes the ticket UUID — admin scans/searches by it for check-in
+## Technical details
 
-### 7. Migration from Google Sheet
-- One-time script: read current sheet via the existing `fetch-events` function, insert rows into `events` table as `published`, default price `0` / capacity `0` (= unlimited) so nothing breaks
-- After migration, retire the sheet for events (other sheets stay)
-- Existing event card UI keeps working — just sourced from DB
+- New files:
+  - `src/pages/Directory.tsx`, `src/pages/MemberProfileEdit.tsx`, `src/pages/AdminMembers.tsx`
+  - `src/components/directory/MemberCard.tsx`, `MemberDrawer.tsx`, `DirectoryFilters.tsx`, `PhotoUpload.tsx`
+  - `src/hooks/useMemberProfile.ts`, `src/hooks/useDirectory.ts`
+  - `src/lib/memberProfile.ts` (zod schema: trim, length caps, URL validation for LinkedIn/IG/website)
+- DB migration: create `member_profiles`, RLS policies, indexes, `tsvector` trigger, `member-photos` bucket + policies, extend `handle_new_user` to seed a pending row.
+- Header gets a "Directory" `NavLink` shown only when `useAuth().user` exists.
+- Routes added in `src/App.tsx` under `ProtectedRoute` (members) and `AdminRoute` (admin page).
 
-## Open decisions I need from you
+## Validation & safety
 
-1. **Currency** — AED only, or also USD?
-2. **Email sender domain** — confirm `fempowerae.com` and the from-address (e.g. `events@fempowerae.com`)
-3. **Refund policy** — self-serve cancel + refund up to X days before, or admin-only refunds?
-4. **Check-in scanner UI** — include in v1 (camera-based QR scan on phone) or fast-follow? Manual search by name works without it.
-5. **Stripe tax mode** — default to "calculation only" unless you want full compliance handling
-6. **Who is the first admin?** — I'll grant the admin role to a user_id you give me after signup
+- zod-validated inputs on client and server (length limits, URL shape for `linkedin.com/in/...`, `instagram.com/...`).
+- Photo upload: type + size check (≤ 5 MB, jpg/png/webp), stored under `{user_id}/avatar.{ext}`.
+- No PII leaked: email and phone from `profiles` are never exposed in the directory.
 
-## Implementation order (so you can ship incrementally)
+## Out of scope (can come later)
 
-1. Auth (email + Google), profiles, user_roles, admin role assignment
-2. `events` + `registrations` + `waitlist` tables, RLS, migrate sheet data
-3. Admin events CRUD (`/admin/events`)
-4. Public event detail page + sold-out / waitlist states
-5. Enable Stripe (test mode), `create-checkout` + `stripe-webhook`, success page
-6. My tickets dashboard with QR
-7. Email infrastructure + branded confirmation template
-8. Admin registration list, CSV export, manual check-in
-9. Polish: waitlist promotion email, refunds, switch Stripe to live
+- Direct messaging between members
+- Member-to-member connection requests
+- CSV import of existing members (can be added as an admin tool if needed)
 
-Each step is independently testable. We can stop after any one and you'll have something usable.
-
----
-
-**Heads-up:** This is a sizable build — roughly 8 focused iterations. I'll execute step 1 first after you approve and we'll iterate from there.
+Ready to build when you approve.

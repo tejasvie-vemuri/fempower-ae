@@ -169,6 +169,81 @@ export type Database = {
         }
         Relationships: []
       }
+      member_profiles: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          bio: string | null
+          city: string | null
+          company: string | null
+          created_at: string
+          expertise_tags: string[]
+          id: string
+          industry: string | null
+          instagram_url: string | null
+          interests: string[]
+          linkedin_url: string | null
+          looking_for: string[]
+          name: string
+          photo_url: string | null
+          role: string | null
+          search_tsv: unknown
+          status: string
+          updated_at: string
+          user_id: string
+          website_url: string | null
+          why_here: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          bio?: string | null
+          city?: string | null
+          company?: string | null
+          created_at?: string
+          expertise_tags?: string[]
+          id?: string
+          industry?: string | null
+          instagram_url?: string | null
+          interests?: string[]
+          linkedin_url?: string | null
+          looking_for?: string[]
+          name?: string
+          photo_url?: string | null
+          role?: string | null
+          search_tsv?: unknown
+          status?: string
+          updated_at?: string
+          user_id: string
+          website_url?: string | null
+          why_here?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          bio?: string | null
+          city?: string | null
+          company?: string | null
+          created_at?: string
+          expertise_tags?: string[]
+          id?: string
+          industry?: string | null
+          instagram_url?: string | null
+          interests?: string[]
+          linkedin_url?: string | null
+          looking_for?: string[]
+          name?: string
+          photo_url?: string | null
+          role?: string | null
+          search_tsv?: unknown
+          status?: string
+          updated_at?: string
+          user_id?: string
+          website_url?: string | null
+          why_here?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

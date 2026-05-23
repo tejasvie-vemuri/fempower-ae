@@ -8,6 +8,7 @@ const navLinks = [
   { label: "What We Do", href: "#offerings", showFrom: "lg" as const },
   { label: "Programs", href: "#programs", showFrom: "xl" as const },
   { label: "Events", href: "#events-calendar", showFrom: "md" as const },
+  { label: "Directory", href: "/directory", showFrom: "md" as const },
   { label: "Gallery", href: "#gallery", showFrom: "lg" as const },
   { label: "Join", href: "#join", showFrom: "md" as const },
   { label: "FAQs", href: "#faqs", showFrom: "xl" as const },
