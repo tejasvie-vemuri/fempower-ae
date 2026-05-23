@@ -1,4 +1,5 @@
 import { Instagram } from "lucide-react";
+import { Link } from "react-router-dom";
 import logo from "@/assets/fempower-logo.png";
 import { CrescentStar, DuneWave } from "./GulfDecoratives";
 
@@ -22,9 +23,13 @@ const Footer = () => (
         </a>
       </div>
 
-      <p className="text-xs text-muted-foreground font-body">
-        © {new Date().getFullYear()} Fempower. All rights reserved.
-      </p>
+      <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-xs text-muted-foreground font-body">
+        <Link to="/privacy" className="hover:text-foreground transition-colors">
+          Privacy Policy
+        </Link>
+        <span className="hidden md:inline">·</span>
+        <p>© {new Date().getFullYear()} Fempower. All rights reserved.</p>
+      </div>
     </div>
     </div>
   </footer>
