@@ -346,15 +346,25 @@ const AdminRegistrations = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        <span
-                          className={`text-xs uppercase tracking-wide px-2 py-1 rounded ${
-                            r.status === "confirmed"
-                              ? "bg-primary/10 text-primary"
-                              : "bg-muted"
-                          }`}
-                        >
-                          {r.status}
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span
+                            className={`text-xs uppercase tracking-wide px-2 py-1 rounded inline-block w-fit ${
+                              r.status === "confirmed"
+                                ? "bg-primary/10 text-primary"
+                                : "bg-muted"
+                            }`}
+                          >
+                            {r.status}
+                          </span>
+                          {r.cancellation_requested_at && r.status !== "refunded" && (
+                            <span
+                              className="text-xs text-amber-700 bg-amber-100 px-2 py-1 rounded w-fit"
+                              title={r.cancellation_reason ?? "No reason given"}
+                            >
+                              Cancellation requested
+                            </span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {r.amount_paid_cents === 0
