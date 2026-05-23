@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,9 @@ interface EventData {
 const EventDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
+
 
   const [event, setEvent] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -90,11 +93,41 @@ const EventDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, user, authLoading]);
 
+  // Handle return from Stripe Checkout
+  useEffect(() => {
+    const checkout = searchParams.get("checkout");
+    const sessionId = searchParams.get("session_id");
+    if (checkout === "success" && sessionId && user) {
+      (async () => {
+        const { data, error } = await supabase.functions.invoke("verify-checkout-session", {
+          body: { session_id: sessionId },
+        });
+        if (error) {
+          toast.error(error.message ?? "Could not verify payment");
+        } else if (data?.paid) {
+          toast.success("Payment confirmed — you're registered!");
+        } else {
+          toast.info(`Payment status: ${data?.payment_status ?? "unknown"}`);
+        }
+        searchParams.delete("checkout");
+        searchParams.delete("session_id");
+        setSearchParams(searchParams, { replace: true });
+        load();
+      })();
+    } else if (checkout === "cancelled") {
+      toast.info("Checkout cancelled");
+      searchParams.delete("checkout");
+      setSearchParams(searchParams, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   const isFree = event && event.price_cents === 0;
   const isFull =
     !!event &&
     event.capacity > 0 &&
     confirmedCount >= event.capacity;
+
 
   const handleRegister = async () => {
     if (!event) return;
@@ -119,10 +152,17 @@ const EventDetail = () => {
       toast.success("You're registered!");
       load();
     } else {
-      // Paid checkout flow ships in Step 5
-      toast.info("Paid checkout coming in the next step");
+      const { data, error } = await supabase.functions.invoke("create-checkout-session", {
+        body: { event_id: event.id, origin: window.location.origin },
+      });
       setActing(false);
+      if (error || !data?.url) {
+        toast.error(error?.message ?? data?.error ?? "Could not start checkout");
+        return;
+      }
+      window.location.href = data.url;
     }
+
   };
 
   const handleJoinWaitlist = async () => {
