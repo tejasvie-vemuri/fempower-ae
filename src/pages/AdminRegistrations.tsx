@@ -476,9 +476,5 @@ const AdminRegistrations = () => {
 };
 
 export default AdminRegistrations;
-      </div>
-    </div>
-  );
-};
 
 export default AdminRegistrations;
