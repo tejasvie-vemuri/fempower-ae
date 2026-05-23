@@ -17,6 +17,7 @@ import AdminMembers from "./pages/AdminMembers";
 import AdminImages from "./pages/AdminImages";
 import Circle from "./pages/Circle";
 import AdminCircle from "./pages/AdminCircle";
+import Meetups from "./pages/Meetups";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/admin/images" element={<AdminRoute><AdminImages /></AdminRoute>} />
             <Route path="/circle" element={<Circle />} />
             <Route path="/admin/circle" element={<AdminRoute><AdminCircle /></AdminRoute>} />
+            <Route path="/meetups" element={<Meetups />} />
             <Route
               path="/admin/events"
               element={
