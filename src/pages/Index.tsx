@@ -26,6 +26,7 @@ const Index = () => (
       <AboutSection />
       <OfferingsSection />
       <ProgramsSection />
+      <CircleTeaser />
       <EventsCalendarSection />
       <BecomingSpaceSection />
       <GallerySection />
@@ -33,7 +34,6 @@ const Index = () => (
       <ResourcesSection />
       {/* <NewsletterSection /> hidden for now */}
       <JoinSection />
-      <CircleTeaser />
       <TestimonialsSection />
       <FAQSection />
     </main>
