@@ -362,7 +362,19 @@ const AdminRegistrations = () => {
                   return (
                     <TableRow key={r.id}>
                       <TableCell className="font-medium align-top">
-                        <div>{p?.name ?? "—"}</div>
+                        <div className="flex items-center gap-2">
+                          <span>{p?.name ?? "—"}</span>
+                          {(r.quantity ?? 1) > 1 && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                              +{(r.quantity ?? 1) - 1}
+                            </span>
+                          )}
+                        </div>
+                        {Array.isArray(r.guests) && r.guests.length > 0 && (
+                          <div className="mt-1 text-xs font-normal text-muted-foreground">
+                            Guests: {r.guests.map((g) => g?.name).filter(Boolean).join(", ")}
+                          </div>
+                        )}
                         {questions.length > 0 && r.responses && (
                           <div className="mt-1 space-y-0.5 text-xs font-normal text-muted-foreground">
                             {questions.map((q) => {
