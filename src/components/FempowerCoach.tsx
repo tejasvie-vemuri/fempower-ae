@@ -141,7 +141,7 @@ const FempowerCoach = () => {
               {messages.length === 0 && (
                 <div className="space-y-3">
                   <p className="text-sm font-body" style={{ color: "#4A2040" }}>
-                    Hi! I'm your Fempower Coach 💜 I'm here to help you thrive at work. What would you like to work on today?
+                    Hi, I'm Zara — your Fempower coach. Tell me what's on your plate this week, or pick a starting point below.
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {STARTERS.map((s) => (
