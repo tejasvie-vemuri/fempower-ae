@@ -50,7 +50,7 @@ export const PhotoUpload = ({ userId, value, onChange }: Props) => {
   return (
     <div className="flex items-center gap-4">
       <div className="h-20 w-20 rounded-full bg-secondary overflow-hidden flex items-center justify-center ring-2 ring-primary/10">
-        {value ? <img src={value} alt="" className="h-full w-full object-cover" /> : <Upload className="text-muted-foreground" size={20} />}
+        <MemberAvatar path={value} alt="" className="h-full w-full object-cover" fallback={<Upload className="text-muted-foreground" size={20} />} />
       </div>
       <div className="flex gap-2">
         <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()} disabled={busy}>
