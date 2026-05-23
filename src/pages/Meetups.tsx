@@ -303,11 +303,13 @@ const Meetups = () => {
                     {m.attendees.length > 0 && (
                       <div className="flex items-center gap-1 mb-3">
                         {m.attendees.map((a) => (
-                          a.photo_url ? (
-                            <img key={a.user_id} src={a.photo_url} alt="" title={a.name ?? ""} className="w-7 h-7 rounded-full object-cover border-2 border-card -ml-1.5 first:ml-0" />
-                          ) : (
-                            <div key={a.user_id} title={a.name ?? ""} className="w-7 h-7 rounded-full bg-muted border-2 border-card -ml-1.5 first:ml-0 flex items-center justify-center text-xs">{(a.name ?? "?").charAt(0)}</div>
-                          )
+                          <MemberAvatar
+                            key={a.user_id}
+                            path={a.photo_url}
+                            alt={a.name ?? ""}
+                            className="w-7 h-7 rounded-full object-cover border-2 border-card -ml-1.5 first:ml-0"
+                            fallback={<div title={a.name ?? ""} className="w-7 h-7 rounded-full bg-muted border-2 border-card -ml-1.5 first:ml-0 flex items-center justify-center text-xs">{(a.name ?? "?").charAt(0)}</div>}
+                          />
                         ))}
                       </div>
                     )}
