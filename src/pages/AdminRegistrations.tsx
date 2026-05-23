@@ -147,8 +147,13 @@ const AdminRegistrations = () => {
   }, [regs, profiles, query]);
 
   const stats = useMemo(() => {
-    const confirmed = regs.filter((r) => r.status === "confirmed").length;
-    const checkedIn = regs.filter((r) => !!r.checked_in_at).length;
+    const seats = (r: Registration) => r.quantity ?? 1;
+    const confirmed = regs
+      .filter((r) => r.status === "confirmed")
+      .reduce((a, r) => a + seats(r), 0);
+    const checkedIn = regs
+      .filter((r) => !!r.checked_in_at)
+      .reduce((a, r) => a + seats(r), 0);
     const pending = regs.filter((r) => r.status === "pending").length;
     return { confirmed, checkedIn, pending };
   }, [regs]);
