@@ -1,12 +1,17 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { X, Send, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
 import { streamChat, type Msg } from "@/lib/streamChat";
 import { motion, AnimatePresence } from "framer-motion";
 import butterflyIcon from "@/assets/butterfly-icon.png";
+
+const CONSENT_KEY = "fempower-coach-consent-v1";
+const NEWSLETTER_OPTIN_KEY = "fempower-coach-newsletter-optin-v1";
 
 type Pillar = "RISE" | "ROOTS" | "RESTORE";
 type Starter = { id: string; pillar: Pillar; label: string; full: string };
@@ -90,6 +95,12 @@ const FempowerCoach = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [starters, setStarters] = useState<Starter[]>(() => pickStarters());
+  const [hasConsented, setHasConsented] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem(CONSENT_KEY) === "true";
+  });
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [newsletterOptIn, setNewsletterOptIn] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Allow other components (e.g. HeroSection) to open Zara via a global event
@@ -98,6 +109,16 @@ const FempowerCoach = () => {
     window.addEventListener("open-zara", handler);
     return () => window.removeEventListener("open-zara", handler);
   }, []);
+
+  const handleAcceptConsent = () => {
+    if (!agreeTerms) return;
+    window.localStorage.setItem(CONSENT_KEY, "true");
+    window.localStorage.setItem(
+      NEWSLETTER_OPTIN_KEY,
+      newsletterOptIn ? "true" : "false",
+    );
+    setHasConsented(true);
+  };
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
@@ -224,7 +245,57 @@ const FempowerCoach = () => {
 
             {/* Messages */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
-              {messages.length === 0 && (
+              {messages.length === 0 && !hasConsented && (
+                <div className="space-y-4">
+                  <p className="text-sm font-body" style={{ color: "#4A2040" }}>
+                    Hi, I'm Zara — your Fempower coach. Before we start, a quick heads-up so you know exactly what you're saying yes to.
+                  </p>
+                  <ul className="text-xs font-body space-y-1.5 list-disc pl-4" style={{ color: "#4A204099" }}>
+                    <li>Your messages are sent to an AI provider to generate a reply and saved to your account so you can revisit them.</li>
+                    <li>Zara is not a substitute for professional medical, legal, or mental-health advice.</li>
+                    <li>Please don't share passwords, ID numbers, or payment details.</li>
+                  </ul>
+                  <div className="space-y-2.5 rounded-xl border p-3" style={{ borderColor: "#4A204025", background: "#ffffff80" }}>
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={agreeTerms}
+                        onCheckedChange={(v) => setAgreeTerms(v === true)}
+                        className="mt-0.5 border-[#4A2040] data-[state=checked]:bg-[#4A2040]"
+                      />
+                      <span className="text-xs font-body leading-snug" style={{ color: "#4A2040" }}>
+                        I agree to Fempower's{" "}
+                        <Link to="/terms" target="_blank" className="underline underline-offset-2">
+                          Terms &amp; Conditions
+                        </Link>{" "}
+                        and{" "}
+                        <Link to="/privacy" target="_blank" className="underline underline-offset-2">
+                          Privacy Policy
+                        </Link>
+                        . <span style={{ color: "#a32a2a" }}>(required)</span>
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={newsletterOptIn}
+                        onCheckedChange={(v) => setNewsletterOptIn(v === true)}
+                        className="mt-0.5 border-[#4A2040] data-[state=checked]:bg-[#4A2040]"
+                      />
+                      <span className="text-xs font-body leading-snug" style={{ color: "#4A2040" }}>
+                        Email me follow-up tips, resources, and community updates from Fempower. <span style={{ color: "#4A204080" }}>(optional — you can unsubscribe anytime)</span>
+                      </span>
+                    </label>
+                  </div>
+                  <Button
+                    onClick={handleAcceptConsent}
+                    disabled={!agreeTerms}
+                    className="w-full rounded-full text-white"
+                    style={{ background: agreeTerms ? "#4A2040" : "#4A204060" }}
+                  >
+                    Start chatting with Zara
+                  </Button>
+                </div>
+              )}
+              {messages.length === 0 && hasConsented && (
                 <div className="space-y-3">
                   <p className="text-sm font-body" style={{ color: "#4A2040" }}>
                     Hi, I'm Zara — your Fempower coach.
@@ -300,15 +371,15 @@ const FempowerCoach = () => {
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Or tell me what's on your mind…"
+                  placeholder={hasConsented ? "Or tell me what's on your mind…" : "Please accept the terms above to start chatting"}
                   className="flex-1 text-sm font-body rounded-full border"
                   style={{ borderColor: "#4A204030" }}
-                  disabled={isLoading}
+                  disabled={isLoading || !hasConsented}
                 />
                 <Button
                   type="submit"
                   size="icon"
-                  disabled={isLoading || !input.trim()}
+                  disabled={isLoading || !input.trim() || !hasConsented}
                   className="rounded-full shrink-0"
                   style={{ background: "#4A2040" }}
                 >
