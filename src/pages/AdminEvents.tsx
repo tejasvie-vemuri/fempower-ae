@@ -159,7 +159,7 @@ const AdminEvents = () => {
       capacity: parseInt(form.capacity || "0", 10),
       status: form.status,
       waitlist_enabled: form.waitlist_enabled,
-      attendee_questions: form.attendee_questions.filter((q) => q.label.trim()),
+      attendee_questions: form.attendee_questions.filter((q) => q.label.trim()) as unknown as never,
     };
     const { error } = form.id
       ? await supabase.from("events").update(payload).eq("id", form.id)
