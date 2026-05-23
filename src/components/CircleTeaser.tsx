@@ -4,7 +4,7 @@ import { Heart, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const CircleTeaser = () => (
-  <section id="circle" className="py-12 md:py-16">
+  <section id="circle" className="py-8 md:py-10">
     <div className="container max-w-4xl">
       <motion.div
         initial={{ opacity: 0, y: 20 }}

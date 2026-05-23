@@ -43,7 +43,7 @@ const OfferingsSection = () => {
   const active = offerings[activeIndex];
 
   return (
-    <section id="offerings" className="py-10 md:py-14 bg-secondary">
+    <section id="offerings" className="py-7 md:py-10 bg-secondary">
       <PalmDivider className="mb-6" />
       <div className="container">
         <div className="grid lg:grid-cols-2 gap-12 items-center">

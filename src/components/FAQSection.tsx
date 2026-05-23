@@ -19,7 +19,7 @@ const faqs = [
 ];
 
 const FAQSection = () => (
-  <section id="faqs" className="py-10 md:py-14">
+  <section id="faqs" className="py-7 md:py-10">
     <PalmDivider className="mb-6" />
     <div className="container max-w-3xl">
       <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark text-center mb-3">Common Questions</motion.p>

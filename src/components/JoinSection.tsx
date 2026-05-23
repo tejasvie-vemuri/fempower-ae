@@ -13,7 +13,7 @@ const bullets = [
 ];
 
 const JoinSection = () => (
-  <section id="join" className="py-10 md:py-14 relative overflow-hidden">
+  <section id="join" className="py-7 md:py-10 relative overflow-hidden">
     {/* Desert dunes background */}
     <div className="absolute inset-0 pointer-events-none">
       <img src={desertDunes} alt="" className="w-full h-full object-cover opacity-[0.08]" loading="lazy" width={1920} height={640} />

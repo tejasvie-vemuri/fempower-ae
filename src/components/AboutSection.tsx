@@ -25,7 +25,7 @@ const fadeIn = {
 const AboutSection = () => {
   const { data: team } = useSiteImages("team");
   return (
-  <section id="about" className="py-10 md:py-14 relative overflow-hidden">
+  <section id="about" className="py-7 md:py-10 relative overflow-hidden">
     <div className="container max-w-3xl text-center">
       <motion.p
         initial={{ opacity: 0, y: 20 }}
