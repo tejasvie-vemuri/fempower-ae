@@ -314,9 +314,9 @@ const AdminRegistrations = () => {
 
         <div className="grid grid-cols-3 gap-4 mb-6">
           {[
-            { label: "Confirmed", value: stats.confirmed },
-            { label: "Checked in", value: stats.checkedIn },
-            { label: "Pending", value: stats.pending },
+            { label: "Confirmed seats", value: stats.confirmed },
+            { label: "Checked-in seats", value: stats.checkedIn },
+            { label: "Pending bookings", value: stats.pending },
           ].map((s) => (
             <div key={s.label} className="bg-card border border-border rounded-xl p-4">
               <div className="text-xs uppercase tracking-wide text-muted-foreground">
