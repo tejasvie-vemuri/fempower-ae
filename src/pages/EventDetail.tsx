@@ -93,11 +93,41 @@ const EventDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, user, authLoading]);
 
+  // Handle return from Stripe Checkout
+  useEffect(() => {
+    const checkout = searchParams.get("checkout");
+    const sessionId = searchParams.get("session_id");
+    if (checkout === "success" && sessionId && user) {
+      (async () => {
+        const { data, error } = await supabase.functions.invoke("verify-checkout-session", {
+          body: { session_id: sessionId },
+        });
+        if (error) {
+          toast.error(error.message ?? "Could not verify payment");
+        } else if (data?.paid) {
+          toast.success("Payment confirmed — you're registered!");
+        } else {
+          toast.info(`Payment status: ${data?.payment_status ?? "unknown"}`);
+        }
+        searchParams.delete("checkout");
+        searchParams.delete("session_id");
+        setSearchParams(searchParams, { replace: true });
+        load();
+      })();
+    } else if (checkout === "cancelled") {
+      toast.info("Checkout cancelled");
+      searchParams.delete("checkout");
+      setSearchParams(searchParams, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   const isFree = event && event.price_cents === 0;
   const isFull =
     !!event &&
     event.capacity > 0 &&
     confirmedCount >= event.capacity;
+
 
   const handleRegister = async () => {
     if (!event) return;
