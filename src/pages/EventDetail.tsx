@@ -434,6 +434,22 @@ const EventDetail = () => {
                 {event.description}
               </div>
             )}
+
+            {questions.length > 0 &&
+              (!myReg || myReg.status !== "confirmed") &&
+              event.status === "published" &&
+              !isFull && (
+                <AttendeeQuestionsForm
+                  questions={questions}
+                  values={responses}
+                  errors={responseErrors}
+                  onChange={(next) => {
+                    setResponses(next);
+                    if (Object.keys(responseErrors).length) setResponseErrors({});
+                  }}
+                  disabled={acting}
+                />
+              )}
           </div>
 
           <aside className="md:col-span-1">
