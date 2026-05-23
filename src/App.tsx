@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/Auth";
 import AdminEvents from "./pages/AdminEvents";
+import AdminRegistrations from "./pages/AdminRegistrations";
 import EventDetail from "./pages/EventDetail";
 import MyTickets from "./pages/MyTickets";
 import { AdminRoute } from "@/components/AdminRoute";
@@ -31,6 +32,14 @@ const App = () => (
               element={
                 <AdminRoute>
                   <AdminEvents />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/events/:eventId/registrations"
+              element={
+                <AdminRoute>
+                  <AdminRegistrations />
                 </AdminRoute>
               }
             />
