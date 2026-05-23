@@ -3,13 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Instagram } from "lucide-react";
 import heroImg from "@/assets/hero-community.jpg";
 import { DuneWave } from "./GulfDecoratives";
+import { useSiteImages } from "@/hooks/useSiteImages";
 
-const HeroSection = () => (
+const HeroSection = () => {
+  const { data: heroImages } = useSiteImages("hero");
+  const bg = heroImages[0];
+  return (
   <section className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden" aria-label="Fempower hero">
     <div className="absolute inset-0">
       <img
-        src={heroImg}
-        alt="Women of the Fempower community gathering in Dubai, UAE"
+        src={bg?.url ?? heroImg}
+        alt={bg?.alt ?? "Women of the Fempower community gathering in Dubai, UAE"}
         className="w-full h-full object-cover"
         fetchPriority="high"
         decoding="async"
