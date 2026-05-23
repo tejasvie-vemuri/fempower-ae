@@ -363,28 +363,45 @@ const AdminRegistrations = () => {
                         {r.ticket_code}
                       </TableCell>
                       <TableCell className="text-right">
-                        {r.status === "confirmed" ? (
-                          <Button
-                            size="sm"
-                            variant={r.checked_in_at ? "outline" : "default"}
-                            onClick={() => toggleCheckIn(r)}
-                            disabled={busyId === r.id}
-                          >
-                            {busyId === r.id ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : r.checked_in_at ? (
-                              <>
-                                <Undo2 className="h-3 w-3 mr-1" /> Undo
-                              </>
-                            ) : (
-                              <>
-                                <Check className="h-3 w-3 mr-1" /> Check in
-                              </>
-                            )}
-                          </Button>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
+                        <div className="flex justify-end items-center gap-1">
+                          {r.status === "confirmed" && (
+                            <Button
+                              size="sm"
+                              variant={r.checked_in_at ? "outline" : "default"}
+                              onClick={() => toggleCheckIn(r)}
+                              disabled={busyId === r.id}
+                            >
+                              {busyId === r.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : r.checked_in_at ? (
+                                <>
+                                  <Undo2 className="h-3 w-3 mr-1" /> Undo
+                                </>
+                              ) : (
+                                <>
+                                  <Check className="h-3 w-3 mr-1" /> Check in
+                                </>
+                              )}
+                            </Button>
+                          )}
+                          {r.status === "confirmed" && r.amount_paid_cents > 0 && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => refund(r)}
+                              disabled={busyId === r.id}
+                              title="Refund"
+                            >
+                              <RefreshCcw className="h-3 w-3" />
+                            </Button>
+                          )}
+                          {r.status === "refunded" && (
+                            <span className="text-xs text-muted-foreground">Refunded</span>
+                          )}
+                          {r.status === "pending" && (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -393,6 +410,72 @@ const AdminRegistrations = () => {
             </Table>
           )}
         </div>
+
+        {waitlist.length > 0 && (
+          <div className="mt-10">
+            <h2 className="font-heading text-2xl text-primary mb-4">
+              Waitlist ({waitlist.length})
+            </h2>
+            <div className="bg-card border border-border rounded-xl overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-16">#</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Joined</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {waitlist.map((w) => {
+                    const p = profiles[w.user_id];
+                    return (
+                      <TableRow key={w.id}>
+                        <TableCell className="font-mono">{w.position}</TableCell>
+                        <TableCell className="font-medium">{p?.name ?? "—"}</TableCell>
+                        <TableCell className="text-sm">
+                          <div>{p?.email ?? "—"}</div>
+                          {p?.phone && (
+                            <div className="text-muted-foreground">{p.phone}</div>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {fmtDate(w.created_at)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => promoteFromWaitlist(w)}
+                            disabled={busyId === w.id}
+                          >
+                            {busyId === w.id ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <>
+                                <UserPlus className="h-3 w-3 mr-1" /> Promote
+                              </>
+                            )}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Promoting moves them off the waitlist and creates a pending ticket. Share the event link so they can complete payment. (Automated email notifications will be enabled once your sender domain is set up.)
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default AdminRegistrations;
       </div>
     </div>
   );
