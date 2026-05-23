@@ -15,6 +15,7 @@ import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
 import FempowerCoach from "@/components/FempowerCoach";
 import CircleTeaser from "@/components/CircleTeaser";
+import MeetupsSection from "@/components/MeetupsSection";
 import SeoSummary from "@/components/SeoSummary";
 
 const Index = () => (
