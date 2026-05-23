@@ -40,6 +40,8 @@ interface Registration {
   cancellation_requested_at: string | null;
   cancellation_reason: string | null;
   responses: Record<string, unknown> | null;
+  quantity: number | null;
+  guests: Array<{ name?: string; email?: string }> | null;
 }
 
 interface Profile {
