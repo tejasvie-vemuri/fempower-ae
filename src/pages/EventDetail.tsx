@@ -77,6 +77,8 @@ const EventDetail = () => {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [responses, setResponses] = useState<AttendeeResponses>({});
   const [responseErrors, setResponseErrors] = useState<Record<string, string>>({});
+  const [quantity, setQuantity] = useState(1);
+  const [guests, setGuests] = useState<Guest[]>([]);
 
   const questions: AttendeeQuestion[] = useMemo(
     () => parseQuestions(event?.attendee_questions),
