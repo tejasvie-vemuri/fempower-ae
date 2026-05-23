@@ -89,12 +89,17 @@ const EventDetail = () => {
     }
     setEvent(ev as EventData);
 
-    const { count } = await supabase
+    // Confirmed seats = SUM(quantity) on confirmed registrations
+    const { data: seatRows } = await supabase
       .from("registrations")
-      .select("*", { count: "exact", head: true })
+      .select("quantity")
       .eq("event_id", ev.id)
       .eq("status", "confirmed");
-    setConfirmedCount(count ?? 0);
+    const seatTotal = (seatRows ?? []).reduce(
+      (acc: number, r: { quantity: number | null }) => acc + (r.quantity ?? 1),
+      0,
+    );
+    setConfirmedCount(seatTotal);
 
     if (user) {
       const { data: reg } = await supabase
