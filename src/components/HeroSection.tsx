@@ -56,6 +56,33 @@ const HeroSection = () => (
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
           </a>
         </div>
+
+        {/* Zara teaser */}
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
+          onClick={() => window.dispatchEvent(new Event("open-zara"))}
+          className="mt-6 inline-flex items-center gap-3 rounded-full pl-2 pr-5 py-2 text-left shadow-sm hover:shadow-md transition-shadow group"
+          style={{ background: "#FDF8F3", border: "1px solid #4A204025" }}
+          aria-label="Open Zara, your AI career coach"
+        >
+          <span
+            className="w-9 h-9 rounded-full flex items-center justify-center text-base"
+            style={{ background: "#4A2040", color: "#D4A853" }}
+            aria-hidden="true"
+          >
+            ✦
+          </span>
+          <span className="flex flex-col leading-tight">
+            <span className="font-body text-[10px] uppercase tracking-widest" style={{ color: "#4A204090" }}>
+              Meet Zara · AI Coach
+            </span>
+            <span className="font-body text-sm font-medium" style={{ color: "#4A2040" }}>
+              Ask her anything about growing your career in UAE →
+            </span>
+          </span>
+        </motion.button>
       </motion.div>
     </div>
     <DuneWave className="absolute bottom-0 left-0 z-10" />
