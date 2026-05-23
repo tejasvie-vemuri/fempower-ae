@@ -371,15 +371,15 @@ const FempowerCoach = () => {
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Or tell me what's on your mind…"
+                  placeholder={hasConsented ? "Or tell me what's on your mind…" : "Please accept the terms above to start chatting"}
                   className="flex-1 text-sm font-body rounded-full border"
                   style={{ borderColor: "#4A204030" }}
-                  disabled={isLoading}
+                  disabled={isLoading || !hasConsented}
                 />
                 <Button
                   type="submit"
                   size="icon"
-                  disabled={isLoading || !input.trim()}
+                  disabled={isLoading || !input.trim() || !hasConsented}
                   className="rounded-full shrink-0"
                   style={{ background: "#4A2040" }}
                 >
