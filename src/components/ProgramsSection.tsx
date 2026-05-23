@@ -15,7 +15,7 @@ const programs = [
 ];
 
 const ProgramsSection = () => (
-  <section id="programs" className="py-10 md:py-14">
+  <section id="programs" className="py-7 md:py-10">
     <div className="container max-w-3xl">
       <SkylineSilhouette className="text-foreground mx-auto mb-5" />
       <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark text-center mb-3">Deep Dive</motion.p>

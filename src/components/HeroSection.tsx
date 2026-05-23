@@ -21,7 +21,7 @@ const HeroSection = () => {
       <div className="absolute inset-0 bg-background/80" />
     </div>
 
-    <div className="container relative z-10 py-16 md:py-24">
+    <div className="container relative z-10 py-10 md:py-16">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}

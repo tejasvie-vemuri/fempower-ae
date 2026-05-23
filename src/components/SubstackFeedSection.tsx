@@ -48,7 +48,7 @@ const SubstackFeedSection = () => {
   };
 
   return (
-    <section id="reads" className="py-6 md:py-10">
+    <section id="reads" className="py-5 md:py-7">
       <PalmDivider className="mb-6" />
       <div className="container max-w-5xl">
         <motion.p

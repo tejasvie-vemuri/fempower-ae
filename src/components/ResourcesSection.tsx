@@ -34,7 +34,7 @@ const ResourcesSection = () => {
   if (!loading && resources.length === 0) return null;
 
   return (
-    <section id="resources" className="py-10 md:py-14">
+    <section id="resources" className="py-7 md:py-10">
       <PalmDivider className="mb-6" />
       <div className="container max-w-5xl">
         <motion.p

@@ -94,7 +94,7 @@ const GallerySection = () => {
   }, [images.length, inView, nextHidden]);
 
   return (
-    <section ref={sectionRef} id="gallery" className="py-10 md:py-14 bg-secondary relative">
+    <section ref={sectionRef} id="gallery" className="py-7 md:py-10 bg-secondary relative">
       <DuneWave className="absolute top-0 left-0 rotate-180" />
       <div className="container max-w-4xl relative z-10">
         <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark text-center mb-3">In Motion</motion.p>
