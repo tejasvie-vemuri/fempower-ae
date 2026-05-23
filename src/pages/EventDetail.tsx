@@ -599,13 +599,19 @@ const EventDetail = () => {
             <div className="bg-card border border-border rounded-2xl p-6 sticky top-6 space-y-4">
               <div>
                 <div className="text-xs uppercase tracking-widest text-muted-foreground">
-                  Price
+                  {isFree ? "Price" : quantity > 1 ? "Total" : "Price"}
                 </div>
                 <div className="font-heading text-2xl text-primary">
                   {isFree
                     ? "Free"
-                    : `${event.currency} ${(event.price_cents / 100).toFixed(2)}`}
+                    : `${event.currency} ${((event.price_cents * quantity) / 100).toFixed(2)}`}
                 </div>
+                {!isFree && quantity > 1 && (
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {quantity} × {event.currency}{" "}
+                    {(event.price_cents / 100).toFixed(2)}
+                  </div>
+                )}
               </div>
 
               {event.status === "cancelled" ? (
