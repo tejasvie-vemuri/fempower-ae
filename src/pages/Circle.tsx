@@ -323,10 +323,13 @@ const Circle = () => {
                           <div className="w-8 h-8 rounded-full bg-blush-light flex items-center justify-center">
                             <Heart size={14} className="text-blush-dark" />
                           </div>
-                        ) : p.author_photo_url ? (
-                          <img src={p.author_photo_url} alt={p.author_name ?? ""} className="w-8 h-8 rounded-full object-cover" />
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">{(p.author_name ?? "?").charAt(0)}</div>
+                          <MemberAvatar
+                            path={p.author_photo_url}
+                            alt={p.author_name ?? ""}
+                            className="w-8 h-8 rounded-full object-cover"
+                            fallback={<div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">{(p.author_name ?? "?").charAt(0)}</div>}
+                          />
                         )}
                         <div>
                           <p className="text-sm font-body font-medium text-foreground">
