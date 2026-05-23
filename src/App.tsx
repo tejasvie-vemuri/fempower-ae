@@ -14,6 +14,7 @@ import MyTickets from "./pages/MyTickets";
 import Directory from "./pages/Directory";
 import MemberProfileEdit from "./pages/MemberProfileEdit";
 import AdminMembers from "./pages/AdminMembers";
+import AdminImages from "./pages/AdminImages";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/directory" element={<ProtectedRoute><Directory /></ProtectedRoute>} />
             <Route path="/account/profile" element={<ProtectedRoute><MemberProfileEdit /></ProtectedRoute>} />
             <Route path="/admin/members" element={<AdminRoute><AdminMembers /></AdminRoute>} />
+            <Route path="/admin/images" element={<AdminRoute><AdminImages /></AdminRoute>} />
             <Route
               path="/admin/events"
               element={

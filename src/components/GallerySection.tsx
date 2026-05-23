@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2 } from "lucide-react";
 import { DuneWave } from "./GulfDecoratives";
+import { useSiteImages } from "@/hooks/useSiteImages";
 
 interface GalleryImage {
   id: string;
@@ -21,8 +22,15 @@ const GallerySection = () => {
   const [nextHidden, setNextHidden] = useState(VISIBLE_COUNT);
   const [inView, setInView] = useState(false);
   const sectionRef = useRef<HTMLElement | null>(null);
+  const { data: managed, loading: managedLoading } = useSiteImages("gallery");
 
   useEffect(() => {
+    if (managedLoading) return;
+    if (managed.length > 0) {
+      setImages(managed.slice(0, MAX_IMAGES).map((m) => ({ id: m.id, url: m.url })));
+      setLoading(false);
+      return;
+    }
     const fetchGallery = async () => {
       try {
         const res = await fetch(`${SUPABASE_URL}/functions/v1/fetch-gallery`);
@@ -36,7 +44,7 @@ const GallerySection = () => {
       }
     };
     fetchGallery();
-  }, []);
+  }, [managed, managedLoading]);
 
   // Initialize visible indices
   useEffect(() => {

@@ -1,69 +1,52 @@
-# Member Directory — Plan
+## Goal
 
-A searchable directory of Fempower members. Profiles are created automatically on signup, but only appear publicly to other members once an admin approves them. Built on Lovable Cloud (Postgres + Storage + RLS) so it stays stable well past 500+ members.
+Give you one place to upload and manage every image on the site — hero, team/mentors, event covers, and the Community Moments gallery — without touching code, Drive, or Sheets again.
 
-## User experience
+## How it will work
 
-**For members**
-- New route `/directory` (logged-in only). Shows approved members in a responsive card grid.
-- Search bar (name / role / company / bio) + filter chips: Industry, City, "Open to".
-- Click a card → member detail drawer with full bio, LinkedIn, Instagram, website, interests.
-- New route `/account/profile` — member edits their own profile, uploads a photo, fills tags, and sees their approval status badge (Pending / Approved / Hidden).
+A single public storage bucket holds every image. A small `site_images` table tracks what each image is for (category, title, alt text, sort order, visibility). A new admin page at `/admin/images` lets you upload, label, reorder, and delete. The site's sections read from this table on load.
 
-**For admins**
-- New route `/admin/members` — list of all profiles with status filter, search, and Approve / Reject / Hide actions. Pending profiles surface at the top with a count badge.
+```
+Admin → /admin/images
+   ↓ upload + tag
+[ site-images bucket ]  ←→  [ site_images table ]
+   ↓ public URLs                ↓ category filter
+Hero · Team · Events · Gallery sections
+```
 
-**Entry points**
-- New "Directory" link in the header (only visible to signed-in users).
-- Card on the member's `/account/tickets` style hub linking to "Edit your profile".
+## What gets built
 
-## Data model (new table `member_profiles`)
+**1. Storage + database**
+- Public bucket `site-images` (read = everyone, write = admins only)
+- Table `site_images`: `id`, `category` (`hero` | `team` | `event` | `gallery`), `title`, `alt`, `subtitle`, `link_url`, `image_path`, `sort_order`, `is_active`, timestamps
+- RLS: public can read active rows; only admins can insert/update/delete
 
-Fields:
-- `name`, `photo_url`, `role`, `company`, `city`, `bio` (short)
-- `linkedin_url`, `instagram_url`, `website_url`
-- `industry` (single select), `expertise_tags` (text[]), `interests` (text[])
-- `looking_for` (text[]: mentoring, collabs, hiring, friendship, etc.)
-- `why_here` (short text — "Why are you part of Fempower?")
-- `status` ('pending' | 'approved' | 'hidden' | 'rejected'), `approved_at`, `approved_by`
+**2. Admin page — `/admin/images`** (admin-only, behind existing `AdminRoute`)
+- Tabs for the 4 categories
+- Drag-and-drop upload (auto-compress, stores to `site-images/{category}/...`)
+- Edit title/alt/subtitle/sort order inline
+- Toggle active, delete
+- Live preview thumbnail
 
-A row is auto-created on signup via the existing `handle_new_user` trigger with `status='pending'`. The existing `profiles` table stays as-is for auth/contact info; `member_profiles` holds the public-facing directory data.
+**3. Wire sections to the library**
+- **Hero**: optional background image from `category=hero` (first active by sort order). If none, current static hero stays.
+- **Team / Mentors**: new "Meet the Team" subsection on About — renders all active `category=team` as portrait cards (photo, name in `title`, role in `subtitle`).
+- **Event covers**: events keep coming from Google Sheets, but each event row can reference an uploaded image by its filename — `EventsCalendarSection` resolves it from `site-images/event/`. Sheet still wins if it has a full URL.
+- **Community Moments gallery**: `GallerySection` switches from Google Drive to `category=gallery`. Drive fallback kept for one release in case you want to compare.
 
-## Access rules (RLS)
-
-- Member can read & update **their own** `member_profiles` row at any time.
-- Any signed-in user can read rows where `status='approved'` (this powers the directory).
-- Admins can read/update/delete all rows (approval workflow).
-- Anonymous visitors see nothing.
-
-## Search & performance (handles 500–10k+ rows easily)
-
-- Postgres `GIN` index on a generated `tsvector` of name+role+company+bio+tags → fast full-text search.
-- Indexes on `status`, `industry`, `city`.
-- Query in pages of 24 with infinite scroll (React Query). Filters applied server-side.
-- Photos stored in a new `member-photos` Storage bucket, served via CDN, resized at upload (max 800px) to keep payloads small.
+**4. Header link** in admin nav to the new Images page.
 
 ## Technical details
 
-- New files:
-  - `src/pages/Directory.tsx`, `src/pages/MemberProfileEdit.tsx`, `src/pages/AdminMembers.tsx`
-  - `src/components/directory/MemberCard.tsx`, `MemberDrawer.tsx`, `DirectoryFilters.tsx`, `PhotoUpload.tsx`
-  - `src/hooks/useMemberProfile.ts`, `src/hooks/useDirectory.ts`
-  - `src/lib/memberProfile.ts` (zod schema: trim, length caps, URL validation for LinkedIn/IG/website)
-- DB migration: create `member_profiles`, RLS policies, indexes, `tsvector` trigger, `member-photos` bucket + policies, extend `handle_new_user` to seed a pending row.
-- Header gets a "Directory" `NavLink` shown only when `useAuth().user` exists.
-- Routes added in `src/App.tsx` under `ProtectedRoute` (members) and `AdminRoute` (admin page).
+- Migration creates bucket via `storage.buckets` insert, table, RLS policies, and `update_updated_at_column` trigger.
+- Front-end fetches via `supabase.from('site_images').select().eq('category', X).eq('is_active', true).order('sort_order')` — cached per section with React Query (already used elsewhere).
+- Upload path convention: `{category}/{uuid}-{slug}.{ext}`. Public URL via `supabase.storage.from('site-images').getPublicUrl(path)`.
+- Image compression client-side (max 1920px wide, ~80% jpeg) before upload to keep bucket light.
+- Gallery section keeps masonry layout; team section is a new responsive grid of portrait cards.
+- No change to `member-photos` bucket (member directory keeps its own flow).
 
-## Validation & safety
+## Out of scope (call out if you want them later)
 
-- zod-validated inputs on client and server (length limits, URL shape for `linkedin.com/in/...`, `instagram.com/...`).
-- Photo upload: type + size check (≤ 5 MB, jpg/png/webp), stored under `{user_id}/avatar.{ext}`.
-- No PII leaked: email and phone from `profiles` are never exposed in the directory.
-
-## Out of scope (can come later)
-
-- Direct messaging between members
-- Member-to-member connection requests
-- CSV import of existing members (can be added as an admin tool if needed)
-
-Ready to build when you approve.
+- Replacing Google Sheets for events entirely
+- Per-image cropping/focal-point editor
+- Versioned image history
