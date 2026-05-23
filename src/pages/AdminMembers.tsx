@@ -10,6 +10,7 @@ import { Loader2, Check, X, EyeOff, Eye, Linkedin, Instagram, Globe } from "luci
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import type { MemberProfile } from "@/lib/memberProfile";
+import { MemberAvatar } from "@/components/directory/MemberAvatar";
 
 const STATUSES: Array<MemberProfile["status"] | "all"> = ["pending", "approved", "hidden", "rejected", "all"];
 
