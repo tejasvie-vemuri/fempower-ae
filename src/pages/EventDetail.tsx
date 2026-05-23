@@ -167,10 +167,15 @@ const EventDetail = () => {
   }, [user]);
 
   const isFree = event && event.price_cents === 0;
-  const isFull =
-    !!event &&
-    event.capacity > 0 &&
-    confirmedCount >= event.capacity;
+  const seatsLeft =
+    !!event && event.capacity > 0
+      ? Math.max(0, event.capacity - confirmedCount)
+      : null;
+  const isFull = seatsLeft !== null && seatsLeft === 0;
+  const maxSelectable = Math.min(
+    MAX_QUANTITY,
+    seatsLeft === null ? MAX_QUANTITY : Math.max(1, seatsLeft),
+  );
 
   const checkoutOptions = useMemo(
     () => ({
@@ -209,7 +214,19 @@ const EventDetail = () => {
         return;
       }
     }
+    const safeQty = Math.max(1, Math.min(MAX_QUANTITY, quantity));
+    const cleanGuests = sanitizeGuests(safeQty, guests);
+    const guestErr = validateGuests(safeQty, cleanGuests);
+    if (guestErr) {
+      toast.error(guestErr);
+      return;
+    }
+    if (seatsLeft !== null && safeQty > seatsLeft) {
+      toast.error(`Only ${seatsLeft} seat${seatsLeft === 1 ? "" : "s"} left`);
+      return;
+    }
     const responsesPayload = JSON.parse(JSON.stringify(responses));
+    const guestsPayload = JSON.parse(JSON.stringify(cleanGuests));
     setActing(true);
     if (isFree) {
       const { data: existing } = await supabase
@@ -227,6 +244,8 @@ const EventDetail = () => {
             amount_paid_cents: 0,
             currency: event.currency,
             responses: responsesPayload,
+            quantity: safeQty,
+            guests: guestsPayload,
           })
           .eq("id", existing.id);
         error = r.error;
@@ -238,6 +257,8 @@ const EventDetail = () => {
           amount_paid_cents: 0,
           currency: event.currency,
           responses: responsesPayload,
+          quantity: safeQty,
+          guests: guestsPayload,
         });
         error = r.error;
       }
