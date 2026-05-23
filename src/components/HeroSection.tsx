@@ -80,7 +80,7 @@ const HeroSection = () => {
           </span>
           <span className="flex flex-col leading-tight">
             <span className="font-body text-[10px] uppercase tracking-widest" style={{ color: "#4A204090" }}>
-              Meet Zara · AI Coach
+              Meet Zara · Your Coach
             </span>
             <span className="font-body text-sm font-medium" style={{ color: "#4A2040" }}>
               Ask her anything about growing your career in UAE →
