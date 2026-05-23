@@ -14,6 +14,180 @@ export type Database = {
   }
   public: {
     Tables: {
+      circle_bans: {
+        Row: {
+          banned_by: string | null
+          created_at: string
+          id: string
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          banned_by?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          banned_by?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      circle_posts: {
+        Row: {
+          body: string
+          created_at: string
+          flagged_keywords: string[]
+          id: string
+          is_anonymous: boolean
+          published_at: string | null
+          risk_level: string
+          status: string
+          topic_tag: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          flagged_keywords?: string[]
+          id?: string
+          is_anonymous?: boolean
+          published_at?: string | null
+          risk_level?: string
+          status?: string
+          topic_tag: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          flagged_keywords?: string[]
+          id?: string
+          is_anonymous?: boolean
+          published_at?: string | null
+          risk_level?: string
+          status?: string
+          topic_tag?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      circle_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          target_id: string
+          target_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          target_id: string
+          target_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          target_id?: string
+          target_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      circle_replies: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          post_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          post_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "circle_replies_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "circle_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "circle_replies_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "circle_posts_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      circle_reports: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          reason: string
+          reporter_id: string
+          status: string
+          target_id: string
+          target_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reason: string
+          reporter_id: string
+          status?: string
+          target_id: string
+          target_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reason?: string
+          reporter_id?: string
+          status?: string
+          target_id?: string
+          target_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       coach_conversations: {
         Row: {
           created_at: string
@@ -182,6 +356,7 @@ export type Database = {
           industry: string | null
           instagram_url: string | null
           interests: string[]
+          is_trusted_poster: boolean
           linkedin_url: string | null
           looking_for: string[]
           name: string
@@ -206,6 +381,7 @@ export type Database = {
           industry?: string | null
           instagram_url?: string | null
           interests?: string[]
+          is_trusted_poster?: boolean
           linkedin_url?: string | null
           looking_for?: string[]
           name?: string
@@ -230,6 +406,7 @@ export type Database = {
           industry?: string | null
           instagram_url?: string | null
           interests?: string[]
+          is_trusted_poster?: boolean
           linkedin_url?: string | null
           looking_for?: string[]
           name?: string
@@ -442,7 +619,21 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      circle_posts_public: {
+        Row: {
+          author_name: string | null
+          author_photo_url: string | null
+          body: string | null
+          created_at: string | null
+          id: string | null
+          is_anonymous: boolean | null
+          published_at: string | null
+          status: string | null
+          topic_tag: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       event_confirmed_count: { Args: { _event_id: string }; Returns: number }
@@ -454,6 +645,8 @@ export type Database = {
         Returns: boolean
       }
       is_approved_member: { Args: { _user_id: string }; Returns: boolean }
+      is_circle_banned: { Args: { _user_id: string }; Returns: boolean }
+      is_circle_trusted: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"
