@@ -28,6 +28,7 @@ const Index = () => (
       <OfferingsSection />
       <ProgramsSection />
       <CircleTeaser />
+      <MeetupsSection />
       <EventsCalendarSection />
       <BecomingSpaceSection />
       <GallerySection />
