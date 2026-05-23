@@ -11,6 +11,7 @@ const navLinks = [
   { label: "Directory", href: "/directory", showFrom: "md" as const },
   { label: "Gallery", href: "#gallery", showFrom: "lg" as const },
   { label: "Join", href: "#join", showFrom: "md" as const },
+  { label: "Circle", href: "/circle", showFrom: "lg" as const },
   { label: "FAQs", href: "#faqs", showFrom: "xl" as const },
 ];
 
