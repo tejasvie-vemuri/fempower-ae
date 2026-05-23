@@ -31,6 +31,9 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/events/:slug" element={<EventDetail />} />
             <Route path="/account/tickets" element={<MyTickets />} />
+            <Route path="/directory" element={<ProtectedRoute><Directory /></ProtectedRoute>} />
+            <Route path="/account/profile" element={<ProtectedRoute><MemberProfileEdit /></ProtectedRoute>} />
+            <Route path="/admin/members" element={<AdminRoute><AdminMembers /></AdminRoute>} />
             <Route
               path="/admin/events"
               element={
