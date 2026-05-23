@@ -278,11 +278,12 @@ const Meetups = () => {
                   <article key={m.id} className="rounded-2xl border border-border bg-card p-5">
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex items-center gap-3 min-w-0">
-                        {m.host?.photo_url ? (
-                          <img src={m.host.photo_url} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-blush-light flex-shrink-0 flex items-center justify-center"><Coffee size={16} className="text-blush-dark" /></div>
-                        )}
+                        <MemberAvatar
+                          path={m.host?.photo_url}
+                          alt=""
+                          className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                          fallback={<div className="w-10 h-10 rounded-full bg-blush-light flex-shrink-0 flex items-center justify-center"><Coffee size={16} className="text-blush-dark" /></div>}
+                        />
                         <div className="min-w-0">
                           <h3 className="font-heading text-lg text-foreground truncate">{m.title}</h3>
                           <p className="text-xs text-muted-foreground">Hosted by {hostDisplayName(m.host?.name, m.host_visibility)}</p>
