@@ -74,6 +74,17 @@ Deno.serve(async (req) => {
     const environment: StripeEnv = isStripeEnv(body.environment) ? body.environment : "sandbox";
     const origin: string =
       body.origin ?? req.headers.get("origin") ?? req.headers.get("referer") ?? "";
+    const rawResponses =
+      body.responses && typeof body.responses === "object" && !Array.isArray(body.responses)
+        ? (body.responses as Record<string, unknown>)
+        : {};
+    const responses: Record<string, string> = {};
+    for (const [k, v] of Object.entries(rawResponses)) {
+      if (typeof k === "string" && k.length <= 64) {
+        const s = typeof v === "string" ? v : String(v ?? "");
+        responses[k] = s.slice(0, 1000);
+      }
+    }
     if (!eventId) {
       return new Response(JSON.stringify({ error: "event_id required" }), {
         status: 400,
@@ -152,6 +163,7 @@ Deno.serve(async (req) => {
           status: "pending",
           amount_paid_cents: 0,
           currency: ev.currency,
+          responses,
         })
         .select("id")
         .single();
@@ -162,6 +174,12 @@ Deno.serve(async (req) => {
         });
       }
       registrationId = reg.id;
+    } else {
+      // Update responses on existing pending registration so admin always has latest answers
+      await supabaseAdmin
+        .from("registrations")
+        .update({ responses })
+        .eq("id", registrationId);
     }
 
     const stripe = createStripeClient(environment);
