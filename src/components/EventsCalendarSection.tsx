@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarHeart, MapPin, Clock, Loader2, ArrowRight } from "lucide-react";
 import { PalmDivider } from "./GulfDecoratives";
+import MeetupsStrip from "./MeetupsStrip";
 import { supabase } from "@/integrations/supabase/client";
 
 interface CalendarEvent {
@@ -211,6 +212,7 @@ const EventsCalendarSection = () => {
             </div>
           </motion.div>
         )}
+        <MeetupsStrip />
       </div>
     </section>
   );

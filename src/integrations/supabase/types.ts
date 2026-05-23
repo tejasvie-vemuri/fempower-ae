@@ -343,6 +343,118 @@ export type Database = {
         }
         Relationships: []
       }
+      meetup_reports: {
+        Row: {
+          created_at: string
+          id: string
+          meetup_id: string
+          notes: string | null
+          reason: string
+          reporter_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meetup_id: string
+          notes?: string | null
+          reason: string
+          reporter_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meetup_id?: string
+          notes?: string | null
+          reason?: string
+          reporter_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meetup_reports_meetup_id_fkey"
+            columns: ["meetup_id"]
+            isOneToOne: false
+            referencedRelation: "meetups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meetup_rsvps: {
+        Row: {
+          created_at: string
+          id: string
+          meetup_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meetup_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meetup_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meetup_rsvps_meetup_id_fkey"
+            columns: ["meetup_id"]
+            isOneToOne: false
+            referencedRelation: "meetups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meetups: {
+        Row: {
+          capacity: number | null
+          created_at: string
+          emirate: string | null
+          host_id: string
+          host_visibility: string
+          id: string
+          note: string | null
+          place: string
+          starts_at: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string
+          emirate?: string | null
+          host_id: string
+          host_visibility?: string
+          id?: string
+          note?: string | null
+          place: string
+          starts_at: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string
+          emirate?: string | null
+          host_id?: string
+          host_visibility?: string
+          id?: string
+          note?: string | null
+          place?: string
+          starts_at?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       member_profiles: {
         Row: {
           approved_at: string | null
