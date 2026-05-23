@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { MemberAvatar } from "@/components/directory/MemberAvatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Loader2, MessageCircle, Flag, Send, Heart, LifeBuoy } from "lucide-react";
@@ -322,10 +323,13 @@ const Circle = () => {
                           <div className="w-8 h-8 rounded-full bg-blush-light flex items-center justify-center">
                             <Heart size={14} className="text-blush-dark" />
                           </div>
-                        ) : p.author_photo_url ? (
-                          <img src={p.author_photo_url} alt={p.author_name ?? ""} className="w-8 h-8 rounded-full object-cover" />
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">{(p.author_name ?? "?").charAt(0)}</div>
+                          <MemberAvatar
+                            path={p.author_photo_url}
+                            alt={p.author_name ?? ""}
+                            className="w-8 h-8 rounded-full object-cover"
+                            fallback={<div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">{(p.author_name ?? "?").charAt(0)}</div>}
+                          />
                         )}
                         <div>
                           <p className="text-sm font-body font-medium text-foreground">
@@ -371,11 +375,12 @@ const Circle = () => {
                         const mine = myReactions[rkey] || new Set();
                         return (
                           <div key={r.id} className="flex gap-3">
-                            {r.author?.photo_url ? (
-                              <img src={r.author.photo_url} alt={r.author.name ?? ""} className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
-                            ) : (
-                              <div className="w-7 h-7 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-xs">{(r.author?.name ?? "?").charAt(0)}</div>
-                            )}
+                            <MemberAvatar
+                              path={r.author?.photo_url}
+                              alt={r.author?.name ?? ""}
+                              className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                              fallback={<div className="w-7 h-7 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-xs">{(r.author?.name ?? "?").charAt(0)}</div>}
+                            />
                             <div className="flex-1 min-w-0">
                               <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">{r.author?.name ?? "A member"}</span> · {new Date(r.created_at).toLocaleString()}</p>
                               <p className="text-sm font-body text-foreground mt-1 whitespace-pre-wrap">{r.body}</p>

@@ -1,14 +1,13 @@
-import { useState } from "react";
 import { Linkedin, Instagram, Globe, MapPin } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { MemberProfile } from "@/lib/memberProfile";
+import { MemberAvatar } from "@/components/directory/MemberAvatar";
 
 const initials = (name: string) =>
   name.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]?.toUpperCase()).join("");
 
 export const MemberCard = ({ member, onClick }: { member: MemberProfile; onClick: () => void }) => {
-  const [imgErr, setImgErr] = useState(false);
   return (
     <Card
       onClick={onClick}
@@ -16,11 +15,12 @@ export const MemberCard = ({ member, onClick }: { member: MemberProfile; onClick
     >
       <div className="flex items-start gap-4">
         <div className="h-16 w-16 rounded-full bg-blush-light flex items-center justify-center overflow-hidden flex-shrink-0 ring-2 ring-blush-dark/15 group-hover:ring-blush-dark/40 transition-all">
-          {member.photo_url && !imgErr ? (
-            <img src={member.photo_url} alt={member.name} className="h-full w-full object-cover" onError={() => setImgErr(true)} />
-          ) : (
-            <span className="font-heading text-xl text-blush-dark">{initials(member.name) || "·"}</span>
-          )}
+          <MemberAvatar
+            path={member.photo_url}
+            alt={member.name}
+            className="h-full w-full object-cover"
+            fallback={<span className="font-heading text-xl text-blush-dark">{initials(member.name) || "·"}</span>}
+          />
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-heading text-xl leading-tight tracking-tight text-foreground truncate">{member.name}</h3>

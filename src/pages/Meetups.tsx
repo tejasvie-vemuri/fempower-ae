@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { EMIRATES, MEETUP_REPORT_REASONS, hostDisplayName, formatMeetupWhen, type Meetup } from "@/lib/meetups";
+import { MemberAvatar } from "@/components/directory/MemberAvatar";
 
 type EnrichedMeetup = Meetup & {
   host?: { name: string | null; photo_url: string | null };
@@ -277,11 +278,12 @@ const Meetups = () => {
                   <article key={m.id} className="rounded-2xl border border-border bg-card p-5">
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex items-center gap-3 min-w-0">
-                        {m.host?.photo_url ? (
-                          <img src={m.host.photo_url} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-blush-light flex-shrink-0 flex items-center justify-center"><Coffee size={16} className="text-blush-dark" /></div>
-                        )}
+                        <MemberAvatar
+                          path={m.host?.photo_url}
+                          alt=""
+                          className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                          fallback={<div className="w-10 h-10 rounded-full bg-blush-light flex-shrink-0 flex items-center justify-center"><Coffee size={16} className="text-blush-dark" /></div>}
+                        />
                         <div className="min-w-0">
                           <h3 className="font-heading text-lg text-foreground truncate">{m.title}</h3>
                           <p className="text-xs text-muted-foreground">Hosted by {hostDisplayName(m.host?.name, m.host_visibility)}</p>
@@ -301,11 +303,13 @@ const Meetups = () => {
                     {m.attendees.length > 0 && (
                       <div className="flex items-center gap-1 mb-3">
                         {m.attendees.map((a) => (
-                          a.photo_url ? (
-                            <img key={a.user_id} src={a.photo_url} alt="" title={a.name ?? ""} className="w-7 h-7 rounded-full object-cover border-2 border-card -ml-1.5 first:ml-0" />
-                          ) : (
-                            <div key={a.user_id} title={a.name ?? ""} className="w-7 h-7 rounded-full bg-muted border-2 border-card -ml-1.5 first:ml-0 flex items-center justify-center text-xs">{(a.name ?? "?").charAt(0)}</div>
-                          )
+                          <MemberAvatar
+                            key={a.user_id}
+                            path={a.photo_url}
+                            alt={a.name ?? ""}
+                            className="w-7 h-7 rounded-full object-cover border-2 border-card -ml-1.5 first:ml-0"
+                            fallback={<div title={a.name ?? ""} className="w-7 h-7 rounded-full bg-muted border-2 border-card -ml-1.5 first:ml-0 flex items-center justify-center text-xs">{(a.name ?? "?").charAt(0)}</div>}
+                          />
                         ))}
                       </div>
                     )}

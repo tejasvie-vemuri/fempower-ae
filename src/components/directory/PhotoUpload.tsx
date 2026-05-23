@@ -3,6 +3,7 @@ import { Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { MemberAvatar } from "@/components/directory/MemberAvatar";
 
 interface Props {
   userId: string;
@@ -37,8 +38,7 @@ export const PhotoUpload = ({ userId, value, onChange }: Props) => {
         cacheControl: "3600", upsert: true, contentType: file.type,
       });
       if (error) throw error;
-      const { data } = supabase.storage.from("member-photos").getPublicUrl(path);
-      onChange(data.publicUrl);
+      onChange(path);
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });
     } finally {
@@ -50,7 +50,7 @@ export const PhotoUpload = ({ userId, value, onChange }: Props) => {
   return (
     <div className="flex items-center gap-4">
       <div className="h-20 w-20 rounded-full bg-secondary overflow-hidden flex items-center justify-center ring-2 ring-primary/10">
-        {value ? <img src={value} alt="" className="h-full w-full object-cover" /> : <Upload className="text-muted-foreground" size={20} />}
+        <MemberAvatar path={value} alt="" className="h-full w-full object-cover" fallback={<Upload className="text-muted-foreground" size={20} />} />
       </div>
       <div className="flex gap-2">
         <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()} disabled={busy}>
