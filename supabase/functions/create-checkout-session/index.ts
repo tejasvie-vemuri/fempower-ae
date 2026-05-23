@@ -204,6 +204,8 @@ Deno.serve(async (req) => {
           amount_paid_cents: 0,
           currency: ev.currency,
           responses,
+          quantity,
+          guests,
         })
         .select("id")
         .single();
@@ -215,10 +217,10 @@ Deno.serve(async (req) => {
       }
       registrationId = reg.id;
     } else {
-      // Update responses on existing pending registration so admin always has latest answers
+      // Update on existing pending registration so admin always has latest details
       await supabaseAdmin
         .from("registrations")
-        .update({ responses })
+        .update({ responses, quantity, guests })
         .eq("id", registrationId);
     }
 
@@ -236,12 +238,12 @@ Deno.serve(async (req) => {
       automatic_tax: { enabled: true },
       line_items: [
         {
-          quantity: 1,
+          quantity,
           price_data: {
             currency: ev.currency.toLowerCase(),
             unit_amount: ev.price_cents,
             product_data: {
-              name: ev.title,
+              name: quantity > 1 ? `${ev.title} (×${quantity})` : ev.title,
               tax_code: "txcd_20030000",
             },
             tax_behavior: "inclusive",
@@ -253,6 +255,7 @@ Deno.serve(async (req) => {
         event_id: ev.id,
         user_id: userId,
         registration_id: registrationId!,
+        quantity: String(quantity),
       },
     });
 
