@@ -40,6 +40,8 @@ interface Registration {
   cancellation_requested_at: string | null;
   cancellation_reason: string | null;
   responses: Record<string, unknown> | null;
+  quantity: number | null;
+  guests: Array<{ name?: string; email?: string }> | null;
 }
 
 interface Profile {
@@ -92,7 +94,7 @@ const AdminRegistrations = () => {
       supabase
         .from("registrations")
         .select(
-          "id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, stripe_payment_intent_id, cancellation_requested_at, cancellation_reason, responses",
+          "id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, stripe_payment_intent_id, cancellation_requested_at, cancellation_reason, responses, quantity, guests",
         )
         .eq("event_id", eventId)
         .order("created_at", { ascending: false }),
@@ -145,8 +147,13 @@ const AdminRegistrations = () => {
   }, [regs, profiles, query]);
 
   const stats = useMemo(() => {
-    const confirmed = regs.filter((r) => r.status === "confirmed").length;
-    const checkedIn = regs.filter((r) => !!r.checked_in_at).length;
+    const seats = (r: Registration) => r.quantity ?? 1;
+    const confirmed = regs
+      .filter((r) => r.status === "confirmed")
+      .reduce((a, r) => a + seats(r), 0);
+    const checkedIn = regs
+      .filter((r) => !!r.checked_in_at)
+      .reduce((a, r) => a + seats(r), 0);
     const pending = regs.filter((r) => r.status === "pending").length;
     return { confirmed, checkedIn, pending };
   }, [regs]);
@@ -235,6 +242,8 @@ const AdminRegistrations = () => {
       "Checked in",
       "Registered at",
       "Payment intent",
+      "Seats",
+      "Guests",
     ];
     const questionHeaders = questions.map((q) => q.label);
     const rows = [
@@ -242,6 +251,12 @@ const AdminRegistrations = () => {
       ...filtered.map((r) => {
         const p = profiles[r.user_id];
         const answers = (r.responses ?? {}) as Record<string, unknown>;
+        const guestsText = Array.isArray(r.guests)
+          ? r.guests
+              .map((g) => (g?.email ? `${g?.name ?? ""} <${g.email}>` : g?.name ?? ""))
+              .filter(Boolean)
+              .join("; ")
+          : "";
         return [
           p?.name ?? "",
           p?.email ?? "",
@@ -253,6 +268,8 @@ const AdminRegistrations = () => {
           r.checked_in_at ?? "",
           r.created_at,
           r.stripe_payment_intent_id ?? "",
+          String(r.quantity ?? 1),
+          guestsText,
           ...questions.map((q) => {
             const v = answers[q.id];
             return v == null ? "" : String(v);
@@ -307,9 +324,9 @@ const AdminRegistrations = () => {
 
         <div className="grid grid-cols-3 gap-4 mb-6">
           {[
-            { label: "Confirmed", value: stats.confirmed },
-            { label: "Checked in", value: stats.checkedIn },
-            { label: "Pending", value: stats.pending },
+            { label: "Confirmed seats", value: stats.confirmed },
+            { label: "Checked-in seats", value: stats.checkedIn },
+            { label: "Pending bookings", value: stats.pending },
           ].map((s) => (
             <div key={s.label} className="bg-card border border-border rounded-xl p-4">
               <div className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -355,7 +372,19 @@ const AdminRegistrations = () => {
                   return (
                     <TableRow key={r.id}>
                       <TableCell className="font-medium align-top">
-                        <div>{p?.name ?? "—"}</div>
+                        <div className="flex items-center gap-2">
+                          <span>{p?.name ?? "—"}</span>
+                          {(r.quantity ?? 1) > 1 && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                              +{(r.quantity ?? 1) - 1}
+                            </span>
+                          )}
+                        </div>
+                        {Array.isArray(r.guests) && r.guests.length > 0 && (
+                          <div className="mt-1 text-xs font-normal text-muted-foreground">
+                            Guests: {r.guests.map((g) => g?.name).filter(Boolean).join(", ")}
+                          </div>
+                        )}
                         {questions.length > 0 && r.responses && (
                           <div className="mt-1 space-y-0.5 text-xs font-normal text-muted-foreground">
                             {questions.map((q) => {

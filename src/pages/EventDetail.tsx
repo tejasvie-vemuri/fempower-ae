@@ -22,6 +22,15 @@ import {
   type AttendeeResponses,
 } from "@/lib/attendeeQuestions";
 import { AttendeeQuestionsForm } from "@/components/AttendeeQuestionsForm";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  MAX_QUANTITY,
+  sanitizeGuests,
+  validateGuests,
+  type Guest,
+} from "@/lib/guests";
+import { Minus, Plus } from "lucide-react";
 import {
   Loader2,
   Calendar as CalendarIcon,
@@ -68,6 +77,8 @@ const EventDetail = () => {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [responses, setResponses] = useState<AttendeeResponses>({});
   const [responseErrors, setResponseErrors] = useState<Record<string, string>>({});
+  const [quantity, setQuantity] = useState(1);
+  const [guests, setGuests] = useState<Guest[]>([]);
 
   const questions: AttendeeQuestion[] = useMemo(
     () => parseQuestions(event?.attendee_questions),
@@ -89,12 +100,17 @@ const EventDetail = () => {
     }
     setEvent(ev as EventData);
 
-    const { count } = await supabase
+    // Confirmed seats = SUM(quantity) on confirmed registrations
+    const { data: seatRows } = await supabase
       .from("registrations")
-      .select("*", { count: "exact", head: true })
+      .select("quantity")
       .eq("event_id", ev.id)
       .eq("status", "confirmed");
-    setConfirmedCount(count ?? 0);
+    const seatTotal = (seatRows ?? []).reduce(
+      (acc: number, r: { quantity: number | null }) => acc + (r.quantity ?? 1),
+      0,
+    );
+    setConfirmedCount(seatTotal);
 
     if (user) {
       const { data: reg } = await supabase
@@ -151,10 +167,15 @@ const EventDetail = () => {
   }, [user]);
 
   const isFree = event && event.price_cents === 0;
-  const isFull =
-    !!event &&
-    event.capacity > 0 &&
-    confirmedCount >= event.capacity;
+  const seatsLeft =
+    !!event && event.capacity > 0
+      ? Math.max(0, event.capacity - confirmedCount)
+      : null;
+  const isFull = seatsLeft !== null && seatsLeft === 0;
+  const maxSelectable = Math.min(
+    MAX_QUANTITY,
+    seatsLeft === null ? MAX_QUANTITY : Math.max(1, seatsLeft),
+  );
 
   const checkoutOptions = useMemo(
     () => ({
@@ -193,7 +214,19 @@ const EventDetail = () => {
         return;
       }
     }
+    const safeQty = Math.max(1, Math.min(MAX_QUANTITY, quantity));
+    const cleanGuests = sanitizeGuests(safeQty, guests);
+    const guestErr = validateGuests(safeQty, cleanGuests);
+    if (guestErr) {
+      toast.error(guestErr);
+      return;
+    }
+    if (seatsLeft !== null && safeQty > seatsLeft) {
+      toast.error(`Only ${seatsLeft} seat${seatsLeft === 1 ? "" : "s"} left`);
+      return;
+    }
     const responsesPayload = JSON.parse(JSON.stringify(responses));
+    const guestsPayload = JSON.parse(JSON.stringify(cleanGuests));
     setActing(true);
     if (isFree) {
       const { data: existing } = await supabase
@@ -211,6 +244,8 @@ const EventDetail = () => {
             amount_paid_cents: 0,
             currency: event.currency,
             responses: responsesPayload,
+            quantity: safeQty,
+            guests: guestsPayload,
           })
           .eq("id", existing.id);
         error = r.error;
@@ -222,6 +257,8 @@ const EventDetail = () => {
           amount_paid_cents: 0,
           currency: event.currency,
           responses: responsesPayload,
+          quantity: safeQty,
+          guests: guestsPayload,
         });
         error = r.error;
       }
@@ -239,6 +276,8 @@ const EventDetail = () => {
           origin: window.location.origin,
           environment: getStripeEnvironment(),
           responses: responsesPayload,
+          quantity: safeQty,
+          guests: guestsPayload,
         },
       });
       setActing(false);
@@ -450,19 +489,129 @@ const EventDetail = () => {
                   disabled={acting}
                 />
               )}
+
+            {(!myReg || myReg.status !== "confirmed") &&
+              event.status === "published" &&
+              !isFull && (
+                <div className="border border-border rounded-lg p-4 bg-card/50 space-y-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <div className="font-medium text-foreground">Tickets</div>
+                      <p className="text-xs text-muted-foreground">
+                        Bring up to {MAX_QUANTITY - 1} friend
+                        {MAX_QUANTITY - 1 === 1 ? "" : "s"}.
+                      </p>
+                    </div>
+                    <div className="inline-flex items-center border border-border rounded-md">
+                      <button
+                        type="button"
+                        className="px-3 py-2 hover:bg-muted disabled:opacity-40"
+                        onClick={() => {
+                          const next = Math.max(1, quantity - 1);
+                          setQuantity(next);
+                          setGuests((g) => g.slice(0, Math.max(0, next - 1)));
+                        }}
+                        disabled={acting || quantity <= 1}
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <span className="px-4 font-medium tabular-nums">
+                        {quantity}
+                      </span>
+                      <button
+                        type="button"
+                        className="px-3 py-2 hover:bg-muted disabled:opacity-40"
+                        onClick={() => {
+                          const next = Math.min(maxSelectable, quantity + 1);
+                          setQuantity(next);
+                          setGuests((g) => {
+                            const needed = next - 1;
+                            const out = g.slice(0, needed);
+                            while (out.length < needed) out.push({ name: "" });
+                            return out;
+                          });
+                        }}
+                        disabled={acting || quantity >= maxSelectable}
+                        aria-label="Increase quantity"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {quantity > 1 && (
+                    <div className="space-y-3">
+                      <p className="text-sm text-foreground">
+                        Guest details
+                      </p>
+                      {Array.from({ length: quantity - 1 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+                        >
+                          <div>
+                            <Label htmlFor={`guest-name-${i}`} className="text-xs">
+                              Guest {i + 1} name *
+                            </Label>
+                            <Input
+                              id={`guest-name-${i}`}
+                              maxLength={120}
+                              value={guests[i]?.name ?? ""}
+                              onChange={(e) =>
+                                setGuests((g) => {
+                                  const next = [...g];
+                                  next[i] = { ...(next[i] ?? { name: "" }), name: e.target.value };
+                                  return next;
+                                })
+                              }
+                              disabled={acting}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor={`guest-email-${i}`} className="text-xs">
+                              Email (optional)
+                            </Label>
+                            <Input
+                              id={`guest-email-${i}`}
+                              type="email"
+                              maxLength={200}
+                              value={guests[i]?.email ?? ""}
+                              onChange={(e) =>
+                                setGuests((g) => {
+                                  const next = [...g];
+                                  next[i] = { ...(next[i] ?? { name: "" }), email: e.target.value };
+                                  return next;
+                                })
+                              }
+                              disabled={acting}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
           </div>
 
           <aside className="md:col-span-1">
             <div className="bg-card border border-border rounded-2xl p-6 sticky top-6 space-y-4">
               <div>
                 <div className="text-xs uppercase tracking-widest text-muted-foreground">
-                  Price
+                  {isFree ? "Price" : quantity > 1 ? "Total" : "Price"}
                 </div>
                 <div className="font-heading text-2xl text-primary">
                   {isFree
                     ? "Free"
-                    : `${event.currency} ${(event.price_cents / 100).toFixed(2)}`}
+                    : `${event.currency} ${((event.price_cents * quantity) / 100).toFixed(2)}`}
                 </div>
+                {!isFree && quantity > 1 && (
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {quantity} × {event.currency}{" "}
+                    {(event.price_cents / 100).toFixed(2)}
+                  </div>
+                )}
               </div>
 
               {event.status === "cancelled" ? (

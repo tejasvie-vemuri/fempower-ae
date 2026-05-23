@@ -85,6 +85,35 @@ Deno.serve(async (req) => {
         responses[k] = s.slice(0, 1000);
       }
     }
+
+    const MAX_QTY = 4;
+    const rawQty = Number(body.quantity);
+    const quantity =
+      Number.isFinite(rawQty) && rawQty >= 1 && rawQty <= MAX_QTY
+        ? Math.floor(rawQty)
+        : 1;
+    const rawGuests = Array.isArray(body.guests) ? body.guests : [];
+    const guests: Array<{ name: string; email?: string }> = [];
+    for (let i = 0; i < quantity - 1; i++) {
+      const g = rawGuests[i];
+      if (!g || typeof g !== "object") {
+        return new Response(
+          JSON.stringify({ error: `Guest ${i + 1}: name is required` }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      const o = g as Record<string, unknown>;
+      const name = typeof o.name === "string" ? o.name.trim().slice(0, 120) : "";
+      const email = typeof o.email === "string" ? o.email.trim().slice(0, 200) : "";
+      if (!name) {
+        return new Response(
+          JSON.stringify({ error: `Guest ${i + 1}: name is required` }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      guests.push(email ? { name, email } : { name });
+    }
+
     if (!eventId) {
       return new Response(JSON.stringify({ error: "event_id required" }), {
         status: 400,
@@ -123,18 +152,29 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check capacity
+    // Check capacity (sum of confirmed seats)
     if (ev.capacity > 0) {
-      const { count } = await supabaseAdmin
+      const { data: seatRows } = await supabaseAdmin
         .from("registrations")
-        .select("*", { count: "exact", head: true })
+        .select("quantity")
         .eq("event_id", ev.id)
         .eq("status", "confirmed");
-      if ((count ?? 0) >= ev.capacity) {
+      const used = (seatRows ?? []).reduce(
+        (acc: number, r: { quantity: number | null }) => acc + (r.quantity ?? 1),
+        0,
+      );
+      const remaining = ev.capacity - used;
+      if (remaining <= 0) {
         return new Response(JSON.stringify({ error: "Event is sold out" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
+      }
+      if (quantity > remaining) {
+        return new Response(
+          JSON.stringify({ error: `Only ${remaining} seat${remaining === 1 ? "" : "s"} left` }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
       }
     }
 
@@ -164,6 +204,8 @@ Deno.serve(async (req) => {
           amount_paid_cents: 0,
           currency: ev.currency,
           responses,
+          quantity,
+          guests,
         })
         .select("id")
         .single();
@@ -175,10 +217,10 @@ Deno.serve(async (req) => {
       }
       registrationId = reg.id;
     } else {
-      // Update responses on existing pending registration so admin always has latest answers
+      // Update on existing pending registration so admin always has latest details
       await supabaseAdmin
         .from("registrations")
-        .update({ responses })
+        .update({ responses, quantity, guests })
         .eq("id", registrationId);
     }
 
@@ -196,12 +238,12 @@ Deno.serve(async (req) => {
       automatic_tax: { enabled: true },
       line_items: [
         {
-          quantity: 1,
+          quantity,
           price_data: {
             currency: ev.currency.toLowerCase(),
             unit_amount: ev.price_cents,
             product_data: {
-              name: ev.title,
+              name: quantity > 1 ? `${ev.title} (×${quantity})` : ev.title,
               tax_code: "txcd_20030000",
             },
             tax_behavior: "inclusive",
@@ -213,6 +255,7 @@ Deno.serve(async (req) => {
         event_id: ev.id,
         user_id: userId,
         registration_id: registrationId!,
+        quantity: String(quantity),
       },
     });
 

@@ -31,6 +31,8 @@ interface TicketRow {
   created_at: string;
   cancellation_requested_at: string | null;
   cancellation_reason: string | null;
+  quantity: number | null;
+  guests: Array<{ name?: string; email?: string }> | null;
   event: {
     id: string;
     slug: string;
@@ -109,7 +111,7 @@ const MyTickets = () => {
     const { data, error } = await supabase
       .from("registrations")
       .select(
-        "id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, cancellation_requested_at, cancellation_reason, event:events(id, slug, title, starts_at, ends_at, location, cover_image_url)",
+        "id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, cancellation_requested_at, cancellation_reason, quantity, guests, event:events(id, slug, title, starts_at, ends_at, location, cover_image_url)",
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
@@ -190,9 +192,19 @@ const MyTickets = () => {
                     <div className="space-y-4">
                       <div className="flex items-start justify-between gap-3 flex-wrap">
                         <div>
-                          <h2 className="font-serif text-2xl mb-1">
+                          <h2 className="font-serif text-2xl mb-1 flex items-center gap-2">
                             {event?.title ?? "Event"}
+                            {(t.quantity ?? 1) > 1 && (
+                              <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-sans">
+                                +{(t.quantity ?? 1) - 1} guest{(t.quantity ?? 1) - 1 === 1 ? "" : "s"}
+                              </span>
+                            )}
                           </h2>
+                          {Array.isArray(t.guests) && t.guests.length > 0 && (
+                            <div className="text-xs text-muted-foreground mb-1">
+                              With: {t.guests.map((g) => g?.name).filter(Boolean).join(", ")}
+                            </div>
+                          )}
                           {event && (
                             <div className="space-y-1 text-sm text-muted-foreground">
                               <div className="flex items-center gap-2">

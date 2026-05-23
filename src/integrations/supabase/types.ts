@@ -208,7 +208,9 @@ export type Database = {
           created_at: string
           currency: string
           event_id: string
+          guests: Json
           id: string
+          quantity: number
           responses: Json
           status: string
           stripe_payment_intent_id: string | null
@@ -225,7 +227,9 @@ export type Database = {
           created_at?: string
           currency?: string
           event_id: string
+          guests?: Json
           id?: string
+          quantity?: number
           responses?: Json
           status?: string
           stripe_payment_intent_id?: string | null
@@ -242,7 +246,9 @@ export type Database = {
           created_at?: string
           currency?: string
           event_id?: string
+          guests?: Json
           id?: string
+          quantity?: number
           responses?: Json
           status?: string
           stripe_payment_intent_id?: string | null
