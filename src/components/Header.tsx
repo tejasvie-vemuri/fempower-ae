@@ -25,9 +25,9 @@ const Header = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
-      <div className="container flex items-center justify-between h-20 md:h-24">
+      <div className="container flex items-center justify-between h-28 md:h-40">
         <a href="#" className="flex-shrink-0">
-          <img src={logo} alt="Fempower" className="h-14 md:h-20 w-auto" />
+          <img src={logo} alt="Fempower" className="h-24 md:h-40 w-auto" />
         </a>
 
         {/* Desktop nav — items appear progressively as space allows */}
