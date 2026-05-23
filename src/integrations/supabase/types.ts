@@ -106,6 +106,66 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          capacity: number
+          cover_image_url: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string | null
+          ends_at: string | null
+          id: string
+          location: string | null
+          price_cents: number
+          slug: string
+          starts_at: string
+          status: string
+          timezone: string
+          title: string
+          updated_at: string
+          waitlist_enabled: boolean
+        }
+        Insert: {
+          capacity?: number
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          location?: string | null
+          price_cents?: number
+          slug: string
+          starts_at: string
+          status?: string
+          timezone?: string
+          title: string
+          updated_at?: string
+          waitlist_enabled?: boolean
+        }
+        Update: {
+          capacity?: number
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          location?: string | null
+          price_cents?: number
+          slug?: string
+          starts_at?: string
+          status?: string
+          timezone?: string
+          title?: string
+          updated_at?: string
+          waitlist_enabled?: boolean
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -136,6 +196,59 @@ export type Database = {
         }
         Relationships: []
       }
+      registrations: {
+        Row: {
+          amount_paid_cents: number
+          checked_in_at: string | null
+          created_at: string
+          currency: string
+          event_id: string
+          id: string
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          ticket_code: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid_cents?: number
+          checked_in_at?: string | null
+          created_at?: string
+          currency?: string
+          event_id: string
+          id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          ticket_code?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_paid_cents?: number
+          checked_in_at?: string | null
+          created_at?: string
+          currency?: string
+          event_id?: string
+          id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          ticket_code?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -157,11 +270,47 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          notified_at: string | null
+          position: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          notified_at?: string | null
+          position: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          notified_at?: string | null
+          position?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      event_confirmed_count: { Args: { _event_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
