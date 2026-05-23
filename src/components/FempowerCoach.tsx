@@ -89,11 +89,11 @@ const FempowerCoach = () => {
               onClick={() => setOpen(true)}
               className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg"
               style={{ background: "#4A2040" }}
-              aria-label="Open Fempower Coach"
+              aria-label="Open Zara, your Fempower Coach"
             >
               <motion.img
                 src={butterflyIcon}
-                alt="Fempower Coach"
+                alt="Zara, Fempower Coach"
                 width={34}
                 height={34}
                 animate={{
