@@ -301,6 +301,39 @@ const MyTickets = () => {
           </div>
         )}
       </div>
+
+      <Dialog
+        open={!!cancelTarget}
+        onOpenChange={(open) => !open && setCancelTarget(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Request cancellation</DialogTitle>
+            <DialogDescription>
+              Our team will review your request and process a refund per our policy:
+              full refund if we cancel; credit or transfer if you cancel ≥72 hours
+              before; no refund within 72 hours or for no-shows.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Reason (optional)</label>
+            <Textarea
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Let us know why you can't attend…"
+              rows={4}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelTarget(null)}>
+              Never mind
+            </Button>
+            <Button onClick={submitCancellation} disabled={cancelling}>
+              {cancelling ? "Sending…" : "Send request"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
