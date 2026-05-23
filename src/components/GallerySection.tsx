@@ -11,7 +11,7 @@ interface GalleryImage {
 
 const SUPABASE_URL = "https://uaiymunelgvvnznkxeik.supabase.co";
 const MAX_IMAGES = 10;
-const VISIBLE_COUNT = 5;
+const VISIBLE_COUNT = 3;
 const ROTATE_INTERVAL = 5000;
 
 const GallerySection = () => {
