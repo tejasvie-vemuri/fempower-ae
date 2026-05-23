@@ -16,6 +16,13 @@ import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { toast } from "sonner";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
 import {
+  parseQuestions,
+  validateResponses,
+  type AttendeeQuestion,
+  type AttendeeResponses,
+} from "@/lib/attendeeQuestions";
+import { AttendeeQuestionsForm } from "@/components/AttendeeQuestionsForm";
+import {
   Loader2,
   Calendar as CalendarIcon,
   MapPin,
@@ -40,6 +47,7 @@ interface EventData {
   capacity: number;
   status: string;
   waitlist_enabled: boolean;
+  attendee_questions: unknown;
 }
 
 const EventDetail = () => {
