@@ -91,6 +91,7 @@ const HeroSection = () => {
     </div>
     <DuneWave className="absolute bottom-0 left-0 z-10" />
   </section>
-);
+  );
+};
 
 export default HeroSection;
