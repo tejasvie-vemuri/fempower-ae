@@ -14,6 +14,10 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Check, Download, Loader2, Undo2, RefreshCcw, UserPlus } from "lucide-react";
 import { getStripeEnvironment } from "@/lib/stripe";
+import {
+  parseQuestions,
+  type AttendeeQuestion,
+} from "@/lib/attendeeQuestions";
 
 interface WaitlistEntry {
   id: string;
@@ -35,6 +39,7 @@ interface Registration {
   stripe_payment_intent_id: string | null;
   cancellation_requested_at: string | null;
   cancellation_reason: string | null;
+  responses: Record<string, unknown> | null;
 }
 
 interface Profile {
@@ -50,6 +55,7 @@ interface EventInfo {
   slug: string;
   starts_at: string;
   capacity: number;
+  attendee_questions: unknown;
 }
 
 const fmtDate = (iso: string | null) =>
@@ -80,13 +86,13 @@ const AdminRegistrations = () => {
     const [{ data: ev }, { data: regsData, error }, { data: wl }] = await Promise.all([
       supabase
         .from("events")
-        .select("id, title, slug, starts_at, capacity")
+        .select("id, title, slug, starts_at, capacity, attendee_questions")
         .eq("id", eventId)
         .maybeSingle(),
       supabase
         .from("registrations")
         .select(
-          "id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, stripe_payment_intent_id, cancellation_requested_at, cancellation_reason",
+          "id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, stripe_payment_intent_id, cancellation_requested_at, cancellation_reason, responses",
         )
         .eq("event_id", eventId)
         .order("created_at", { ascending: false }),
