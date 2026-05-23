@@ -55,6 +55,7 @@ const EventDetail = () => {
   const [onWaitlist, setOnWaitlist] = useState(false);
   const [acting, setActing] = useState(false);
   const [checkoutSecret, setCheckoutSecret] = useState<string | null>(null);
+  const [checkoutSessionId, setCheckoutSessionId] = useState<string | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const load = async () => {
@@ -142,13 +143,23 @@ const EventDetail = () => {
   const checkoutOptions = useMemo(
     () => ({
       clientSecret: checkoutSecret,
-      onComplete: () => {
+      onComplete: async () => {
         setCheckoutOpen(false);
+        if (checkoutSessionId) {
+          const { data, error } = await supabase.functions.invoke("verify-checkout-session", {
+            body: { session_id: checkoutSessionId },
+          });
+          if (error) {
+            toast.error(error.message ?? "Could not verify payment");
+          } else if (data?.paid) {
+            toast.success("Payment confirmed — you're registered!");
+          }
+        }
         load();
       },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [checkoutSecret],
+    [checkoutSecret, checkoutSessionId],
   );
 
 
@@ -188,6 +199,7 @@ const EventDetail = () => {
         return;
       }
       setCheckoutSecret(data.clientSecret);
+      setCheckoutSessionId(data.session_id ?? null);
       setCheckoutOpen(true);
     }
 
