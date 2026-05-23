@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,9 @@ interface EventData {
 const EventDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
+
 
   const [event, setEvent] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -119,10 +122,17 @@ const EventDetail = () => {
       toast.success("You're registered!");
       load();
     } else {
-      // Paid checkout flow ships in Step 5
-      toast.info("Paid checkout coming in the next step");
+      const { data, error } = await supabase.functions.invoke("create-checkout-session", {
+        body: { event_id: event.id, origin: window.location.origin },
+      });
       setActing(false);
+      if (error || !data?.url) {
+        toast.error(error?.message ?? data?.error ?? "Could not start checkout");
+        return;
+      }
+      window.location.href = data.url;
     }
+
   };
 
   const handleJoinWaitlist = async () => {
