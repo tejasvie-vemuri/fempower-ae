@@ -1,8 +1,8 @@
-import { useState } from "react";
 import { Linkedin, Instagram, Globe, MapPin } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { MemberProfile } from "@/lib/memberProfile";
+import { MemberAvatar } from "@/components/directory/MemberAvatar";
 
 const initials = (name: string) =>
   name.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]?.toUpperCase()).join("");
