@@ -126,7 +126,10 @@ const FempowerCoach = () => {
             <div className="flex items-center justify-between px-4 py-3 border-b" style={{ background: "#4A2040", borderColor: "#4A204040" }}>
               <div className="flex items-center gap-2">
                 <Sparkles size={20} style={{ color: "#D4A853" }} />
-                <span className="font-heading text-base font-semibold text-white">Fempower Coach</span>
+                <div className="flex flex-col leading-tight">
+                  <span className="font-heading text-base font-semibold text-white">Zara</span>
+                  <span className="font-body text-[10px] uppercase tracking-widest text-white/70">Your Fempower Coach</span>
+                </div>
               </div>
               <button onClick={() => setOpen(false)} className="text-white/70 hover:text-white transition-colors">
                 <X size={20} />
