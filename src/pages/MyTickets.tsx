@@ -233,7 +233,7 @@ const MyTickets = () => {
                         )}
                       </div>
 
-                      <div className="flex gap-2 pt-2">
+                      <div className="flex flex-wrap gap-2 pt-2">
                         {event && (
                           <Button asChild variant="outline" size="sm">
                             <Link to={`/events/${event.slug}`}>View event</Link>
@@ -250,6 +250,25 @@ const MyTickets = () => {
                             <Download className="w-4 h-4 mr-1" />
                             Download QR
                           </Button>
+                        )}
+                        {isConfirmed && !t.cancellation_requested_at && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground hover:text-destructive"
+                            onClick={() => {
+                              setCancelTarget(t);
+                              setCancelReason("");
+                            }}
+                          >
+                            <XCircle className="w-4 h-4 mr-1" />
+                            Request cancellation
+                          </Button>
+                        )}
+                        {t.cancellation_requested_at && t.status !== "refunded" && (
+                          <Badge variant="outline" className="text-xs">
+                            Cancellation requested
+                          </Badge>
                         )}
                       </div>
                     </div>
