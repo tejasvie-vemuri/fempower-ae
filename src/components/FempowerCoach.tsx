@@ -245,7 +245,57 @@ const FempowerCoach = () => {
 
             {/* Messages */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
-              {messages.length === 0 && (
+              {messages.length === 0 && !hasConsented && (
+                <div className="space-y-4">
+                  <p className="text-sm font-body" style={{ color: "#4A2040" }}>
+                    Hi, I'm Zara — your Fempower coach. Before we start, a quick heads-up so you know exactly what you're saying yes to.
+                  </p>
+                  <ul className="text-xs font-body space-y-1.5 list-disc pl-4" style={{ color: "#4A204099" }}>
+                    <li>Your messages are sent to an AI provider to generate a reply and saved to your account so you can revisit them.</li>
+                    <li>Zara is not a substitute for professional medical, legal, or mental-health advice.</li>
+                    <li>Please don't share passwords, ID numbers, or payment details.</li>
+                  </ul>
+                  <div className="space-y-2.5 rounded-xl border p-3" style={{ borderColor: "#4A204025", background: "#ffffff80" }}>
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={agreeTerms}
+                        onCheckedChange={(v) => setAgreeTerms(v === true)}
+                        className="mt-0.5 border-[#4A2040] data-[state=checked]:bg-[#4A2040]"
+                      />
+                      <span className="text-xs font-body leading-snug" style={{ color: "#4A2040" }}>
+                        I agree to Fempower's{" "}
+                        <Link to="/terms" target="_blank" className="underline underline-offset-2">
+                          Terms &amp; Conditions
+                        </Link>{" "}
+                        and{" "}
+                        <Link to="/privacy" target="_blank" className="underline underline-offset-2">
+                          Privacy Policy
+                        </Link>
+                        . <span style={{ color: "#a32a2a" }}>(required)</span>
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={newsletterOptIn}
+                        onCheckedChange={(v) => setNewsletterOptIn(v === true)}
+                        className="mt-0.5 border-[#4A2040] data-[state=checked]:bg-[#4A2040]"
+                      />
+                      <span className="text-xs font-body leading-snug" style={{ color: "#4A2040" }}>
+                        Email me follow-up tips, resources, and community updates from Fempower. <span style={{ color: "#4A204080" }}>(optional — you can unsubscribe anytime)</span>
+                      </span>
+                    </label>
+                  </div>
+                  <Button
+                    onClick={handleAcceptConsent}
+                    disabled={!agreeTerms}
+                    className="w-full rounded-full text-white"
+                    style={{ background: agreeTerms ? "#4A2040" : "#4A204060" }}
+                  >
+                    Start chatting with Zara
+                  </Button>
+                </div>
+              )}
+              {messages.length === 0 && hasConsented && (
                 <div className="space-y-3">
                   <p className="text-sm font-body" style={{ color: "#4A2040" }}>
                     Hi, I'm Zara — your Fempower coach.
