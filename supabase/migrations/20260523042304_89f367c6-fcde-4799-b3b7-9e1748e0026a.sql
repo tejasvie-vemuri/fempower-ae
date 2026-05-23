@@ -1,0 +1,2 @@
+UPDATE public.events SET price_cents = 5000 WHERE slug = 'inner-compass';
+DELETE FROM public.registrations WHERE user_id = '586a12c7-83c7-4d4c-a8a9-692e5f71f357' AND event_id = 'ff5d06d6-e407-456d-b75e-8e2b159cc039';
