@@ -1,12 +1,17 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { X, Send, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
 import { streamChat, type Msg } from "@/lib/streamChat";
 import { motion, AnimatePresence } from "framer-motion";
 import butterflyIcon from "@/assets/butterfly-icon.png";
+
+const CONSENT_KEY = "fempower-coach-consent-v1";
+const NEWSLETTER_OPTIN_KEY = "fempower-coach-newsletter-optin-v1";
 
 type Pillar = "RISE" | "ROOTS" | "RESTORE";
 type Starter = { id: string; pillar: Pillar; label: string; full: string };
@@ -90,6 +95,12 @@ const FempowerCoach = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [starters, setStarters] = useState<Starter[]>(() => pickStarters());
+  const [hasConsented, setHasConsented] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem(CONSENT_KEY) === "true";
+  });
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [newsletterOptIn, setNewsletterOptIn] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Allow other components (e.g. HeroSection) to open Zara via a global event
@@ -98,6 +109,16 @@ const FempowerCoach = () => {
     window.addEventListener("open-zara", handler);
     return () => window.removeEventListener("open-zara", handler);
   }, []);
+
+  const handleAcceptConsent = () => {
+    if (!agreeTerms) return;
+    window.localStorage.setItem(CONSENT_KEY, "true");
+    window.localStorage.setItem(
+      NEWSLETTER_OPTIN_KEY,
+      newsletterOptIn ? "true" : "false",
+    );
+    setHasConsented(true);
+  };
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
