@@ -345,9 +345,18 @@ const EventDetail = () => {
                   </div>
                 </div>
               ) : myReg && myReg.status === "pending" ? (
-                <div className="bg-muted text-sm rounded-md p-3">
-                  Your payment is pending. Refresh after completing checkout.
-                </div>
+                <>
+                  <div className="bg-muted text-sm rounded-md p-3">
+                    Your payment didn't complete. Resume checkout to finish.
+                  </div>
+                  <Button
+                    className="w-full"
+                    disabled={acting}
+                    onClick={handleRegister}
+                  >
+                    {acting ? "Loading…" : "Resume checkout"}
+                  </Button>
+                </>
               ) : isFull ? (
                 event.waitlist_enabled ? (
                   onWaitlist ? (
