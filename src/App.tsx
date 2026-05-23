@@ -25,6 +25,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/events/:slug" element={<EventDetail />} />
+            <Route path="/account/tickets" element={<MyTickets />} />
             <Route
               path="/admin/events"
               element={
