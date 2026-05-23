@@ -395,15 +395,20 @@ const EventDetail = () => {
                   This event has already taken place.
                 </div>
               ) : myReg && myReg.status === "confirmed" ? (
-                <div className="bg-primary/10 text-primary text-sm rounded-md p-3 flex items-start gap-2">
-                  <Check className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <div>
-                    You're registered.
-                    <div className="text-xs mt-1 font-mono opacity-70">
-                      Ticket: {myReg.ticket_code}
+                <>
+                  <div className="bg-primary/10 text-primary text-sm rounded-md p-3 flex items-start gap-2">
+                    <Check className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <div>
+                      You're registered.
+                      <div className="text-xs mt-1 font-mono opacity-70">
+                        Ticket: {myReg.ticket_code}
+                      </div>
                     </div>
                   </div>
-                </div>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to="/account/tickets">View my ticket & QR</Link>
+                  </Button>
+                </>
               ) : myReg && myReg.status === "pending" ? (
                 <>
                   <div className="bg-muted text-sm rounded-md p-3">
