@@ -94,7 +94,7 @@ const AdminRegistrations = () => {
       supabase
         .from("registrations")
         .select(
-          "id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, stripe_payment_intent_id, cancellation_requested_at, cancellation_reason, responses",
+          "id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, stripe_payment_intent_id, cancellation_requested_at, cancellation_reason, responses, quantity, guests",
         )
         .eq("event_id", eventId)
         .order("created_at", { ascending: false }),
