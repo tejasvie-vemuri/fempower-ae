@@ -212,7 +212,7 @@ const EventsCalendarSection = () => {
             </div>
           </motion.div>
         )}
-        <MeetupsStrip />
+        
       </div>
     </section>
   );
