@@ -375,11 +375,12 @@ const Circle = () => {
                         const mine = myReactions[rkey] || new Set();
                         return (
                           <div key={r.id} className="flex gap-3">
-                            {r.author?.photo_url ? (
-                              <img src={r.author.photo_url} alt={r.author.name ?? ""} className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
-                            ) : (
-                              <div className="w-7 h-7 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-xs">{(r.author?.name ?? "?").charAt(0)}</div>
-                            )}
+                            <MemberAvatar
+                              path={r.author?.photo_url}
+                              alt={r.author?.name ?? ""}
+                              className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                              fallback={<div className="w-7 h-7 rounded-full bg-muted flex-shrink-0 flex items-center justify-center text-xs">{(r.author?.name ?? "?").charAt(0)}</div>}
+                            />
                             <div className="flex-1 min-w-0">
                               <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">{r.author?.name ?? "A member"}</span> · {new Date(r.created_at).toLocaleString()}</p>
                               <p className="text-sm font-body text-foreground mt-1 whitespace-pre-wrap">{r.body}</p>
