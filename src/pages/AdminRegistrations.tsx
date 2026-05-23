@@ -12,7 +12,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { ArrowLeft, Check, Download, Loader2, Undo2 } from "lucide-react";
+import { ArrowLeft, Check, Download, Loader2, Undo2, RefreshCcw, UserPlus } from "lucide-react";
+import { getStripeEnvironment } from "@/lib/stripe";
+
+interface WaitlistEntry {
+  id: string;
+  user_id: string;
+  position: number;
+  notified_at: string | null;
+  created_at: string;
+}
 
 interface Registration {
   id: string;
@@ -60,11 +69,13 @@ const AdminRegistrations = () => {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
+
 
   const load = async () => {
     if (!eventId) return;
     setLoading(true);
-    const [{ data: ev }, { data: regsData, error }] = await Promise.all([
+    const [{ data: ev }, { data: regsData, error }, { data: wl }] = await Promise.all([
       supabase
         .from("events")
         .select("id, title, slug, starts_at, capacity")
@@ -77,13 +88,21 @@ const AdminRegistrations = () => {
         )
         .eq("event_id", eventId)
         .order("created_at", { ascending: false }),
+      supabase
+        .from("waitlist")
+        .select("id, user_id, position, notified_at, created_at")
+        .eq("event_id", eventId)
+        .order("position", { ascending: true }),
     ]);
     if (error) toast.error(error.message);
     setEvent(ev as EventInfo | null);
     const rows = (regsData as Registration[]) ?? [];
     setRegs(rows);
+    setWaitlist((wl as WaitlistEntry[]) ?? []);
 
-    const userIds = Array.from(new Set(rows.map((r) => r.user_id)));
+    const userIds = Array.from(
+      new Set([...rows.map((r) => r.user_id), ...((wl as WaitlistEntry[]) ?? []).map((w) => w.user_id)]),
+    );
     if (userIds.length) {
       const { data: profs } = await supabase
         .from("profiles")
@@ -140,6 +159,55 @@ const AdminRegistrations = () => {
     setRegs((prev) =>
       prev.map((x) => (x.id === r.id ? { ...x, checked_in_at: next } : x)),
     );
+  };
+
+  const refund = async (r: Registration) => {
+    if (
+      !confirm(
+        `Refund ${r.currency} ${(r.amount_paid_cents / 100).toFixed(2)}? This will mark the ticket as refunded and free up a seat.`,
+      )
+    )
+      return;
+    setBusyId(r.id);
+    const { data, error } = await supabase.functions.invoke("refund-registration", {
+      body: { registration_id: r.id, environment: getStripeEnvironment() },
+    });
+    setBusyId(null);
+    if (error || data?.error) {
+      toast.error(error?.message ?? data?.error ?? "Refund failed");
+      return;
+    }
+    toast.success("Refunded");
+    setRegs((prev) =>
+      prev.map((x) => (x.id === r.id ? { ...x, status: "refunded" } : x)),
+    );
+  };
+
+  const promoteFromWaitlist = async (entry: WaitlistEntry) => {
+    if (!confirm("Promote this person off the waitlist? They'll need to complete payment.")) return;
+    setBusyId(entry.id);
+    const { error: insErr } = await supabase
+      .from("registrations")
+      .insert({
+        event_id: eventId!,
+        user_id: entry.user_id,
+        status: "pending",
+        amount_paid_cents: 0,
+        currency: event?.id ? "AED" : "AED",
+      });
+    if (insErr && !insErr.message.includes("duplicate")) {
+      setBusyId(null);
+      toast.error(insErr.message);
+      return;
+    }
+    const { error: delErr } = await supabase.from("waitlist").delete().eq("id", entry.id);
+    setBusyId(null);
+    if (delErr) {
+      toast.error(delErr.message);
+      return;
+    }
+    toast.success("Promoted — share the event link with them to complete payment.");
+    load();
   };
 
   const exportCsv = () => {
@@ -295,28 +363,45 @@ const AdminRegistrations = () => {
                         {r.ticket_code}
                       </TableCell>
                       <TableCell className="text-right">
-                        {r.status === "confirmed" ? (
-                          <Button
-                            size="sm"
-                            variant={r.checked_in_at ? "outline" : "default"}
-                            onClick={() => toggleCheckIn(r)}
-                            disabled={busyId === r.id}
-                          >
-                            {busyId === r.id ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : r.checked_in_at ? (
-                              <>
-                                <Undo2 className="h-3 w-3 mr-1" /> Undo
-                              </>
-                            ) : (
-                              <>
-                                <Check className="h-3 w-3 mr-1" /> Check in
-                              </>
-                            )}
-                          </Button>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
+                        <div className="flex justify-end items-center gap-1">
+                          {r.status === "confirmed" && (
+                            <Button
+                              size="sm"
+                              variant={r.checked_in_at ? "outline" : "default"}
+                              onClick={() => toggleCheckIn(r)}
+                              disabled={busyId === r.id}
+                            >
+                              {busyId === r.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : r.checked_in_at ? (
+                                <>
+                                  <Undo2 className="h-3 w-3 mr-1" /> Undo
+                                </>
+                              ) : (
+                                <>
+                                  <Check className="h-3 w-3 mr-1" /> Check in
+                                </>
+                              )}
+                            </Button>
+                          )}
+                          {r.status === "confirmed" && r.amount_paid_cents > 0 && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => refund(r)}
+                              disabled={busyId === r.id}
+                              title="Refund"
+                            >
+                              <RefreshCcw className="h-3 w-3" />
+                            </Button>
+                          )}
+                          {r.status === "refunded" && (
+                            <span className="text-xs text-muted-foreground">Refunded</span>
+                          )}
+                          {r.status === "pending" && (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -325,6 +410,66 @@ const AdminRegistrations = () => {
             </Table>
           )}
         </div>
+
+        {waitlist.length > 0 && (
+          <div className="mt-10">
+            <h2 className="font-heading text-2xl text-primary mb-4">
+              Waitlist ({waitlist.length})
+            </h2>
+            <div className="bg-card border border-border rounded-xl overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-16">#</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Joined</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {waitlist.map((w) => {
+                    const p = profiles[w.user_id];
+                    return (
+                      <TableRow key={w.id}>
+                        <TableCell className="font-mono">{w.position}</TableCell>
+                        <TableCell className="font-medium">{p?.name ?? "—"}</TableCell>
+                        <TableCell className="text-sm">
+                          <div>{p?.email ?? "—"}</div>
+                          {p?.phone && (
+                            <div className="text-muted-foreground">{p.phone}</div>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {fmtDate(w.created_at)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => promoteFromWaitlist(w)}
+                            disabled={busyId === w.id}
+                          >
+                            {busyId === w.id ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <>
+                                <UserPlus className="h-3 w-3 mr-1" /> Promote
+                              </>
+                            )}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Promoting moves them off the waitlist and creates a pending ticket. Share the event link so they can complete payment. (Automated email notifications will be enabled once your sender domain is set up.)
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
