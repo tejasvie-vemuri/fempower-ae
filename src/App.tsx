@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/Auth";
 import AdminEvents from "./pages/AdminEvents";
 import EventDetail from "./pages/EventDetail";
+import MyTickets from "./pages/MyTickets";
 import { AdminRoute } from "@/components/AdminRoute";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/events/:slug" element={<EventDetail />} />
+            <Route path="/account/tickets" element={<MyTickets />} />
             <Route
               path="/admin/events"
               element={
