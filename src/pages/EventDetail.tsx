@@ -489,6 +489,110 @@ const EventDetail = () => {
                   disabled={acting}
                 />
               )}
+
+            {(!myReg || myReg.status !== "confirmed") &&
+              event.status === "published" &&
+              !isFull && (
+                <div className="border border-border rounded-lg p-4 bg-card/50 space-y-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <div className="font-medium text-foreground">Tickets</div>
+                      <p className="text-xs text-muted-foreground">
+                        Bring up to {MAX_QUANTITY - 1} friend
+                        {MAX_QUANTITY - 1 === 1 ? "" : "s"}.
+                      </p>
+                    </div>
+                    <div className="inline-flex items-center border border-border rounded-md">
+                      <button
+                        type="button"
+                        className="px-3 py-2 hover:bg-muted disabled:opacity-40"
+                        onClick={() => {
+                          const next = Math.max(1, quantity - 1);
+                          setQuantity(next);
+                          setGuests((g) => g.slice(0, Math.max(0, next - 1)));
+                        }}
+                        disabled={acting || quantity <= 1}
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <span className="px-4 font-medium tabular-nums">
+                        {quantity}
+                      </span>
+                      <button
+                        type="button"
+                        className="px-3 py-2 hover:bg-muted disabled:opacity-40"
+                        onClick={() => {
+                          const next = Math.min(maxSelectable, quantity + 1);
+                          setQuantity(next);
+                          setGuests((g) => {
+                            const needed = next - 1;
+                            const out = g.slice(0, needed);
+                            while (out.length < needed) out.push({ name: "" });
+                            return out;
+                          });
+                        }}
+                        disabled={acting || quantity >= maxSelectable}
+                        aria-label="Increase quantity"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {quantity > 1 && (
+                    <div className="space-y-3">
+                      <p className="text-sm text-foreground">
+                        Guest details
+                      </p>
+                      {Array.from({ length: quantity - 1 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+                        >
+                          <div>
+                            <Label htmlFor={`guest-name-${i}`} className="text-xs">
+                              Guest {i + 1} name *
+                            </Label>
+                            <Input
+                              id={`guest-name-${i}`}
+                              maxLength={120}
+                              value={guests[i]?.name ?? ""}
+                              onChange={(e) =>
+                                setGuests((g) => {
+                                  const next = [...g];
+                                  next[i] = { ...(next[i] ?? { name: "" }), name: e.target.value };
+                                  return next;
+                                })
+                              }
+                              disabled={acting}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor={`guest-email-${i}`} className="text-xs">
+                              Email (optional)
+                            </Label>
+                            <Input
+                              id={`guest-email-${i}`}
+                              type="email"
+                              maxLength={200}
+                              value={guests[i]?.email ?? ""}
+                              onChange={(e) =>
+                                setGuests((g) => {
+                                  const next = [...g];
+                                  next[i] = { ...(next[i] ?? { name: "" }), email: e.target.value };
+                                  return next;
+                                })
+                              }
+                              disabled={acting}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
           </div>
 
           <aside className="md:col-span-1">
