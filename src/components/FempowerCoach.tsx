@@ -8,14 +8,81 @@ import { streamChat, type Msg } from "@/lib/streamChat";
 import { motion, AnimatePresence } from "framer-motion";
 import butterflyIcon from "@/assets/butterfly-icon.png";
 
-const STARTERS = [
-  "I have a difficult conversation coming up...",
-  "Help me prepare for a salary negotiation",
-  "How do I manage a stakeholder who keeps changing requirements?",
-  "I need to present to senior leadership next week",
-  "Give me a framework for prioritizing my projects",
-  "I want to set better boundaries at work",
+type Pillar = "RISE" | "ROOTS" | "RESTORE";
+type Starter = { id: string; pillar: Pillar; label: string; full: string };
+
+const STARTER_LIBRARY: Starter[] = [
+  // RISE
+  { id: "RISE-01", pillar: "RISE", label: "I've been job searching for months…", full: "I've been job searching in Dubai for months and nothing is working. What am I doing wrong?" },
+  { id: "RISE-02", pillar: "RISE", label: "I want to negotiate my salary…", full: "I got a job offer but the salary feels low. How do I negotiate without losing the offer?" },
+  { id: "RISE-03", pillar: "RISE", label: "I want to switch industries in UAE…", full: "I want to switch industries in UAE — is that even realistic here?" },
+  { id: "RISE-04", pillar: "RISE", label: "I'm on a spouse visa, want to work…", full: "I'm on a spouse visa and I want to work. Where do I even start?" },
+  { id: "RISE-05", pillar: "RISE", label: "My LinkedIn feels invisible…", full: "Everyone around me seems to have the perfect LinkedIn profile. Mine feels invisible." },
+  { id: "RISE-06", pillar: "RISE", label: "Help me prep for an interview…", full: "I have an interview next week and I'm terrified. Can you help me prepare?" },
+  { id: "RISE-07", pillar: "RISE", label: "My boss takes credit for my work…", full: "My boss takes credit for my work. I don't know how to handle this without damaging the relationship." },
+  { id: "RISE-08", pillar: "RISE", label: "I want to start a business in UAE…", full: "I want to start a business in UAE but I have no idea where to begin — free zone, mainland, what?" },
+  { id: "RISE-09", pillar: "RISE", label: "Networking here feels transactional…", full: "I feel like I'm the only one who doesn't know how to 'network' here. It feels so transactional." },
+  { id: "RISE-10", pillar: "RISE", label: "Should I stay in my role or leave?", full: "I've been in the same role for three years. I want to grow but I don't know if I should stay or leave." },
+  { id: "RISE-11", pillar: "RISE", label: "I feel overlooked in my new role…", full: "I moved to Dubai for a great job and now I feel completely overlooked. What changed?" },
+  { id: "RISE-12", pillar: "RISE", label: "How do I ask for a promotion?", full: "I want to ask for a promotion but I don't know if the timing is right or how to make the case." },
+  { id: "RISE-13", pillar: "RISE", label: "Being taken seriously as a founder…", full: "I'm a female founder trying to get taken seriously in meetings here. Any advice?" },
+  { id: "RISE-14", pillar: "RISE", label: "Influence in male-dominated industry…", full: "I work in a male-dominated industry in UAE. How do I build influence without losing myself?" },
+  { id: "RISE-15", pillar: "RISE", label: "Starting over at mid-level here…", full: "I left a senior role back home and I'm starting over here as a mid-level. It's humbling in a hard way." },
+  { id: "RISE-16", pillar: "RISE", label: "Interviews but no offers…", full: "I keep getting interviews but no offers. Is it my CV, my interview, or something else?" },
+  { id: "RISE-17", pillar: "RISE", label: "Building a reputation from zero…", full: "How do I build a professional reputation here when I literally know nobody?" },
+  { id: "RISE-18", pillar: "RISE", label: "I want to go freelance in UAE…", full: "I want to go freelance in UAE. What do I actually need to know before I quit my job?" },
+  { id: "RISE-19", pillar: "RISE", label: "Passed over for a promotion…", full: "I got passed over for a promotion in favour of someone less experienced. I'm furious and lost." },
+  { id: "RISE-20", pillar: "RISE", label: "Is my background holding me back?", full: "I feel like my accent or my background is holding me back here. Is that in my head?" },
+  // ROOTS
+  { id: "ROOTS-01", pillar: "ROOTS", label: "I still feel like a stranger here…", full: "I've been in Dubai for six months and I still feel like a stranger. Is this normal?" },
+  { id: "ROOTS-02", pillar: "ROOTS", label: "How do I make real friends here?", full: "How do I make real friends here — not just work colleagues or acquaintances?" },
+  { id: "ROOTS-03", pillar: "ROOTS", label: "Everyone seems to have it together…", full: "Everyone here seems to have their life together. I feel like I'm the only one struggling." },
+  { id: "ROOTS-04", pillar: "ROOTS", label: "I moved here and lost my identity…", full: "I moved here for my partner's career. I gave up a lot. Now I'm not sure who I am anymore." },
+  { id: "ROOTS-05", pillar: "ROOTS", label: "I feel like I belong nowhere…", full: "I've lived in three countries in five years. I feel like I belong nowhere." },
+  { id: "ROOTS-06", pillar: "ROOTS", label: "Guilt about leaving family behind…", full: "My family back home doesn't understand why I chose to move to UAE. The guilt is real." },
+  { id: "ROOTS-07", pillar: "ROOTS", label: "Help me understand UAE culture…", full: "I want to understand UAE culture better — especially as a non-Arab expat working with Emirati colleagues." },
+  { id: "ROOTS-08", pillar: "ROOTS", label: "Lonely even when surrounded…", full: "I feel lonely here even though I'm constantly surrounded by people. How is that possible?" },
+  { id: "ROOTS-09", pillar: "ROOTS", label: "Dating in Dubai is complicated…", full: "Dating and relationships as a single woman in Dubai is... complicated. I don't know where I fit." },
+  { id: "ROOTS-10", pillar: "ROOTS", label: "Should I move back home?", full: "I'm thinking about leaving UAE and going back home. But I'm not sure if it's the right call." },
+  { id: "ROOTS-11", pillar: "ROOTS", label: "Unexpected low after the move…", full: "I moved here with so much excitement and now I'm in a low I didn't expect. What is this?" },
+  { id: "ROOTS-12", pillar: "ROOTS", label: "Finding my kind of people…", full: "I want to build a social life here but I don't know where to find my kind of people." },
+  { id: "ROOTS-13", pillar: "ROOTS", label: "Emirati woman, family and ambition…", full: "I'm an Emirati woman navigating family expectations and my own ambitions at the same time." },
+  { id: "ROOTS-14", pillar: "ROOTS", label: "5 years in, still feel like a guest…", full: "I've been here five years and I still feel like a guest. Will I ever feel at home?" },
+  { id: "ROOTS-15", pillar: "ROOTS", label: "Everything moves so fast here…", full: "Everything in UAE moves so fast — people leave, things change, it's exhausting to keep up." },
+  { id: "ROOTS-16", pillar: "ROOTS", label: "I want to give back here…", full: "I want to give back to this community but I don't know how to start." },
+  // RESTORE
+  { id: "RESTORE-01", pillar: "RESTORE", label: "I'm exhausted but I can't stop…", full: "I'm exhausted all the time but I can't stop. Everything feels urgent." },
+  { id: "RESTORE-02", pillar: "RESTORE", label: "I've been quietly anxious for months…", full: "I've been anxious for months but I haven't told anyone. I'm not even sure why I'm telling you." },
+  { id: "RESTORE-03", pillar: "RESTORE", label: "I feel like a fraud — help…", full: "I feel like a fraud. Everyone thinks I have it together and I absolutely don't." },
+  { id: "RESTORE-04", pillar: "RESTORE", label: "Not sure what I came here for…", full: "I moved to UAE chasing something and I'm not sure what I was looking for anymore." },
+  { id: "RESTORE-05", pillar: "RESTORE", label: "Comparison is destroying my confidence…", full: "I keep comparing myself to other women here and it's destroying my confidence." },
+  { id: "RESTORE-06", pillar: "RESTORE", label: "I don't know how to ask for help…", full: "I don't know how to ask for help. I've always been the one who has it sorted." },
+  { id: "RESTORE-07", pillar: "RESTORE", label: "I think I'm burning out…", full: "I think I'm burning out but I'm scared to slow down — what if everything falls apart?" },
+  { id: "RESTORE-08", pillar: "RESTORE", label: "Achieved everything, still unhappy…", full: "I've achieved everything I planned for and I still don't feel happy. What's wrong with me?" },
+  { id: "RESTORE-09", pillar: "RESTORE", label: "Performing 'thriving' is exhausting…", full: "I feel pressure to always be positive and 'thriving' here. The performance of it is exhausting." },
+  { id: "RESTORE-10", pillar: "RESTORE", label: "How do I find therapy in Dubai?", full: "I want to start therapy in Dubai but I don't know how to find someone good — or if I even need it." },
+  { id: "RESTORE-11", pillar: "RESTORE", label: "I've lost confidence since moving…", full: "My self-confidence has taken a huge hit since I moved. I used to know who I was." },
+  { id: "RESTORE-12", pillar: "RESTORE", label: "Struggling, but must hold it together…", full: "I'm going through a difficult time personally but professionally I have to hold it together. Any advice?" },
+  { id: "RESTORE-13", pillar: "RESTORE", label: "Guilty for struggling when life looks good…", full: "I feel guilty for struggling when objectively my life in UAE looks great from the outside." },
+  { id: "RESTORE-14", pillar: "RESTORE", label: "I want to feel more grounded…", full: "I want to feel more grounded and present — but I don't know where to start." },
 ];
+
+function pickStarters(): Starter[] {
+  const byPillar = (p: Pillar) => STARTER_LIBRARY.filter((s) => s.pillar === p);
+  const rand = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
+  const rise = rand(byPillar("RISE"));
+  const roots = rand(byPillar("ROOTS"));
+  const restore = rand(byPillar("RESTORE"));
+  const used = new Set([rise.id, roots.id, restore.id]);
+  const pool = STARTER_LIBRARY.filter((s) => !used.has(s.id));
+  const fourth = rand(pool);
+  const arr = [rise, roots, restore, fourth];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
 const FempowerCoach = () => {
   const [open, setOpen] = useState(false);
