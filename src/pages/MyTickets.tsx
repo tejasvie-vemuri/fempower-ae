@@ -31,6 +31,8 @@ interface TicketRow {
   created_at: string;
   cancellation_requested_at: string | null;
   cancellation_reason: string | null;
+  quantity: number | null;
+  guests: Array<{ name?: string; email?: string }> | null;
   event: {
     id: string;
     slug: string;
