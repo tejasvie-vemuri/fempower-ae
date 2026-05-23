@@ -164,7 +164,6 @@ Deno.serve(async (req) => {
       registrationId = reg.id;
     }
 
-    const returnUrl = `${origin}/events/${ev.slug}?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
     const stripe = createStripeClient(environment);
     const customerId = await resolveOrCreateCustomer(stripe, {
       email: userEmail,
@@ -172,8 +171,8 @@ Deno.serve(async (req) => {
     });
     const stripeData = await stripe.checkout.sessions.create({
       mode: "payment",
-      ui_mode: "embedded_page",
-      return_url: returnUrl,
+      ui_mode: "embedded",
+      redirect_on_completion: "never",
       customer: customerId,
       line_items: [
         {
@@ -192,6 +191,7 @@ Deno.serve(async (req) => {
         registration_id: registrationId!,
       },
     });
+
 
     // Save session id on the registration
     await supabaseAdmin
