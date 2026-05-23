@@ -92,6 +92,13 @@ const FempowerCoach = () => {
   const [starters, setStarters] = useState<Starter[]>(() => pickStarters());
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Allow other components (e.g. HeroSection) to open Zara via a global event
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("open-zara", handler);
+    return () => window.removeEventListener("open-zara", handler);
+  }, []);
+
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
       if (scrollRef.current) {
