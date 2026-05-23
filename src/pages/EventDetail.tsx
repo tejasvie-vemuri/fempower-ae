@@ -276,6 +276,8 @@ const EventDetail = () => {
           origin: window.location.origin,
           environment: getStripeEnvironment(),
           responses: responsesPayload,
+          quantity: safeQty,
+          guests: guestsPayload,
         },
       });
       setActing(false);
