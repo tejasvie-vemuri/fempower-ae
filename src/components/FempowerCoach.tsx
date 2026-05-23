@@ -89,6 +89,7 @@ const FempowerCoach = () => {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [starters, setStarters] = useState<Starter[]>(() => pickStarters());
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
