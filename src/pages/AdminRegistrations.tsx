@@ -69,11 +69,13 @@ const AdminRegistrations = () => {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
+
 
   const load = async () => {
     if (!eventId) return;
     setLoading(true);
-    const [{ data: ev }, { data: regsData, error }] = await Promise.all([
+    const [{ data: ev }, { data: regsData, error }, { data: wl }] = await Promise.all([
       supabase
         .from("events")
         .select("id, title, slug, starts_at, capacity")
@@ -86,13 +88,21 @@ const AdminRegistrations = () => {
         )
         .eq("event_id", eventId)
         .order("created_at", { ascending: false }),
+      supabase
+        .from("waitlist")
+        .select("id, user_id, position, notified_at, created_at")
+        .eq("event_id", eventId)
+        .order("position", { ascending: true }),
     ]);
     if (error) toast.error(error.message);
     setEvent(ev as EventInfo | null);
     const rows = (regsData as Registration[]) ?? [];
     setRegs(rows);
+    setWaitlist((wl as WaitlistEntry[]) ?? []);
 
-    const userIds = Array.from(new Set(rows.map((r) => r.user_id)));
+    const userIds = Array.from(
+      new Set([...rows.map((r) => r.user_id), ...((wl as WaitlistEntry[]) ?? []).map((w) => w.user_id)]),
+    );
     if (userIds.length) {
       const { data: profs } = await supabase
         .from("profiles")
