@@ -199,6 +199,8 @@ export type Database = {
       registrations: {
         Row: {
           amount_paid_cents: number
+          cancellation_reason: string | null
+          cancellation_requested_at: string | null
           checked_in_at: string | null
           created_at: string
           currency: string
@@ -213,6 +215,8 @@ export type Database = {
         }
         Insert: {
           amount_paid_cents?: number
+          cancellation_reason?: string | null
+          cancellation_requested_at?: string | null
           checked_in_at?: string | null
           created_at?: string
           currency?: string
@@ -227,6 +231,8 @@ export type Database = {
         }
         Update: {
           amount_paid_cents?: number
+          cancellation_reason?: string | null
+          cancellation_requested_at?: string | null
           checked_in_at?: string | null
           created_at?: string
           currency?: string

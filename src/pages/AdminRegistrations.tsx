@@ -33,6 +33,8 @@ interface Registration {
   checked_in_at: string | null;
   created_at: string;
   stripe_payment_intent_id: string | null;
+  cancellation_requested_at: string | null;
+  cancellation_reason: string | null;
 }
 
 interface Profile {
@@ -84,7 +86,7 @@ const AdminRegistrations = () => {
       supabase
         .from("registrations")
         .select(
-          "id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, stripe_payment_intent_id",
+          "id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, stripe_payment_intent_id, cancellation_requested_at, cancellation_reason",
         )
         .eq("event_id", eventId)
         .order("created_at", { ascending: false }),
@@ -344,15 +346,25 @@ const AdminRegistrations = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        <span
-                          className={`text-xs uppercase tracking-wide px-2 py-1 rounded ${
-                            r.status === "confirmed"
-                              ? "bg-primary/10 text-primary"
-                              : "bg-muted"
-                          }`}
-                        >
-                          {r.status}
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span
+                            className={`text-xs uppercase tracking-wide px-2 py-1 rounded inline-block w-fit ${
+                              r.status === "confirmed"
+                                ? "bg-primary/10 text-primary"
+                                : "bg-muted"
+                            }`}
+                          >
+                            {r.status}
+                          </span>
+                          {r.cancellation_requested_at && r.status !== "refunded" && (
+                            <span
+                              className="text-xs text-amber-700 bg-amber-100 px-2 py-1 rounded w-fit"
+                              title={r.cancellation_reason ?? "No reason given"}
+                            >
+                              Cancellation requested
+                            </span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {r.amount_paid_cents === 0

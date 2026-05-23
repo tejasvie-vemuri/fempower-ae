@@ -2,13 +2,23 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";
-import { Calendar, MapPin, Ticket, ArrowLeft, Download } from "lucide-react";
+import { Calendar, MapPin, Ticket, ArrowLeft, Download, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 interface TicketRow {
   id: string;
@@ -18,6 +28,8 @@ interface TicketRow {
   currency: string;
   checked_in_at: string | null;
   created_at: string;
+  cancellation_requested_at: string | null;
+  cancellation_reason: string | null;
   event: {
     id: string;
     slug: string;
@@ -80,6 +92,9 @@ const MyTickets = () => {
   const navigate = useNavigate();
   const [tickets, setTickets] = useState<TicketRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cancelTarget, setCancelTarget] = useState<TicketRow | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -87,24 +102,47 @@ const MyTickets = () => {
     }
   }, [authLoading, user, navigate]);
 
-  useEffect(() => {
+  const loadTickets = async () => {
     if (!user) return;
-    const load = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("registrations")
-        .select(
-          "id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, event:events(id, slug, title, starts_at, ends_at, location, cover_image_url)",
-        )
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (!error && data) {
-        setTickets(data as unknown as TicketRow[]);
-      }
-      setLoading(false);
-    };
-    load();
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("registrations")
+      .select(
+        "id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, cancellation_requested_at, cancellation_reason, event:events(id, slug, title, starts_at, ends_at, location, cover_image_url)",
+      )
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    if (!error && data) {
+      setTickets(data as unknown as TicketRow[]);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadTickets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  const submitCancellation = async () => {
+    if (!cancelTarget) return;
+    setCancelling(true);
+    const { error } = await supabase
+      .from("registrations")
+      .update({
+        cancellation_requested_at: new Date().toISOString(),
+        cancellation_reason: cancelReason.trim() || null,
+      })
+      .eq("id", cancelTarget.id);
+    setCancelling(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Cancellation request sent. Our team will review it shortly.");
+    setCancelTarget(null);
+    setCancelReason("");
+    loadTickets();
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -195,7 +233,7 @@ const MyTickets = () => {
                         )}
                       </div>
 
-                      <div className="flex gap-2 pt-2">
+                      <div className="flex flex-wrap gap-2 pt-2">
                         {event && (
                           <Button asChild variant="outline" size="sm">
                             <Link to={`/events/${event.slug}`}>View event</Link>
@@ -212,6 +250,25 @@ const MyTickets = () => {
                             <Download className="w-4 h-4 mr-1" />
                             Download QR
                           </Button>
+                        )}
+                        {isConfirmed && !t.cancellation_requested_at && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground hover:text-destructive"
+                            onClick={() => {
+                              setCancelTarget(t);
+                              setCancelReason("");
+                            }}
+                          >
+                            <XCircle className="w-4 h-4 mr-1" />
+                            Request cancellation
+                          </Button>
+                        )}
+                        {t.cancellation_requested_at && t.status !== "refunded" && (
+                          <Badge variant="outline" className="text-xs">
+                            Cancellation requested
+                          </Badge>
                         )}
                       </div>
                     </div>
@@ -244,6 +301,39 @@ const MyTickets = () => {
           </div>
         )}
       </div>
+
+      <Dialog
+        open={!!cancelTarget}
+        onOpenChange={(open) => !open && setCancelTarget(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Request cancellation</DialogTitle>
+            <DialogDescription>
+              Our team will review your request and process a refund per our policy:
+              full refund if we cancel; credit or transfer if you cancel ≥72 hours
+              before; no refund within 72 hours or for no-shows.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Reason (optional)</label>
+            <Textarea
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Let us know why you can't attend…"
+              rows={4}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelTarget(null)}>
+              Never mind
+            </Button>
+            <Button onClick={submitCancellation} disabled={cancelling}>
+              {cancelling ? "Sending…" : "Send request"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

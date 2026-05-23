@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.refund-registration]
 verify_jwt = false
+
+[functions.payments-webhook]
+verify_jwt = false

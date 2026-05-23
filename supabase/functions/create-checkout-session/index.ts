@@ -174,13 +174,19 @@ Deno.serve(async (req) => {
       ui_mode: "embedded",
       redirect_on_completion: "never",
       customer: customerId,
+      customer_update: { address: "auto", name: "auto" },
+      automatic_tax: { enabled: true },
       line_items: [
         {
           quantity: 1,
           price_data: {
             currency: ev.currency.toLowerCase(),
             unit_amount: ev.price_cents,
-            product_data: { name: ev.title },
+            product_data: {
+              name: ev.title,
+              tax_code: "txcd_20030000",
+            },
+            tax_behavior: "inclusive",
           },
         },
       ],
