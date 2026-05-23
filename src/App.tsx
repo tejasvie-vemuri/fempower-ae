@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/Auth";
 import AdminEvents from "./pages/AdminEvents";
 import EventDetail from "./pages/EventDetail";
+import MyTickets from "./pages/MyTickets";
 import { AdminRoute } from "@/components/AdminRoute";
 
 const queryClient = new QueryClient();
