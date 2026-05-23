@@ -1,9 +1,18 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
+import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { toast } from "sonner";
 import {
   Loader2,
@@ -45,6 +54,8 @@ const EventDetail = () => {
   const [myReg, setMyReg] = useState<{ status: string; ticket_code: string } | null>(null);
   const [onWaitlist, setOnWaitlist] = useState(false);
   const [acting, setActing] = useState(false);
+  const [checkoutSecret, setCheckoutSecret] = useState<string | null>(null);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const load = async () => {
     if (!slug) return;
@@ -153,14 +164,19 @@ const EventDetail = () => {
       load();
     } else {
       const { data, error } = await supabase.functions.invoke("create-checkout-session", {
-        body: { event_id: event.id, origin: window.location.origin },
+        body: {
+          event_id: event.id,
+          origin: window.location.origin,
+          environment: getStripeEnvironment(),
+        },
       });
       setActing(false);
-      if (error || !data?.url) {
+      if (error || !data?.clientSecret) {
         toast.error(error?.message ?? data?.error ?? "Could not start checkout");
         return;
       }
-      window.location.href = data.url;
+      setCheckoutSecret(data.clientSecret);
+      setCheckoutOpen(true);
     }
 
   };
@@ -249,6 +265,32 @@ const EventDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
+        <DialogContent className="max-h-[92vh] max-w-3xl overflow-y-auto p-0 sm:rounded-lg">
+          <DialogHeader className="px-6 pt-6">
+            <DialogTitle className="font-heading text-primary">Complete your ticket</DialogTitle>
+            <DialogDescription>
+              Secure checkout for {event.title}.
+            </DialogDescription>
+          </DialogHeader>
+          {checkoutSecret && (
+            <div className="px-2 pb-6 sm:px-6">
+              <EmbeddedCheckoutProvider
+                stripe={getStripe()}
+                options={{
+                  clientSecret: checkoutSecret,
+                  onComplete: () => {
+                    setCheckoutOpen(false);
+                    load();
+                  },
+                }}
+              >
+                <EmbeddedCheckout />
+              </EmbeddedCheckoutProvider>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       <div className="max-w-4xl mx-auto px-4 py-10">
         <Link
           to="/#events-calendar"
