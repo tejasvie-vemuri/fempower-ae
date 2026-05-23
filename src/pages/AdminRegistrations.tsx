@@ -12,7 +12,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { ArrowLeft, Check, Download, Loader2, Undo2 } from "lucide-react";
+import { ArrowLeft, Check, Download, Loader2, Undo2, RefreshCcw, UserPlus } from "lucide-react";
+import { getStripeEnvironment } from "@/lib/stripe";
+
+interface WaitlistEntry {
+  id: string;
+  user_id: string;
+  position: number;
+  notified_at: string | null;
+  created_at: string;
+}
 
 interface Registration {
   id: string;
