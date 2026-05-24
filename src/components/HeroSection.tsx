@@ -38,11 +38,11 @@ const HeroSection = () => {
           Fempower is a women-only community in Dubai and across the UAE. Join 300+ women from 15+ nationalities for daily WhatsApp prompts, mentor walks, peer coaching circles, and women's networking events every 15 days.
         </p>
 
-        <div className="mt-7 flex flex-col sm:flex-row gap-4">
-          <Button size="lg" className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs px-10 h-12" asChild>
+        <div className="mt-7 flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <Button size="lg" className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs px-6 sm:px-10 h-12 w-full sm:w-auto" asChild>
             <a href="#join">Join Us</a>
           </Button>
-          <Button size="lg" variant="outline" className="font-body uppercase tracking-widest text-xs px-10 h-12 border-foreground/20" asChild>
+          <Button size="lg" variant="outline" className="font-body uppercase tracking-widest text-xs px-6 sm:px-10 h-12 border-foreground/20 w-full sm:w-auto" asChild>
             <a href="#programs">Explore Programs</a>
           </Button>
         </div>
