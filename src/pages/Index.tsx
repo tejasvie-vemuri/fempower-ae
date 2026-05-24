@@ -35,6 +35,7 @@ const Index = () => (
       <GallerySection />
       <SubstackFeedSection />
       <ResourcesSection />
+      <SchoolsTeaser />
       {/* <NewsletterSection /> hidden for now */}
       <JoinSection />
       <TestimonialsSection />
