@@ -1,72 +1,71 @@
-# Ask the Circle — Build Plan
 
-A members-only support space where approved Fempower women can ask the hard questions (career, motherhood, mental health, money, relationships, faith, visa/legal, body & health) — choosing per post whether to share their name or stay anonymous.
+# School & Nursery Reviews — UAE
+
+A one-stop hub where Fempower members can research schools and nurseries (fees, curriculum, waitlist intel) and contribute their own reviews. Lives at a new `/schools` page with a teaser on the landing page.
 
 ## User flows
 
-**Member**
-1. Lands on `/circle` (teased from landing page) → if not signed in, sees description + sign-in CTA, no post preview.
-2. After sign-in + approval, sees the feed: topic filter, pinned crisis-resource banner on sensitive tags.
-3. Opens composer → picks tag → writes (max 2000 chars) → toggles **Post as [Name]** or **Post anonymously** → submits.
-4. If post trips the crisis-keyword scan, a supportive modal with UAE helplines appears before submission completes; post is held for priority admin review.
-5. If member is `is_trusted_poster = true` and no crisis flag → publishes immediately. Otherwise → pending queue.
-6. Replies always show name + photo. Reactions: 🤍 🌷 💪 ✨ (one per user per item).
-7. Report button on every post and reply.
-8. Notifications: in-app badge on Circle nav, plus a WhatsApp deep-link button on each notification (pre-filled message to the moderator group or poster).
+**Visitor (not signed in)**
+- Browses directory, reads public school info + approved reviews.
+- "Share your experience" CTA → sign-in wall.
 
-**Admin** (`/admin/circle`)
-- Queues: Pending · Flagged (priority, crisis) · Reported · All.
-- Per post: Approve, Hide, Delete, View real identity, Mark trusted/untrusted, Ban from feature.
-- Real identity always visible to admins regardless of `is_anonymous`.
+**Approved member**
+- Searches/filters schools by emirate, type (school/nursery), curriculum (British/American/IB/Montessori/CBSE/French…), age group.
+- Opens a listing → sees aggregated rating, fees range, waitlist intel, member reviews.
+- Submits a review (star rating, written experience, curriculum, child age group, waitlist experience, fees paid + year). Goes to moderation queue.
+- Can request a new school be added if missing → admin queue.
+
+**Admin (`/admin/schools`)**
+- Approve / hide / delete reviews.
+- Approve "add school" requests.
+- Trigger Firecrawl refresh on a listing (re-scrapes fees, curriculum, waitlist info from official site + Google).
+- Edit a listing manually (override scraped data when stale).
 
 ## Data model (new tables)
 
-- `circle_posts` — `user_id`, `topic_tag`, `body`, `is_anonymous`, `status` (pending/published/hidden/deleted), `risk_level` (none/high), `flagged_keywords[]`, `published_at`, timestamps.
-- `circle_replies` — `post_id`, `user_id`, `body`, `status`, timestamps. (Always attributed.)
-- `circle_reactions` — `target_type` (post/reply), `target_id`, `user_id`, `emoji`. Unique on (target, user).
-- `circle_reports` — `target_type`, `target_id`, `reporter_id`, `reason`, `notes`, `status`, timestamps.
-- `circle_bans` — `user_id`, `banned_by`, `reason`, timestamps.
-- Add `is_trusted_poster boolean default false` to `member_profiles`.
+- `schools` — name, slug, type (school|nursery), emirate, area, curriculum[], age_min, age_max, website_url, logo_url, fees_min, fees_max, fees_year, waitlist_status (open|waitlist|closed|unknown), description, source_data (jsonb cache of last scrape), last_scraped_at, status (draft|published|hidden).
+- `school_reviews` — school_id, user_id, rating (1–5), body, curriculum, child_age_group, waitlist_experience (text), fees_paid_cents, fees_year, status (pending|published|hidden), timestamps.
+- `school_requests` — user_id, name, website_url, notes, status. Member-submitted requests for new listings.
 
-## RLS rules (summary, no SQL keywords here)
+RLS:
+- `schools`: published rows readable by everyone; admins manage all.
+- `school_reviews`: published rows readable by everyone; approved members insert their own (status forced to `pending`); admins approve/hide/delete.
+- `school_requests`: members insert + read own; admins read all + update.
 
-- Posts/replies readable by approved members only when `status = 'published'`; admins see everything.
-- Public API never returns `user_id`, name, or photo for posts where `is_anonymous = true`.
-- Members can create their own posts/replies/reactions/reports; cannot edit or delete others'.
-- Trusted-flag and bans are admin-only.
+## Firecrawl scraping
 
-## Crisis safety
-
-- Server-side keyword list (suicide, self-harm, kill myself, hurt myself, abuse, beaten, rape, etc. — Arabic + English) checked in the submit edge function.
-- High-risk posts → `risk_level='high'`, `status='pending'` always, surface top of admin queue, notify admins.
-- Crisis banner pinned on Mental Health, Relationships, Body & Health tags with UAE helplines (DHA 800-HOPE, Aman 116111, DFWAC 800-111).
-
-## Rate limits
-
-- 3 posts / 24h, 20 replies / 24h, enforced in edge function using server-side count.
+- New connector: **Firecrawl** (`standard_connectors--connect`).
+- Edge function `schools-scrape` (admin-only via JWT + `has_role` check):
+  - Input: school name or website. If only name, runs `firecrawl.search` to find official site.
+  - Runs `firecrawl.scrape` with `formats: ['markdown', { type: 'json', schema }]` and a structured schema extracting: official name, curriculum, age range, fees (per grade if available), waitlist status, contact info, logo.
+  - Stores raw markdown + parsed JSON into `source_data`, upserts the cleaned fields on `schools`, sets `last_scraped_at`.
+- Edge function `schools-search-external` (admin-only): given a query like "British nurseries in JVC", runs `firecrawl.search` + bulk-scrapes top results to bootstrap directory.
+- Caching: re-scrape only when admin clicks "refresh" or `last_scraped_at` older than 90 days.
 
 ## Surfaces
 
-- **Landing page**: small teaser card "A safe circle for the hard questions" → CTA to `/circle` (sign-in wall, no content preview).
-- **`/circle`**: feed + composer (members only).
-- **`/admin/circle`**: moderation dashboard (admin only).
-- Nav badge with unread reply/approval counts.
+- **`/schools`** (public): hero, search bar, filter rail (emirate, type, curriculum, age), result grid of school cards (logo, name, area, curriculum chips, avg rating, fees range). Click → detail drawer/page with full info + reviews + "Write a review" (members) / "Sign in to review" (guests).
+- **`/admin/schools`**: tabs Pending reviews · School requests · All schools. Per-school: edit, refresh from Firecrawl, hide/delete.
+- **Landing page teaser** (`SchoolsTeaser.tsx`): card in the Index page between `ResourcesSection` and `JoinSection`. Headline "School & Nursery Reviews — by real parents", subcopy, CTA "Browse the directory".
+- **Header nav**: add "Schools" link.
 
-## Phasing inside v1
+## Phasing
 
-Single ship, in this order so the preview is usable along the way:
-1. Tables + RLS + edge function (`circle-submit`, `circle-moderate`).
-2. `/circle` feed + composer + anonymity toggle.
-3. Replies + reactions.
-4. Reporting + admin dashboard.
-5. Crisis keyword scan + helplines banner.
-6. Landing-page teaser + nav badge + WhatsApp notification link.
+1. Migration: `schools`, `school_reviews`, `school_requests` + RLS + triggers (updated_at).
+2. Connect Firecrawl + write `schools-scrape` and `schools-search-external` edge functions.
+3. `/schools` page: list + filters + detail view (read-only first, no reviews yet).
+4. Review submission form (members only, validated with zod, admin-moderated).
+5. `/admin/schools` moderation + Firecrawl refresh controls + school-request approval.
+6. Landing-page teaser + nav link + SEO (`<title>`, JSON-LD `EducationalOrganization` per listing).
 
 ## Technical notes
 
-- Submit/report/moderate go through edge functions to enforce rate limits, run the keyword scan, and strip identity from public payloads.
-- Public read uses a view (or careful select) that conditionally nulls `user_id`/name/photo when `is_anonymous = true`.
-- WhatsApp notifications are `wa.me` deep links (no Twilio needed).
-- Trusted flag is admin-toggled only — no auto-promotion logic.
+- Stack: same Supabase + Vite/React/Tailwind already in use. Edge functions in `supabase/functions/schools-*/index.ts`.
+- Firecrawl key (`FIRECRAWL_API_KEY`) injected by connector; server-only.
+- Rate-limit review submissions: 5 reviews / 24h / user (in edge function `schools-submit-review`).
+- Input validation: zod on body in edge functions; client-side react-hook-form + zod resolver.
+- Aggregations (avg rating, review count) computed in a SECURITY DEFINER function `school_review_stats(school_id)` to avoid N+1.
+- No personal data exposed: reviews always show member name + photo (parents stand by their reviews); no anonymous option in v1 unless you want it added.
+- Landing teaser uses existing design tokens (Plum/Gold/Ivory, Playfair + DM Sans).
 
 Reply **approve** and I'll start with the migration.
