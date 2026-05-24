@@ -16,6 +16,7 @@ import Footer from "@/components/Footer";
 import FempowerCoach from "@/components/FempowerCoach";
 import CircleTeaser from "@/components/CircleTeaser";
 import MeetupsSection from "@/components/MeetupsSection";
+import SchoolsTeaser from "@/components/SchoolsTeaser";
 import SeoSummary from "@/components/SeoSummary";
 
 const Index = () => (
@@ -34,6 +35,7 @@ const Index = () => (
       <GallerySection />
       <SubstackFeedSection />
       <ResourcesSection />
+      <SchoolsTeaser />
       {/* <NewsletterSection /> hidden for now */}
       <JoinSection />
       <TestimonialsSection />
