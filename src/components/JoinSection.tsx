@@ -20,12 +20,12 @@ const JoinSection = () => (
     </div>
     <div className="container max-w-4xl relative z-10">
       <PalmDivider className="mb-6" />
-      <div className="bg-card rounded-2xl border border-border shadow-lg p-8 md:p-12">
+      <div className="bg-card rounded-2xl border border-border shadow-lg p-6 sm:p-8 md:p-12">
         <div className="grid md:grid-cols-2 gap-10 items-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <p className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark mb-3">Get Involved</p>
-            <h2 className="font-heading text-3xl md:text-4xl font-semibold text-foreground">Join the WhatsApp community by following us</h2>
-            <p className="mt-3 text-muted-foreground font-body">Get daily prompts, event updates, and access to mentorship + circles.</p>
+            <p className="text-xs font-body font-medium uppercase tracking-widest text-blush-dark mb-3">Get Involved</p>
+            <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground leading-tight">Join the WhatsApp community by following us</h2>
+            <p className="mt-3 text-muted-foreground font-body text-sm sm:text-base">Get daily prompts, event updates, and access to mentorship + circles.</p>
             <ul className="mt-5 space-y-2.5">
               {bullets.map((b) => (
                 <li key={b} className="flex items-start gap-3 text-sm font-body text-foreground">

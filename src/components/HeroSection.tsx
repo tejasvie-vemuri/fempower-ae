@@ -28,21 +28,21 @@ const HeroSection = () => {
         transition={{ duration: 0.8 }}
         className="max-w-2xl"
       >
-        <p className="text-base md:text-lg font-body font-bold uppercase tracking-widest-xl text-blush-dark mb-5">
+        <p className="text-[11px] sm:text-xs md:text-sm font-body font-semibold uppercase tracking-widest text-blush-dark mb-4">
           Women-first community · Dubai &amp; UAE
         </p>
-        <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight tracking-tight text-foreground">
+        <h1 className="font-heading text-[2rem] leading-[1.1] sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-foreground">
           Rooted Together, Rising Together.
         </h1>
-        <p className="mt-5 text-lg md:text-xl text-muted-foreground font-body leading-relaxed max-w-xl">
+        <p className="mt-4 text-base sm:text-lg md:text-xl text-muted-foreground font-body leading-relaxed max-w-xl">
           Fempower is a women-only community in Dubai and across the UAE. Join 300+ women from 15+ nationalities for daily WhatsApp prompts, mentor walks, peer coaching circles, and women's networking events every 15 days.
         </p>
 
-        <div className="mt-7 flex flex-col sm:flex-row gap-4">
-          <Button size="lg" className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs px-10 h-12" asChild>
+        <div className="mt-7 flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <Button size="lg" className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs px-6 sm:px-10 h-12 w-full sm:w-auto" asChild>
             <a href="#join">Join Us</a>
           </Button>
-          <Button size="lg" variant="outline" className="font-body uppercase tracking-widest text-xs px-10 h-12 border-foreground/20" asChild>
+          <Button size="lg" variant="outline" className="font-body uppercase tracking-widest text-xs px-6 sm:px-10 h-12 border-foreground/20 w-full sm:w-auto" asChild>
             <a href="#programs">Explore Programs</a>
           </Button>
         </div>
@@ -67,22 +67,22 @@ const HeroSection = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.6 }}
           onClick={() => window.dispatchEvent(new Event("open-zara"))}
-          className="mt-6 inline-flex items-center gap-3 rounded-full pl-2 pr-5 py-2 text-left shadow-sm hover:shadow-md transition-shadow group"
+          className="mt-6 inline-flex max-w-full items-center gap-3 rounded-full pl-2 pr-4 sm:pr-5 py-2 text-left shadow-sm hover:shadow-md transition-shadow group"
           style={{ background: "#FDF8F3", border: "1px solid #4A204025" }}
           aria-label="Open Zara, your AI career coach"
         >
           <span
-            className="w-9 h-9 rounded-full flex items-center justify-center text-base"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-base flex-shrink-0"
             style={{ background: "#4A2040", color: "#D4A853" }}
             aria-hidden="true"
           >
             ✦
           </span>
-          <span className="flex flex-col leading-tight">
+          <span className="flex flex-col leading-tight min-w-0">
             <span className="font-body text-[10px] uppercase tracking-widest" style={{ color: "#4A204090" }}>
               Meet Zara · Your Coach
             </span>
-            <span className="font-body text-sm font-medium" style={{ color: "#4A2040" }}>
+            <span className="font-body text-[13px] sm:text-sm font-medium" style={{ color: "#4A2040" }}>
               Ask her anything about growing your career in UAE →
             </span>
           </span>
