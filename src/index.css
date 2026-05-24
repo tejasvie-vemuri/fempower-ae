@@ -87,3 +87,9 @@ body {
   overflow-x: hidden;
   max-width: 100vw;
 }
+
+/* Prevent long words/URLs from blowing out narrow phones */
+h1, h2, h3, h4, p, a, span, li {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
