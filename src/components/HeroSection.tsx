@@ -67,22 +67,22 @@ const HeroSection = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.6 }}
           onClick={() => window.dispatchEvent(new Event("open-zara"))}
-          className="mt-6 inline-flex items-center gap-3 rounded-full pl-2 pr-5 py-2 text-left shadow-sm hover:shadow-md transition-shadow group"
+          className="mt-6 inline-flex max-w-full items-center gap-3 rounded-full pl-2 pr-4 sm:pr-5 py-2 text-left shadow-sm hover:shadow-md transition-shadow group"
           style={{ background: "#FDF8F3", border: "1px solid #4A204025" }}
           aria-label="Open Zara, your AI career coach"
         >
           <span
-            className="w-9 h-9 rounded-full flex items-center justify-center text-base"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-base flex-shrink-0"
             style={{ background: "#4A2040", color: "#D4A853" }}
             aria-hidden="true"
           >
             ✦
           </span>
-          <span className="flex flex-col leading-tight">
+          <span className="flex flex-col leading-tight min-w-0">
             <span className="font-body text-[10px] uppercase tracking-widest" style={{ color: "#4A204090" }}>
               Meet Zara · Your Coach
             </span>
-            <span className="font-body text-sm font-medium" style={{ color: "#4A2040" }}>
+            <span className="font-body text-[13px] sm:text-sm font-medium" style={{ color: "#4A2040" }}>
               Ask her anything about growing your career in UAE →
             </span>
           </span>
