@@ -20,8 +20,6 @@ import AdminCircle from "./pages/AdminCircle";
 import Meetups from "./pages/Meetups";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
-import Schools from "./pages/Schools";
-import AdminSchools from "./pages/AdminSchools";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
@@ -46,8 +44,6 @@ const App = () => (
             <Route path="/circle" element={<Circle />} />
             <Route path="/admin/circle" element={<AdminRoute><AdminCircle /></AdminRoute>} />
             <Route path="/meetups" element={<Meetups />} />
-            <Route path="/schools" element={<Schools />} />
-            <Route path="/admin/schools" element={<AdminRoute><AdminSchools /></AdminRoute>} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route
