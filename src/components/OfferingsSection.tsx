@@ -78,20 +78,20 @@ const OfferingsSection = () => {
                   onFocus={() => setActiveIndex(i)}
                   onClick={() => setActiveIndex(i)}
                   aria-pressed={activeIndex === i}
-                  className={`text-left bg-card rounded-xl p-5 shadow-sm border transition-all ${
+                  className={`text-left bg-card rounded-xl p-4 sm:p-5 shadow-sm border transition-all ${
                     activeIndex === i
                       ? "border-blush-dark/60 shadow-md ring-1 ring-blush-dark/20"
                       : "border-border hover:shadow-md"
                   }`}
                 >
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-3 sm:gap-4">
                     <div className="w-10 h-10 rounded-lg bg-blush-light flex items-center justify-center flex-shrink-0 mt-0.5">
                       <o.icon size={20} className="text-blush-dark" />
                     </div>
-                    <div>
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <h3 className="font-heading text-lg font-semibold text-foreground">{o.title}</h3>
-                        <span className="text-xs font-body font-medium text-blush-dark bg-blush-light px-2 py-0.5 rounded-full">{o.tag}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                        <h3 className="font-heading text-base sm:text-lg font-semibold text-foreground">{o.title}</h3>
+                        <span className="text-[10px] sm:text-xs font-body font-medium text-blush-dark bg-blush-light px-2 py-0.5 rounded-full whitespace-nowrap">{o.tag}</span>
                       </div>
                       <p className="mt-1.5 text-sm text-muted-foreground font-body leading-relaxed">{o.desc}</p>
                     </div>
