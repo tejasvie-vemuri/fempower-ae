@@ -28,13 +28,13 @@ const HeroSection = () => {
         transition={{ duration: 0.8 }}
         className="max-w-2xl"
       >
-        <p className="text-base md:text-lg font-body font-bold uppercase tracking-widest-xl text-blush-dark mb-5">
+        <p className="text-[11px] sm:text-xs md:text-sm font-body font-semibold uppercase tracking-widest text-blush-dark mb-4">
           Women-first community · Dubai &amp; UAE
         </p>
-        <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight tracking-tight text-foreground">
+        <h1 className="font-heading text-[2rem] leading-[1.1] sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-foreground">
           Rooted Together, Rising Together.
         </h1>
-        <p className="mt-5 text-lg md:text-xl text-muted-foreground font-body leading-relaxed max-w-xl">
+        <p className="mt-4 text-base sm:text-lg md:text-xl text-muted-foreground font-body leading-relaxed max-w-xl">
           Fempower is a women-only community in Dubai and across the UAE. Join 300+ women from 15+ nationalities for daily WhatsApp prompts, mentor walks, peer coaching circles, and women's networking events every 15 days.
         </p>
 
