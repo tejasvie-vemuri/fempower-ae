@@ -20,6 +20,8 @@ import AdminCircle from "./pages/AdminCircle";
 import Meetups from "./pages/Meetups";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import Schools from "./pages/Schools";
+import AdminSchools from "./pages/AdminSchools";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
