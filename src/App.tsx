@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/Auth";
+import Join from "./pages/Join";
 import AdminEvents from "./pages/AdminEvents";
 import AdminRegistrations from "./pages/AdminRegistrations";
 import EventDetail from "./pages/EventDetail";
@@ -64,7 +65,7 @@ const App = () => (
             />
             <Route path="/programs" element={<Navigate to="/#programs" replace />} />
             <Route path="/events" element={<Navigate to="/#events-calendar" replace />} />
-            <Route path="/join" element={<Navigate to="/#join" replace />} />
+            <Route path="/join" element={<Join />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
