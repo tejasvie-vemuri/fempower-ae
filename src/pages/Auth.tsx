@@ -25,6 +25,7 @@ const AuthPage = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const redirectTo = params.get("redirect") || "/";
+  const defaultTab = params.get("tab") === "signup" ? "signup" : "signin";
   const { user, loading } = useAuth();
   const [submitting, setSubmitting] = useState(false);
 
@@ -127,7 +128,7 @@ const AuthPage = () => {
           Fempower
         </Link>
         <div className="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-sm">
-          <Tabs defaultValue="signin">
+          <Tabs defaultValue={defaultTab}>
             <TabsList className="grid grid-cols-2 w-full mb-6">
               <TabsTrigger value="signin">Sign in</TabsTrigger>
               <TabsTrigger value="signup">Create account</TabsTrigger>
