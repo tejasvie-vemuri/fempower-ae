@@ -62,6 +62,9 @@ const App = () => (
                 </AdminRoute>
               }
             />
+            <Route path="/programs" element={<Navigate to="/#programs" replace />} />
+            <Route path="/events" element={<Navigate to="/#events-calendar" replace />} />
+            <Route path="/join" element={<Navigate to="/#join" replace />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
