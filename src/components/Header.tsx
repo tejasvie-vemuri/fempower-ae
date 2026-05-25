@@ -56,8 +56,8 @@ const Header = () => {
             <a href="#join">Join Us</a>
           </Button>
 
-          {/* Hamburger — always available, opens full menu */}
-          <button className="text-foreground" onClick={() => setOpen(!open)} aria-label="Toggle menu">
+          {/* Hamburger — only on mobile */}
+          <button className="md:hidden text-foreground" onClick={() => setOpen(!open)} aria-label="Toggle menu">
             {open ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
