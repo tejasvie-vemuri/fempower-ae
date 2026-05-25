@@ -56,8 +56,8 @@ const Header = () => {
             <a href="#join">Join Us</a>
           </Button>
 
-          {/* Hamburger — always available, opens full menu */}
-          <button className="text-foreground" onClick={() => setOpen(!open)} aria-label="Toggle menu">
+          {/* Hamburger — only on mobile */}
+          <button className="md:hidden text-foreground" onClick={() => setOpen(!open)} aria-label="Toggle menu">
             {open ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
@@ -65,7 +65,7 @@ const Header = () => {
 
       {/* Full nav drawer — always shows every link */}
       {open && (
-        <div className="bg-background border-t border-border pb-6">
+        <div className="md:hidden bg-background border-t border-border pb-6">
           <nav className="container flex flex-col gap-4 pt-4">
             {navLinks.map((link) => (
               <a
