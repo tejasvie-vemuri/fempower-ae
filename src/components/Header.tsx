@@ -65,7 +65,7 @@ const Header = () => {
 
       {/* Full nav drawer — always shows every link */}
       {open && (
-        <div className="bg-background border-t border-border pb-6">
+        <div className="md:hidden bg-background border-t border-border pb-6">
           <nav className="container flex flex-col gap-4 pt-4">
             {navLinks.map((link) => (
               <a
