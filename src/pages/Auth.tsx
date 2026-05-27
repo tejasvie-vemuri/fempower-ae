@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { z } from "zod";
+import fempowerLogo from "@/assets/fempower-logo.png";
 
 const emailSchema = z.string().trim().min(1, "Email is required").email("Please enter a valid email address").max(255);
 const passwordSchema = z.string().min(1, "Password is required").max(72);
