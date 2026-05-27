@@ -124,9 +124,13 @@ const AuthPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
+      <Link to="/" className="absolute top-6 left-6 flex items-center gap-2">
+        <img src={fempowerLogo} alt="Fempower" className="h-10 w-auto" />
+      </Link>
       <div className="w-full max-w-md">
-        <Link to="/" className="block text-center mb-8 font-heading text-3xl text-primary">
-          Fempower
+        <Link to="/" className="block text-center mb-8">
+          <div className="font-heading text-3xl text-primary">Fempower</div>
+          <div className="mt-2 text-sm italic text-muted-foreground">Rooted Together, Rising Together</div>
         </Link>
         <div className="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-sm">
           <Tabs defaultValue={defaultTab}>
