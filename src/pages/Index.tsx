@@ -16,6 +16,7 @@ import CircleTeaser from "@/components/CircleTeaser";
 import MeetupsSection from "@/components/MeetupsSection";
 import SubstackFeedSection from "@/components/SubstackFeedSection";
 import SeoSummary from "@/components/SeoSummary";
+import HomeStructuredData from "@/components/HomeStructuredData";
 import { JoinGateProvider } from "@/components/JoinGate";
 import { useAuth } from "@/hooks/useAuth";
 
