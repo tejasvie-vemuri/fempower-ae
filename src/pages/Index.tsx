@@ -28,6 +28,7 @@ const Index = () => {
     <JoinGateProvider>
       <Header />
       <main id="main">
+        <HomeStructuredData />
         <SeoSummary />
         <HeroSection />
         <AboutSection />
