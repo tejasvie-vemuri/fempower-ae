@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Accordion,
@@ -6,6 +7,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { SkylineSilhouette } from "./GulfDecoratives";
+import { useJoinGate } from "./JoinGate";
 
 const programs = [
   { id: "whatsapp", title: "WhatsApp Community", content: ["Daily prompts to spark honest conversations", "Book club discussions & reading challenges", "UAE-focused workplace conversations", "Fitness challenge threads", "Support circle energy—real wins, real struggles"] },
