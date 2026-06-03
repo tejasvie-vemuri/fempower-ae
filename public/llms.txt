@@ -1,0 +1,19 @@
+# Fempower
+
+> Women-only community in Dubai and across the UAE for career growth, mentorship and friendship. Slogan: Rooted Together, Rising Together.
+
+Fempower runs a daily WhatsApp community, quarterly mentor walks, peer coaching circles, and in-person events every 15 days. Members come from 15+ nationalities across all seven emirates.
+
+## Pages
+
+- [Home](/): About Fempower, programs, upcoming events, community moments, resources and voices.
+- [Join](/join): How to become a member — sign up or request access for existing members.
+- [Circle](/circle): Private community feed (member-only).
+- [Meetups](/meetups): Member-hosted casual meetups across the UAE.
+- [Directory](/directory): Member directory (member-only).
+- [Privacy Policy](/privacy): How Fempower handles personal data.
+- [Terms & Conditions](/terms): Membership and site terms.
+
+## Optional
+
+- [Sign in](/auth): Member authentication page.

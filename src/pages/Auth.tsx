@@ -129,8 +129,8 @@ const AuthPage = () => {
       </Link>
       <div className="w-full max-w-md">
         <Link to="/" className="block text-center mb-8">
-          <div className="font-heading text-3xl text-primary">Fempower</div>
-          <div className="mt-2 text-sm italic text-muted-foreground">Rooted Together, Rising Together</div>
+          <h1 className="font-heading text-3xl text-primary">Sign in to Fempower</h1>
+          <p className="mt-2 text-sm italic text-muted-foreground">Rooted Together, Rising Together</p>
         </Link>
         <div className="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-sm">
           <Tabs defaultValue={defaultTab}>
