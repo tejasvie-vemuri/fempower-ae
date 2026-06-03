@@ -16,7 +16,17 @@ const programs = [
   { id: "events", title: "Events", content: ["Frequency: every 15 days across the UAE", "Iftar nights & cultural celebrations", "Annual review planning workshops", "Busy Girl Glam Up self-care events", "Networking walks & outdoor meetups"] },
 ];
 
-const ProgramsSection = () => (
+const ProgramsSection = () => {
+  const { requireJoin, isAuthed } = useJoinGate();
+  const [value, setValue] = useState<string>("");
+
+  const handleChange = (next: string) => {
+    if (!next) { setValue(""); return; }
+    if (isAuthed) { setValue(next); return; }
+    requireJoin();
+  };
+
+  return (
   <section id="programs" className="py-7 md:py-10">
     <div className="container max-w-3xl">
       <SkylineSilhouette className="text-foreground mx-auto mb-5" />
@@ -25,7 +35,7 @@ const ProgramsSection = () => (
       <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="mt-3 text-center text-muted-foreground font-body">Explore what each program offers in detail.</motion.p>
 
       <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="mt-8">
-        <Accordion type="single" collapsible className="space-y-3">
+        <Accordion type="single" collapsible value={value} onValueChange={handleChange} className="space-y-3">
           {programs.map((p) => (
             <AccordionItem key={p.id} value={p.id} className="bg-card border border-border rounded-xl px-6 overflow-hidden">
               <AccordionTrigger className="font-heading text-lg font-semibold hover:no-underline py-4">{p.title}</AccordionTrigger>
@@ -45,6 +55,7 @@ const ProgramsSection = () => (
       </motion.div>
     </div>
   </section>
-);
+  );
+};
 
 export default ProgramsSection;
