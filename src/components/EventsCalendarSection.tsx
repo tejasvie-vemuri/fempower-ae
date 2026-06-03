@@ -20,6 +20,10 @@ interface CalendarEvent {
 }
 
 const EventsCalendarSection = () => {
+  const { requireJoin } = useJoinGate();
+  const handleEventClick = (e: React.MouseEvent) => {
+    if (!requireJoin()) e.preventDefault();
+  };
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
