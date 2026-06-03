@@ -7,8 +7,6 @@ import EventsCalendarSection from "@/components/EventsCalendarSection";
 import BecomingSpaceSection from "@/components/BecomingSpaceSection";
 import GallerySection from "@/components/GallerySection";
 import ResourcesSection from "@/components/ResourcesSection";
-import SubstackFeedSection from "@/components/SubstackFeedSection";
-import NewsletterSection from "@/components/NewsletterSection";
 import JoinSection from "@/components/JoinSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import FAQSection from "@/components/FAQSection";
@@ -16,34 +14,39 @@ import Footer from "@/components/Footer";
 import FempowerCoach from "@/components/FempowerCoach";
 import CircleTeaser from "@/components/CircleTeaser";
 import MeetupsSection from "@/components/MeetupsSection";
-
+import SubstackFeedSection from "@/components/SubstackFeedSection";
 import SeoSummary from "@/components/SeoSummary";
+import { JoinGateProvider } from "@/components/JoinGate";
+import { useAuth } from "@/hooks/useAuth";
 
-const Index = () => (
-  <>
-    <Header />
-    <main id="main">
-      <SeoSummary />
-      <HeroSection />
-      <AboutSection />
-      <OfferingsSection />
-      <ProgramsSection />
-      <CircleTeaser />
-      <MeetupsSection />
-      <EventsCalendarSection />
-      <BecomingSpaceSection />
-      <GallerySection />
-      <SubstackFeedSection />
-      <ResourcesSection />
-      
-      {/* <NewsletterSection /> hidden for now */}
-      <JoinSection />
-      <TestimonialsSection />
-      <FAQSection />
-    </main>
-    <Footer />
-    <FempowerCoach />
-  </>
-);
+const Index = () => {
+  const { user } = useAuth();
+  const isAuthed = !!user;
+
+  return (
+    <JoinGateProvider>
+      <Header />
+      <main id="main">
+        <SeoSummary />
+        <HeroSection />
+        <AboutSection />
+        <OfferingsSection />
+        <ProgramsSection />
+        {isAuthed && <CircleTeaser />}
+        {isAuthed && <MeetupsSection />}
+        <EventsCalendarSection />
+        <BecomingSpaceSection />
+        <GallerySection />
+        <SubstackFeedSection />
+        <ResourcesSection />
+        {isAuthed && <JoinSection />}
+        {isAuthed && <TestimonialsSection />}
+        {isAuthed && <FAQSection />}
+      </main>
+      <Footer />
+      <FempowerCoach />
+    </JoinGateProvider>
+  );
+};
 
 export default Index;
