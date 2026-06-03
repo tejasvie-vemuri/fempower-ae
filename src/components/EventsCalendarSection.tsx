@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarHeart, MapPin, Clock, Loader2, ArrowRight } from "lucide-react";
 import { PalmDivider } from "./GulfDecoratives";
+import { useJoinGate } from "./JoinGate";
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,6 +20,10 @@ interface CalendarEvent {
 }
 
 const EventsCalendarSection = () => {
+  const { requireJoin } = useJoinGate();
+  const handleEventClick = (e: React.MouseEvent) => {
+    if (!requireJoin()) e.preventDefault();
+  };
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -131,6 +136,7 @@ const EventsCalendarSection = () => {
                   <Link
                     key={event.id}
                     to={`/events/${event.slug}`}
+                    onClick={handleEventClick}
                     className="block bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-start gap-3">
@@ -176,6 +182,7 @@ const EventsCalendarSection = () => {
                     <Link
                       key={event.id}
                       to={`/events/${event.slug}`}
+                      onClick={handleEventClick}
                       className="block bg-card border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-center gap-3">
