@@ -18,6 +18,7 @@ const ROTATE_INTERVAL = 5000;
 
 const GallerySection = () => {
   const [selected, setSelected] = useState<number | null>(null);
+  const [tab, setTab] = useState<"moments" | "instagram">("moments");
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [visibleIndices, setVisibleIndices] = useState<number[]>([]);
