@@ -1,49 +1,56 @@
-## Goal
-Give logged-out visitors a third path inside the "Join Fempower to continue" dialog: follow / DM us on Instagram, with a scannable QR code as the visual anchor.
+# Add Instagram Feed to Community Moments
 
-## Where
-`src/components/JoinGate.tsx` — the `Dialog` rendered by `JoinGateProvider`. No other files need to change; the dialog is already shown whenever a guest clicks a gated section (programs accordion, event link, etc.).
+Add a tabbed interface to the Community Moments section so visitors can switch between the curated Moments gallery and a live Instagram feed pulled from @fempower.ae via the Instagram Graph API.
 
-## Changes
+## UX
 
-1. **QR asset**
-   - Generate one PNG at `src/assets/instagram-qr.png` encoding `https://www.instagram.com/fempower.ae` (the same handle already linked from the hero). Plain black-on-white square, ~512×512, no logo overlay — keeps it crisp and reliably scannable.
-   - Import it in `JoinGate.tsx` as `instagramQr`.
+In `GallerySection.tsx`, wrap the existing grid in a `Tabs` component (shadcn) with two triggers under the section heading:
 
-2. **Dialog body**
-   Restructure the dialog so it has two visual blocks separated by a subtle divider:
+- **Moments** — current rotating Google Drive gallery (unchanged behavior)
+- **Instagram** — horizontal scrollable strip of latest IG posts, each linking out to instagram.com, with a "Follow @fempower.ae" CTA at the end
 
-   ```text
-   ┌───────────────────────────────┐
-   │ Join Fempower to continue     │
-   │ <description copy>            │
-   │                               │
-   │  [Sign In]   [Join Us]        │
-   │ ─────── or follow us ──────── │
-   │   ┌─────┐                     │
-   │   │ QR  │  Scan to open       │
-   │   │     │  @fempower.ae       │
-   │   └─────┘  [Open Instagram ↗] │
-   └───────────────────────────────┘
-   ```
+The Instagram strip uses horizontal snap-scroll on mobile and a grid on desktop, matching the editorial Gulf-inspired styling (rounded-xl, plum/gold accents). Each tile shows the post thumbnail, caption preview (line-clamp-2), and an external-link icon on hover.
 
-   - Keep the existing `DialogHeader` (title + description) and the existing `Sign In` / `Join Us` `DialogFooter` buttons unchanged.
-   - Below the footer, add a new section:
-     - Small uppercase divider label: `— or follow us —` using `text-xs font-body uppercase tracking-widest text-muted-foreground` with `border-t border-border` lines on either side.
-     - Two-column row (`flex items-center gap-4`):
-       - Left: `<img src={instagramQr} alt="Scan to open @fempower.ae on Instagram" className="w-24 h-24 rounded-md border border-border bg-white p-2" />`
-       - Right: stacked text + button
-         - Heading: `Join via Instagram` (`font-heading text-base`)
-         - Subtext: `Scan the QR or tap below to follow @fempower.ae and DM us to join.` (`text-sm text-muted-foreground font-body`)
-         - Button (outline, with `Instagram` icon from `lucide-react`): `Open Instagram` — opens `https://www.instagram.com/fempower.ae` in a new tab (`target="_blank" rel="noreferrer"`), and calls `setOpen(false)` on click so the dialog dismisses.
+## Data flow
 
-3. **Width**
-   Bump `DialogContent` from `sm:max-w-md` to `sm:max-w-lg` so the QR + text row sits comfortably side-by-side on desktop. On mobile (default), the QR sits above the text via `flex-col sm:flex-row`.
+```text
+Browser → fetch-instagram edge fn → Instagram Graph API → cached JSON
+```
 
-## Design tokens
-- Use existing semantic classes only (`text-muted-foreground`, `border-border`, `font-body`, `font-heading`). The QR image's white plate uses `bg-white` (intentional — QR codes need a white quiet zone to scan reliably; this is the one acceptable hardcoded color).
+1. New edge function `supabase/functions/fetch-instagram/index.ts`:
+   - Calls `https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&access_token=...`
+   - Filters to IMAGE / CAROUSEL_ALBUM / VIDEO (use `thumbnail_url` for videos)
+   - Returns up to 12 latest items
+   - In-memory cache for ~10 min to stay under rate limits
+   - CORS headers, no JWT required
+
+2. New hook `src/hooks/useInstagramFeed.ts` fetches from the edge function and exposes `{ posts, loading, error }`.
+
+3. New component `src/components/InstagramStrip.tsx` renders the horizontal scroller; consumed inside the Instagram tab of `GallerySection`.
+
+## Secrets needed
+
+The Instagram Graph API needs a **long-lived access token** tied to a Facebook Page + linked Instagram Business/Creator account. Required secret:
+
+- `INSTAGRAM_ACCESS_TOKEN` — long-lived user token (60-day) or page token from the Meta developer dashboard
+
+I will request it via the secrets tool once you approve the plan. You'll get it from:
+1. https://developers.facebook.com → create/select an app with the "Instagram Graph API" product
+2. Link your Facebook Page that's connected to @fempower.ae (must be Business/Creator account)
+3. Generate a long-lived token (we'll document the refresh step)
+
+If the token is short-lived, the edge function will return a clear error so we know to refresh.
+
+## Files
+
+- create `supabase/functions/fetch-instagram/index.ts`
+- create `src/hooks/useInstagramFeed.ts`
+- create `src/components/InstagramStrip.tsx`
+- edit `src/components/GallerySection.tsx` — wrap grid in `Tabs`, mount `InstagramStrip` in second tab
+- secret: `INSTAGRAM_ACCESS_TOKEN`
 
 ## Out of scope
-- No new routes or auth changes.
-- Authenticated users are unaffected — the dialog never opens for them.
-- Hero Instagram icon and Join page CTAs stay as-is.
+
+- Token auto-refresh cron (manual refresh every ~50 days for now; can add later)
+- Storing posts in Supabase (using in-memory edge cache)
+- Comments/likes counts (Graph API basic media fields only)
