@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2 } from "lucide-react";
 import { DuneWave } from "./GulfDecoratives";
 import { useSiteImages } from "@/hooks/useSiteImages";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import InstagramStrip from "./InstagramStrip";
 
 interface GalleryImage {
   id: string;
@@ -16,6 +18,7 @@ const ROTATE_INTERVAL = 5000;
 
 const GallerySection = () => {
   const [selected, setSelected] = useState<number | null>(null);
+  const [tab, setTab] = useState<"moments" | "instagram">("moments");
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [visibleIndices, setVisibleIndices] = useState<number[]>([]);
@@ -101,42 +104,56 @@ const GallerySection = () => {
         <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="font-heading text-3xl md:text-4xl font-semibold text-foreground text-center">Community Moments</motion.h2>
         <p className="mt-3 text-center text-muted-foreground font-body">A few moments from Fempower—connection in motion.</p>
 
-        {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <Loader2 className="animate-spin text-muted-foreground" size={32} />
-          </div>
-        ) : (
-          <div className="mt-10 grid grid-cols-2 md:grid-cols-3 gap-4">
-            <AnimatePresence mode="popLayout">
-              {visibleIndices.map((imgIndex, slot) => {
-                const img = images[imgIndex];
-                if (!img) return null;
-                return (
-                  <motion.div
-                    key={`${slot}-${img.id}`}
-                    layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.6 }}
-                    className={`overflow-hidden rounded-xl cursor-pointer ${
-                      slot === 0 ? "md:row-span-2" : ""
-                    }`}
-                    onClick={() => setSelected(imgIndex)}
-                  >
-                    <img
-                      src={img.url}
-                      alt={`Community moment ${imgIndex + 1}`}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 aspect-square"
-                      loading="lazy"
-                    />
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </div>
-        )}
+        <Tabs value={tab} onValueChange={(v) => setTab(v as "moments" | "instagram")} className="mt-8">
+          <TabsList className="mx-auto flex w-fit bg-background/60 border border-border">
+            <TabsTrigger value="moments">Moments</TabsTrigger>
+            <TabsTrigger value="instagram">Instagram</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="moments">
+            {loading ? (
+              <div className="flex justify-center items-center py-20">
+                <Loader2 className="animate-spin text-muted-foreground" size={32} />
+              </div>
+            ) : (
+              <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
+                <AnimatePresence mode="popLayout">
+                  {visibleIndices.map((imgIndex, slot) => {
+                    const img = images[imgIndex];
+                    if (!img) return null;
+                    return (
+                      <motion.div
+                        key={`${slot}-${img.id}`}
+                        layout
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ duration: 0.6 }}
+                        className={`overflow-hidden rounded-xl cursor-pointer ${
+                          slot === 0 ? "md:row-span-2" : ""
+                        }`}
+                        onClick={() => setSelected(imgIndex)}
+                      >
+                        <img
+                          src={img.url}
+                          alt={`Community moment ${imgIndex + 1}`}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 aspect-square"
+                          loading="lazy"
+                        />
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="instagram">
+            <InstagramStrip active={tab === "instagram"} />
+          </TabsContent>
+        </Tabs>
       </div>
+
 
       <AnimatePresence>
         {selected !== null && images[selected] && (
