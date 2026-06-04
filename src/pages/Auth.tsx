@@ -169,6 +169,11 @@ const AuthPage = () => {
                   {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Sign in
                 </Button>
+                <div className="text-center">
+                  <Link to="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline">
+                    Forgot your password?
+                  </Link>
+                </div>
               </form>
             </TabsContent>
 
