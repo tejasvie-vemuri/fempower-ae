@@ -137,8 +137,11 @@ const GallerySection = () => {
                         <img
                           src={img.url}
                           alt={`Community moment ${imgIndex + 1}`}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 aspect-square"
+                          width={600}
+                          height={600}
                           loading="lazy"
+                          decoding="async"
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 aspect-square"
                         />
                       </motion.div>
                     );
