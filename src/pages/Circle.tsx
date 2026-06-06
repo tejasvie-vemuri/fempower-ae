@@ -12,6 +12,7 @@ import { MemberAvatar } from "@/components/directory/MemberAvatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Loader2, MessageCircle, Flag, Send, Heart, LifeBuoy } from "lucide-react";
+import BookmarkButton from "@/components/BookmarkButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -365,6 +366,7 @@ const Circle = () => {
                       >
                         <Flag size={12} /> Report
                       </button>
+                      <BookmarkButton itemType="circle_post" itemId={p.id} />
                     </div>
 
                     {/* Replies */}

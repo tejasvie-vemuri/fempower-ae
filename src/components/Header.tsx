@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Instagram, User, LogOut } from "lucide-react";
+import { Menu, X, Instagram, User, LogOut, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -97,6 +97,11 @@ const Header = () => {
                 <DropdownMenuItem asChild>
                   <Link to="/account/tickets">My tickets</Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/account/saved" className="inline-flex items-center gap-2">
+                    <Bookmark size={13} /> Saved
+                  </Link>
+                </DropdownMenuItem>
                 {isAdmin && (
                   <>
                     <DropdownMenuSeparator />
@@ -156,6 +161,13 @@ const Header = () => {
                   className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground"
                 >
                   My profile
+                </Link>
+                <Link
+                  to="/account/saved"
+                  onClick={() => setOpen(false)}
+                  className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground inline-flex items-center gap-2"
+                >
+                  <Bookmark size={13} /> Saved
                 </Link>
                 {isAdmin && (
                   <Link

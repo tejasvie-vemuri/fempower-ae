@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ExternalLink, FileText, Loader2 } from "lucide-react";
 import { PalmDivider } from "./GulfDecoratives";
+import BookmarkButton from "@/components/BookmarkButton";
 
 interface Resource {
   title: string;
@@ -70,34 +71,43 @@ const ResourcesSection = () => {
         ) : (
           <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {resources.map((resource, i) => (
-              <motion.a
+              <motion.div
                 key={i}
-                href={resource.url}
-                target="_blank"
-                rel="noopener noreferrer"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05 }}
-                className="group bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col"
+                className="relative group bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col"
               >
-                <div className="flex items-start gap-3 mb-3">
-                  <span className="text-xl flex-shrink-0 mt-0.5">🦋</span>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-heading text-sm font-semibold text-foreground group-hover:text-blush-dark transition-colors line-clamp-2">
-                      {resource.title}
-                    </h4>
-                    <span className="text-[10px] font-body uppercase tracking-widest text-muted-foreground mt-1 inline-block">
-                      {resource.type === "pdf" ? "PDF" : "Article"}
-                    </span>
+                <BookmarkButton
+                  itemType="resource"
+                  itemId={resource.url}
+                  className="absolute top-3 right-3 z-10"
+                />
+                <a
+                  href={resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col flex-1"
+                >
+                  <div className="flex items-start gap-3 mb-3 pr-6">
+                    <span className="text-xl flex-shrink-0 mt-0.5">🦋</span>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-heading text-sm font-semibold text-foreground group-hover:text-blush-dark transition-colors line-clamp-2">
+                        {resource.title}
+                      </h4>
+                      <span className="text-[10px] font-body uppercase tracking-widest text-muted-foreground mt-1 inline-block">
+                        {resource.type === "pdf" ? "PDF" : "Article"}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                {resource.description && (
-                  <p className="text-xs text-muted-foreground font-body line-clamp-3 flex-1">
-                    {resource.description}
-                  </p>
-                )}
-              </motion.a>
+                  {resource.description && (
+                    <p className="text-xs text-muted-foreground font-body line-clamp-3 flex-1">
+                      {resource.description}
+                    </p>
+                  )}
+                </a>
+              </motion.div>
             ))}
           </div>
         )}

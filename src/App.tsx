@@ -20,6 +20,7 @@ import AdminMembers from "./pages/AdminMembers";
 import AdminImages from "./pages/AdminImages";
 import Circle from "./pages/Circle";
 import AdminCircle from "./pages/AdminCircle";
+import Saved from "./pages/Saved";
 import Meetups from "./pages/Meetups";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/events/:slug" element={<EventDetail />} />
             <Route path="/account/tickets" element={<MyTickets />} />
+            <Route path="/account/saved" element={<Saved />} />
             <Route path="/directory" element={<ProtectedRoute><Directory /></ProtectedRoute>} />
             <Route path="/account/profile" element={<ProtectedRoute><MemberProfileEdit /></ProtectedRoute>} />
             <Route path="/admin/members" element={<AdminRoute><AdminMembers /></AdminRoute>} />
