@@ -57,6 +57,15 @@ async function maybeSendWelcomeEmail(user: User) {
               name: profile.name || user.user_metadata?.full_name || "",
               siteUrl: "https://fempowerae.com",
             },
+            // Server-side diagnostic context — surfaced in Edge Function logs
+            // under the [welcome-email] tag for grep-friendly debugging.
+            diagnostics: {
+              userId: user.id,
+              provider: user.app_metadata?.provider ?? "unknown",
+              attempt,
+              maxAttempts: WELCOME_EMAIL_MAX_ATTEMPTS,
+              clientTs: new Date().toISOString(),
+            },
           },
         },
       );
@@ -70,8 +79,9 @@ async function maybeSendWelcomeEmail(user: User) {
       }
 
       lastError = sendError;
+      const status = (sendError as { context?: { status?: number } })?.context?.status;
       console.warn(
-        `Welcome email attempt ${attempt}/${WELCOME_EMAIL_MAX_ATTEMPTS} failed:`,
+        `[welcome-email] attempt ${attempt}/${WELCOME_EMAIL_MAX_ATTEMPTS} failed (status=${status ?? "n/a"}): ${sendError.message}`,
         sendError,
       );
 
