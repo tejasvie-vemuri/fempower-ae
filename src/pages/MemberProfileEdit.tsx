@@ -143,9 +143,9 @@ const MemberProfileEdit = () => {
 
             <div className="grid sm:grid-cols-2 gap-4">
               <div><Label>Full name *</Label><Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} /></div>
-              <div><Label>City</Label><Input value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} placeholder="Dubai" /></div>
-              <div><Label>Role / Title</Label><Input value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} placeholder="Product Manager" /></div>
-              <div><Label>Company</Label><Input value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} /></div>
+              <div><Label>City *</Label><Input value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} placeholder="Dubai" /></div>
+              <div><Label>Role / Title *</Label><Input value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} placeholder="Product Manager" /></div>
+              <div><Label>Company *</Label><Input value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} /></div>
             </div>
 
             <div>
@@ -154,7 +154,7 @@ const MemberProfileEdit = () => {
             </div>
 
             <div>
-              <Label>Why are you part of Fempower?</Label>
+              <Label>Why are you part of Fempower? *</Label>
               <Textarea rows={2} maxLength={400} value={form.why_here} onChange={e => setForm(f => ({ ...f, why_here: e.target.value }))} />
             </div>
 
@@ -196,7 +196,7 @@ const MemberProfileEdit = () => {
             </div>
 
             <div className="grid sm:grid-cols-3 gap-4">
-              <div><Label>LinkedIn URL</Label><Input value={form.linkedin_url} onChange={e => setForm(f => ({ ...f, linkedin_url: e.target.value }))} placeholder="https://linkedin.com/in/…" /></div>
+              <div><Label>LinkedIn URL *</Label><Input value={form.linkedin_url} onChange={e => setForm(f => ({ ...f, linkedin_url: e.target.value }))} placeholder="https://linkedin.com/in/…" /></div>
               <div><Label>Instagram URL</Label><Input value={form.instagram_url} onChange={e => setForm(f => ({ ...f, instagram_url: e.target.value }))} placeholder="https://instagram.com/…" /></div>
               <div><Label>Website</Label><Input value={form.website_url} onChange={e => setForm(f => ({ ...f, website_url: e.target.value }))} placeholder="https://…" /></div>
             </div>

@@ -17,21 +17,26 @@ const optionalUrl = (host?: RegExp) =>
     .refine((v) => !v || /^https?:\/\//i.test(v), { message: "Must start with http(s)://" })
     .refine((v) => !v || !host || host.test(v), { message: "Must be a valid URL for this network" });
 
+const requiredUrl = (message: string, host?: RegExp) =>
+  z.string().trim().min(1, message).max(300)
+    .refine((v) => /^https?:\/\//i.test(v), { message: "Must start with http(s)://" })
+    .refine((v) => !host || host.test(v), { message: "Must be a valid URL for this network" });
+
 export const memberProfileSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(120),
   photo_url: z.string().max(500).optional().or(z.literal("")).transform(v => v || null),
-  role: z.string().trim().max(120).optional().or(z.literal("")).transform(v => v || null),
-  company: z.string().trim().max(120).optional().or(z.literal("")).transform(v => v || null),
-  city: z.string().trim().max(80).optional().or(z.literal("")).transform(v => v || null),
+  role: z.string().trim().min(1, "Role / Title is required").max(120),
+  company: z.string().trim().min(1, "Company is required").max(120),
+  city: z.string().trim().min(1, "City is required").max(80),
   bio: z.string().trim().max(600).optional().or(z.literal("")).transform(v => v || null),
-  linkedin_url: optionalUrl(/linkedin\.com/i),
+  linkedin_url: requiredUrl("LinkedIn URL is required", /linkedin\.com/i),
   instagram_url: optionalUrl(/instagram\.com/i),
   website_url: optionalUrl(),
   industry: z.string().max(60).optional().or(z.literal("")).transform(v => v || null),
   expertise_tags: z.array(z.string().trim().min(1).max(40)).max(15).default([]),
   interests: z.array(z.string().trim().min(1).max(40)).max(15).default([]),
   looking_for: z.array(z.string().trim().min(1).max(60)).max(10).default([]),
-  why_here: z.string().trim().max(400).optional().or(z.literal("")).transform(v => v || null),
+  why_here: z.string().trim().min(1, "Please share why you're part of Fempower").max(400),
 });
 
 export type MemberProfileInput = z.input<typeof memberProfileSchema>;
