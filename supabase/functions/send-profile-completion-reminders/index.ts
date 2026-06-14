@@ -38,6 +38,31 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
+  // Restrict to service_role callers only (pg_cron / internal invocations).
+  // Without this, any anonymous caller can trigger up to 50 reminder emails.
+  const authHeader = req.headers.get('Authorization') ?? ''
+  const token = authHeader.startsWith('Bearer ')
+    ? authHeader.slice(7).trim()
+    : ''
+  let callerRole = 'anon'
+  try {
+    const parts = token.split('.')
+    if (parts.length >= 2) {
+      let p = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+      while (p.length % 4) p += '='
+      const claims = JSON.parse(atob(p)) as { role?: string }
+      callerRole = claims?.role ?? 'anon'
+    }
+  } catch {
+    callerRole = 'anon'
+  }
+  if (callerRole !== 'service_role') {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   if (!supabaseUrl || !supabaseServiceKey) {
@@ -49,6 +74,7 @@ Deno.serve(async (req) => {
   }
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
 
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
