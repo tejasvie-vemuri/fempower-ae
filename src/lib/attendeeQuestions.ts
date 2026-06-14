@@ -25,23 +25,9 @@ export const DEFAULT_ATTENDEE_QUESTIONS: AttendeeQuestion[] = [
   {
     id: "dietary",
     label:
-      "Any food no-nos we should know about? 🌱🥜 (allergies, vegan, halal — spill it)",
+      "Any food no-nos we should know about? 🌱🥜 (allergies, vegan, halal — spill it) — optional",
     type: "short_text",
-    required: true,
-  },
-  {
-    id: "heard_about_us",
-    label: "How did our little circle find you? 💌✨",
-    type: "select",
-    required: true,
-    options: [
-      "Instagram",
-      "LinkedIn",
-      "A Fempower friend",
-      "WhatsApp community",
-      "An event/meetup",
-      "Somewhere else",
-    ],
+    required: false,
   },
   {
     id: "instagram_follow",
@@ -62,6 +48,20 @@ export const DEFAULT_ATTENDEE_QUESTIONS: AttendeeQuestion[] = [
     type: "select",
     required: true,
     options: ["Yes, tag me in 💃", "No thanks, keep me off-camera 🙈"],
+  },
+  {
+    id: "heard_about_us",
+    label: "How did our little circle find you? 💌✨ — optional",
+    type: "select",
+    required: false,
+    options: [
+      "Instagram",
+      "LinkedIn",
+      "A Fempower friend",
+      "WhatsApp community",
+      "An event/meetup",
+      "Somewhere else",
+    ],
   },
 ];
 
