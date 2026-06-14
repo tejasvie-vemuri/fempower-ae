@@ -10,9 +10,12 @@ import HashLink from "@/components/HashLink";
 import {
   parseQuestions,
   validateResponses,
+  DEFAULT_ATTENDEE_QUESTIONS,
+  DEFAULT_ATTENDEE_QUESTION_IDS,
   type AttendeeQuestion,
   type AttendeeResponses,
 } from "@/lib/attendeeQuestions";
+
 import { AttendeeQuestionsForm } from "@/components/AttendeeQuestionsForm";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
