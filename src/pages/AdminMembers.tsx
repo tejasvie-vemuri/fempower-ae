@@ -128,19 +128,32 @@ const AdminMembers = () => {
           <h1 className="font-heading text-3xl md:text-4xl text-primary mb-2">Member Directory · Admin</h1>
           <p className="text-sm text-muted-foreground mb-6">Review and moderate community profiles.</p>
 
-          <div className="flex flex-col md:flex-row gap-3 mb-6">
+          <div className="flex flex-wrap gap-2 mb-4">
+            {STATUSES.map(s => {
+              const active = status === s;
+              const label = s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1);
+              return (
+                <button
+                  key={s}
+                  onClick={() => setStatus(s)}
+                  className={`px-4 py-2 rounded-full text-sm font-body border transition-colors ${
+                    active
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card text-foreground border-border hover:border-primary/40"
+                  }`}
+                >
+                  {label}
+                  {s !== "all" && (
+                    <span className={`ml-1.5 text-xs ${active ? "opacity-80" : "text-muted-foreground"}`}>
+                      ({counts[s] ?? 0})
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mb-6">
             <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search…" className="md:w-72" />
-            <Select value={status} onValueChange={v => setStatus(v as any)}>
-              <SelectTrigger className="md:w-48"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {STATUSES.map(s => (
-                  <SelectItem key={s} value={s}>
-                    {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
-                    {s !== "all" && ` (${counts[s] ?? 0})`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           {loading ? (
