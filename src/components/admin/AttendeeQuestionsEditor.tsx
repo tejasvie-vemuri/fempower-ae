@@ -79,11 +79,17 @@ export function AttendeeQuestionsEditor({ value, onChange }: Props) {
         </span>
       </div>
 
+      <div className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+        5 default questions (nibbles, dietary, source, Instagram, media
+        consent) are always asked on every event — add any extras below.
+      </div>
+
       {value.length === 0 && (
         <p className="text-xs text-muted-foreground">
-          No questions yet. Add custom or use a quick preset below.
+          No extra questions yet. Add custom or use a quick preset below.
         </p>
       )}
+
 
       <div className="space-y-3">
         {value.map((q, idx) => (
