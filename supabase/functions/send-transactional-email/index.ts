@@ -371,13 +371,19 @@ Deno.serve(async (req) => {
       templateName,
       effectiveRecipient,
     })
+    logDiag('enqueue_failed', {
+      code: (enqueueError as any).code,
+      message: enqueueError.message,
+      details: (enqueueError as any).details,
+      hint: (enqueueError as any).hint,
+    }, true)
 
     await supabase.from('email_send_log').insert({
       message_id: messageId,
       template_name: templateName,
       recipient_email: effectiveRecipient,
       status: 'failed',
-      error_message: 'Failed to enqueue email',
+      error_message: `Failed to enqueue email: ${enqueueError.message}`,
     })
 
     return new Response(JSON.stringify({ error: 'Failed to enqueue email' }), {
@@ -387,6 +393,7 @@ Deno.serve(async (req) => {
   }
 
   console.log('Transactional email enqueued', { templateName, effectiveRecipient })
+  logDiag('enqueued')
 
   return new Response(
     JSON.stringify({ success: true, queued: true }),
