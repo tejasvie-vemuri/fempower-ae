@@ -425,7 +425,9 @@ const AdminEvents = () => {
               </form>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
+
 
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           {loading ? (
