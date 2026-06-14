@@ -151,7 +151,12 @@ const AdminEvents = () => {
       toast.error("Title and start date are required");
       return;
     }
+    if (!defaultsAcknowledged) {
+      toast.error("Please review and confirm the default attendee questions");
+      return;
+    }
     setSaving(true);
+
     const slug = form.slug.trim() || slugify(form.title);
     const payload = {
       slug,
