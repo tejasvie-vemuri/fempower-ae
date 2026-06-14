@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { ArrowLeft, Check, Download, Loader2, Undo2, RefreshCcw, UserPlus } from "lucide-react";
-import { getStripeEnvironment } from "@/lib/stripe";
 import {
   parseQuestions,
   type AttendeeQuestion,
@@ -36,6 +35,8 @@ interface Registration {
   currency: string;
   checked_in_at: string | null;
   created_at: string;
+  payment_intent_id: string | null;
+  payment_provider: string | null;
   stripe_payment_intent_id: string | null;
   cancellation_requested_at: string | null;
   cancellation_reason: string | null;
@@ -94,7 +95,7 @@ const AdminRegistrations = () => {
       supabase
         .from("registrations")
         .select(
-          "id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, stripe_payment_intent_id, cancellation_requested_at, cancellation_reason, responses, quantity, guests",
+          "id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, payment_intent_id, payment_provider, stripe_payment_intent_id, cancellation_requested_at, cancellation_reason, responses, quantity, guests",
         )
         .eq("event_id", eventId)
         .order("created_at", { ascending: false }),
@@ -190,17 +191,21 @@ const AdminRegistrations = () => {
       return;
     setBusyId(r.id);
     const { data, error } = await supabase.functions.invoke("refund-registration", {
-      body: { registration_id: r.id, environment: getStripeEnvironment() },
+      body: { registration_id: r.id },
     });
     setBusyId(null);
     if (error || data?.error) {
       toast.error(error?.message ?? data?.error ?? "Refund failed");
       return;
     }
-    toast.success("Refunded");
-    setRegs((prev) =>
-      prev.map((x) => (x.id === r.id ? { ...x, status: "refunded" } : x)),
-    );
+    if (data?.refunded) {
+      toast.success("Refunded");
+      setRegs((prev) =>
+        prev.map((x) => (x.id === r.id ? { ...x, status: "refunded" } : x)),
+      );
+    } else {
+      toast.success("Refund started");
+    }
   };
 
   const promoteFromWaitlist = async (entry: WaitlistEntry) => {
@@ -241,6 +246,7 @@ const AdminRegistrations = () => {
       "Currency",
       "Checked in",
       "Registered at",
+      "Payment provider",
       "Payment intent",
       "Seats",
       "Guests",
@@ -267,7 +273,8 @@ const AdminRegistrations = () => {
           r.currency,
           r.checked_in_at ?? "",
           r.created_at,
-          r.stripe_payment_intent_id ?? "",
+          r.payment_provider ?? "",
+          r.payment_intent_id ?? r.stripe_payment_intent_id ?? "",
           String(r.quantity ?? 1),
           guestsText,
           ...questions.map((q) => {

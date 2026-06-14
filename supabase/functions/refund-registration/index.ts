@@ -1,8 +1,6 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { createStripeClient, type StripeEnv } from "../_shared/stripe.ts";
-
-const isStripeEnv = (v: unknown): v is StripeEnv => v === "sandbox" || v === "live";
+import { createRefund, getZiinaTestMode } from "../_shared/ziina.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -37,7 +35,6 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Check admin role
     const { data: roles } = await supabaseAdmin
       .from("user_roles")
       .select("role")
@@ -52,7 +49,6 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const registrationId: string | undefined = body.registration_id;
-    const environment: StripeEnv = isStripeEnv(body.environment) ? body.environment : "sandbox";
     if (!registrationId) {
       return new Response(JSON.stringify({ error: "registration_id required" }), {
         status: 400,
@@ -62,7 +58,7 @@ Deno.serve(async (req) => {
 
     const { data: reg, error: regErr } = await supabaseAdmin
       .from("registrations")
-      .select("id, status, stripe_payment_intent_id, amount_paid_cents")
+      .select("id, status, payment_intent_id, amount_paid_cents, currency, refund_id")
       .eq("id", registrationId)
       .maybeSingle();
 
@@ -78,21 +74,36 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    if (reg.stripe_payment_intent_id) {
-      const stripe = createStripeClient(environment);
-      await stripe.refunds.create({ payment_intent: reg.stripe_payment_intent_id });
+    if (!reg.payment_intent_id) {
+      return new Response(JSON.stringify({ error: "No Ziina payment intent found" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
+    const refundId = reg.refund_id ?? crypto.randomUUID();
+    const refund = await createRefund({
+      id: refundId,
+      payment_intent_id: reg.payment_intent_id,
+      amount: reg.amount_paid_cents,
+      currency_code: String(reg.currency ?? "AED").toUpperCase(),
+      test: getZiinaTestMode(),
+    });
+
+    const nextStatus = refund.status === "completed" ? "refunded" : reg.status;
     await supabaseAdmin
       .from("registrations")
-      .update({ status: "refunded" })
+      .update({
+        status: nextStatus,
+        refund_id: refund.id,
+        payment_provider: "ziina",
+      })
       .eq("id", registrationId);
 
-    return new Response(JSON.stringify({ refunded: true }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ refunded: nextStatus === "refunded", refund_status: refund.status }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Unknown error";
     console.error("refund-registration error:", msg);

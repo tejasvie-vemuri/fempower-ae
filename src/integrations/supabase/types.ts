@@ -667,7 +667,12 @@ export type Database = {
           event_id: string
           guests: Json
           id: string
+          payment_checkout_url: string | null
+          payment_intent_id: string | null
+          payment_operation_id: string | null
+          payment_provider: string | null
           quantity: number
+          refund_id: string | null
           responses: Json
           status: string
           stripe_payment_intent_id: string | null
@@ -686,7 +691,12 @@ export type Database = {
           event_id: string
           guests?: Json
           id?: string
+          payment_checkout_url?: string | null
+          payment_intent_id?: string | null
+          payment_operation_id?: string | null
+          payment_provider?: string | null
           quantity?: number
+          refund_id?: string | null
           responses?: Json
           status?: string
           stripe_payment_intent_id?: string | null
@@ -705,7 +715,12 @@ export type Database = {
           event_id?: string
           guests?: Json
           id?: string
+          payment_checkout_url?: string | null
+          payment_intent_id?: string | null
+          payment_operation_id?: string | null
+          payment_provider?: string | null
           quantity?: number
+          refund_id?: string | null
           responses?: Json
           status?: string
           stripe_payment_intent_id?: string | null

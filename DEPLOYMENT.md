@@ -38,6 +38,17 @@ All infrastructure is managed through Lovable + Supabase.
 - Add domain in Lovable project → Settings → Custom Domain
 - SSL is provisioned automatically
 
+### 5. Ziina Payments
+- Complete Ziina onboarding and verify the receiving account before enabling paid events
+- Generate a Ziina access token with payment intent, webhook, and refund scopes
+- Add Supabase Edge Function secrets:
+  - `ZIINA_ACCESS_TOKEN`
+  - `ZIINA_WEBHOOK_SECRET`
+  - `ZIINA_TEST_MODE` (`true` for test payments; set to `false` only after a real production readiness check)
+  - `PUBLIC_SITE_URL` (for example, `https://fempowerae.com`)
+- Register the Supabase `payments-webhook` Edge Function URL in Ziina using the same webhook secret
+- Run one test payment intent and one refund before publishing paid events
+
 ---
 
 ## Deploying via Lovable

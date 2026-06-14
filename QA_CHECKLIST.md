@@ -127,9 +127,9 @@
 |---|-----------|-----------------|--------|
 | E1 | View event detail page | Title, description, date, location, price all shown | [ ] |
 | E2 | Register — free event | Confirmed immediately, no payment step | [ ] |
-| E3 | Register — paid event | Stripe checkout opens | [ ] |
-| E4 | Stripe — complete payment | Registration confirmed, ticket issued | [ ] |
-| E5 | Stripe — cancel/close modal | Registration not created | [ ] |
+| E3 | Register — paid event | Ziina hosted checkout opens | [ ] |
+| E4 | Ziina — complete payment | Registration confirmed, ticket issued | [ ] |
+| E5 | Ziina — cancel/fail checkout | Registration stays resumable | [ ] |
 | E6 | Attendee questions shown | Custom questions appear before confirmation | [ ] |
 | E7 | Attendee questions — required | Skipping required question blocks submission | [ ] |
 | E8 | Capacity — seats remaining | Real-time remaining seat count shown | [ ] |
@@ -194,7 +194,7 @@
 | R4 | Directory grid — mobile | 1-column layout at 390px | [ ] |
 | R5 | Login redirect — mobile | Redirected correctly after sign in on mobile | [ ] |
 | R6 | Zara chat — mobile | Panel fits screen, input reachable, scrollable | [ ] |
-| R7 | Event registration — mobile | Stripe checkout renders mobile-friendly | [ ] |
+| R7 | Event registration — mobile | Ziina hosted checkout opens and returns correctly | [ ] |
 
 ---
 

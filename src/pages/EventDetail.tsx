@@ -1,18 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
-import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { toast } from "sonner";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
 import HashLink from "@/components/HashLink";
@@ -73,9 +64,6 @@ const EventDetail = () => {
   const [myReg, setMyReg] = useState<{ status: string; ticket_code: string } | null>(null);
   const [onWaitlist, setOnWaitlist] = useState(false);
   const [acting, setActing] = useState(false);
-  const [checkoutSecret, setCheckoutSecret] = useState<string | null>(null);
-  const [checkoutSessionId, setCheckoutSessionId] = useState<string | null>(null);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [responses, setResponses] = useState<AttendeeResponses>({});
   const [responseErrors, setResponseErrors] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
@@ -138,14 +126,14 @@ const EventDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, user, authLoading]);
 
-  // Handle return from Stripe Checkout
+  // Handle return from Ziina hosted checkout.
   useEffect(() => {
     const checkout = searchParams.get("checkout");
-    const sessionId = searchParams.get("session_id");
-    if (checkout === "success" && sessionId && user) {
+    const paymentIntentId = searchParams.get("payment_intent_id");
+    if (checkout === "success" && paymentIntentId && user) {
       (async () => {
         const { data, error } = await supabase.functions.invoke("verify-checkout-session", {
-          body: { session_id: sessionId, environment: getStripeEnvironment() },
+          body: { payment_intent_id: paymentIntentId },
         });
         if (error) {
           toast.error(error.message ?? "Could not verify payment");
@@ -155,14 +143,22 @@ const EventDetail = () => {
           toast.info(`Payment status: ${data?.payment_status ?? "unknown"}`);
         }
         searchParams.delete("checkout");
-        searchParams.delete("session_id");
+        searchParams.delete("payment_intent_id");
         setSearchParams(searchParams, { replace: true });
         load();
       })();
     } else if (checkout === "cancelled") {
       toast.info("Checkout cancelled");
       searchParams.delete("checkout");
+      searchParams.delete("payment_intent_id");
       setSearchParams(searchParams, { replace: true });
+      load();
+    } else if (checkout === "failed") {
+      toast.error("Payment failed. You can try again whenever you're ready.");
+      searchParams.delete("checkout");
+      searchParams.delete("payment_intent_id");
+      setSearchParams(searchParams, { replace: true });
+      load();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -177,29 +173,6 @@ const EventDetail = () => {
     MAX_QUANTITY,
     seatsLeft === null ? MAX_QUANTITY : Math.max(1, seatsLeft),
   );
-
-  const checkoutOptions = useMemo(
-    () => ({
-      clientSecret: checkoutSecret,
-      onComplete: async () => {
-        setCheckoutOpen(false);
-        if (checkoutSessionId) {
-          const { data, error } = await supabase.functions.invoke("verify-checkout-session", {
-            body: { session_id: checkoutSessionId, environment: getStripeEnvironment() },
-          });
-          if (error) {
-            toast.error(error.message ?? "Could not verify payment");
-          } else if (data?.paid) {
-            toast.success("Payment confirmed — you're registered!");
-          }
-        }
-        load();
-      },
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [checkoutSecret, checkoutSessionId],
-  );
-
 
   const handleRegister = async () => {
     if (!event) return;
@@ -311,20 +284,17 @@ const EventDetail = () => {
         body: {
           event_id: event.id,
           origin: window.location.origin,
-          environment: getStripeEnvironment(),
           responses: responsesPayload,
           quantity: safeQty,
           guests: guestsPayload,
         },
       });
       setActing(false);
-      if (error || !data?.clientSecret) {
+      if (error || !data?.redirect_url) {
         toast.error(error?.message ?? data?.error ?? "Could not start checkout");
         return;
       }
-      setCheckoutSecret(data.clientSecret);
-      setCheckoutSessionId(data.session_id ?? null);
-      setCheckoutOpen(true);
+      window.location.assign(data.redirect_url);
     }
 
   };
@@ -413,26 +383,6 @@ const EventDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
-        <DialogContent className="max-h-[92vh] max-w-3xl overflow-y-auto p-0 sm:rounded-lg">
-          <DialogHeader className="px-6 pt-6">
-            <DialogTitle className="font-heading text-primary">Complete your ticket</DialogTitle>
-            <DialogDescription>
-              Secure checkout for {event.title}.
-            </DialogDescription>
-          </DialogHeader>
-          {checkoutSecret && (
-            <div className="px-2 pb-6 sm:px-6">
-              <EmbeddedCheckoutProvider
-                stripe={getStripe()}
-                options={checkoutOptions}
-              >
-                <EmbeddedCheckout />
-              </EmbeddedCheckoutProvider>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
       <div className="max-w-4xl mx-auto px-4 py-10">
         <HashLink
           to="/#events-calendar"

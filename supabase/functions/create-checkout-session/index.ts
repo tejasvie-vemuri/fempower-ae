@@ -1,42 +1,10 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { createStripeClient, type StripeEnv } from "../_shared/stripe.ts";
-
-const isStripeEnv = (value: unknown): value is StripeEnv =>
-  value === "sandbox" || value === "live";
-
-async function resolveOrCreateCustomer(
-  stripe: ReturnType<typeof createStripeClient>,
-  options: { email?: string; userId?: string },
-): Promise<string> {
-  if (options.userId && !/^[a-zA-Z0-9_-]+$/.test(options.userId)) {
-    throw new Error("Invalid userId");
-  }
-  if (options.userId) {
-    const found = await stripe.customers.search({
-      query: `metadata['userId']:'${options.userId}'`,
-      limit: 1,
-    });
-    if (found.data.length) return found.data[0].id;
-  }
-  if (options.email) {
-    const existing = await stripe.customers.list({ email: options.email, limit: 1 });
-    if (existing.data.length) {
-      const customer = existing.data[0];
-      if (options.userId && customer.metadata?.userId !== options.userId) {
-        await stripe.customers.update(customer.id, {
-          metadata: { ...customer.metadata, userId: options.userId },
-        });
-      }
-      return customer.id;
-    }
-  }
-  const created = await stripe.customers.create({
-    ...(options.email && { email: options.email }),
-    ...(options.userId && { metadata: { userId: options.userId } }),
-  });
-  return created.id;
-}
+import {
+  createPaymentIntent,
+  getPublicSiteUrl,
+  getZiinaTestMode,
+} from "../_shared/ziina.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -67,13 +35,13 @@ Deno.serve(async (req) => {
       });
     }
     const userId = claimsData.claims.sub as string;
-    const userEmail = (claimsData.claims.email as string) ?? "";
 
     const body = await req.json().catch(() => ({}));
     const eventId: string | undefined = body.event_id;
-    const environment: StripeEnv = isStripeEnv(body.environment) ? body.environment : "sandbox";
-    const origin: string =
-      body.origin ?? req.headers.get("origin") ?? req.headers.get("referer") ?? "";
+    const origin = String(
+      body.origin ?? req.headers.get("origin") ?? req.headers.get("referer") ?? "",
+    ).replace(/\/+$/, "");
+    const siteUrl = getPublicSiteUrl(origin);
     const rawResponses =
       body.responses && typeof body.responses === "object" && !Array.isArray(body.responses)
         ? (body.responses as Record<string, unknown>)
@@ -94,7 +62,7 @@ Deno.serve(async (req) => {
         : 1;
     const rawGuests = Array.isArray(body.guests) ? body.guests : [];
     const guests: Array<{ name: string; email?: string }> = [];
-    for (let i = 0; i < quantity - 1; i++) {
+    for (let i = 0; i < quantity - 1; i += 1) {
       const g = rawGuests[i];
       if (!g || typeof g !== "object") {
         return new Response(
@@ -121,7 +89,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Use service role to read event + write pending registration regardless of RLS
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -152,7 +119,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check capacity (sum of confirmed seats)
     if (ev.capacity > 0) {
       const { data: seatRows } = await supabaseAdmin
         .from("registrations")
@@ -178,7 +144,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Create or reuse a pending registration
     const { data: existingReg } = await supabaseAdmin
       .from("registrations")
       .select("id, status")
@@ -203,6 +168,7 @@ Deno.serve(async (req) => {
           status: "pending",
           amount_paid_cents: 0,
           currency: ev.currency,
+          payment_provider: "ziina",
           responses,
           quantity,
           guests,
@@ -210,64 +176,60 @@ Deno.serve(async (req) => {
         .select("id")
         .single();
       if (regErr || !reg) {
-        return new Response(JSON.stringify({ error: regErr?.message ?? "Failed to create registration" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ error: regErr?.message ?? "Failed to create registration" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
       }
       registrationId = reg.id;
     } else {
-      // Update on existing pending registration so admin always has latest details
       await supabaseAdmin
         .from("registrations")
-        .update({ responses, quantity, guests })
+        .update({
+          status: "pending",
+          amount_paid_cents: 0,
+          currency: ev.currency,
+          responses,
+          quantity,
+          guests,
+          payment_provider: "ziina",
+        })
         .eq("id", registrationId);
     }
 
-    const stripe = createStripeClient(environment);
-    const customerId = await resolveOrCreateCustomer(stripe, {
-      email: userEmail,
-      userId,
-    });
-    const stripeData = await stripe.checkout.sessions.create({
-      mode: "payment",
-      ui_mode: "embedded",
-      redirect_on_completion: "never",
-      customer: customerId,
-      customer_update: { address: "auto", name: "auto" },
-      automatic_tax: { enabled: true },
-      line_items: [
-        {
-          quantity,
-          price_data: {
-            currency: ev.currency.toLowerCase(),
-            unit_amount: ev.price_cents,
-            product_data: {
-              name: quantity > 1 ? `${ev.title} (×${quantity})` : ev.title,
-              tax_code: "txcd_20030000",
-            },
-            tax_behavior: "inclusive",
-          },
-        },
-      ],
-      payment_intent_data: { description: ev.title },
-      metadata: {
-        event_id: ev.id,
-        user_id: userId,
-        registration_id: registrationId!,
-        quantity: String(quantity),
-      },
+    const operationId = crypto.randomUUID();
+    const baseReturnUrl = `${siteUrl}/events/${ev.slug}`;
+    const intent = await createPaymentIntent({
+      amount: ev.price_cents * quantity,
+      currency_code: String(ev.currency ?? "AED").toUpperCase(),
+      message: quantity > 1 ? `${ev.title} (x${quantity})` : ev.title,
+      success_url: `${baseReturnUrl}?checkout=success&payment_intent_id={PAYMENT_INTENT_ID}`,
+      cancel_url: `${baseReturnUrl}?checkout=cancelled&payment_intent_id={PAYMENT_INTENT_ID}`,
+      failure_url: `${baseReturnUrl}?checkout=failed&payment_intent_id={PAYMENT_INTENT_ID}`,
+      operation_id: operationId,
+      test: getZiinaTestMode(),
+      allow_tips: false,
     });
 
+    if (!intent.id || !intent.redirect_url) {
+      throw new Error("Ziina did not return a payment redirect URL");
+    }
 
-    // Save session id on the registration
     await supabaseAdmin
       .from("registrations")
-      .update({ stripe_session_id: stripeData.id })
+      .update({
+        payment_provider: "ziina",
+        payment_intent_id: intent.id,
+        payment_checkout_url: intent.redirect_url,
+        payment_operation_id: intent.operation_id ?? operationId,
+      })
       .eq("id", registrationId!);
 
     return new Response(
-      JSON.stringify({ clientSecret: stripeData.client_secret, session_id: stripeData.id }),
+      JSON.stringify({
+        payment_intent_id: intent.id,
+        redirect_url: intent.redirect_url,
+      }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e: unknown) {
