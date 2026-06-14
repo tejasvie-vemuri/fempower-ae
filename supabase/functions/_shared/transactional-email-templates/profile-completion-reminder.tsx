@@ -26,7 +26,9 @@ const Email = ({ name, siteUrl, missingFields }: Props) => {
   const greeting = name ? `Hi ${name},` : 'Hi sister,'
   return (
     <Html lang="en" dir="ltr">
-      <Head />
+      <Head>
+        <meta httpEquiv="Content-Type" content="text/html; charset=UTF-8" />
+      </Head>
         <Preview>You're in 🦋💛 let the community find you</Preview>
       <Body style={s.main}>
         <Container style={s.container}>
