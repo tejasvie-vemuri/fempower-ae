@@ -58,8 +58,8 @@ export const SignupEmail = ({
           If you didn't create an account, you can safely ignore this email.
         </Text>
         <Text style={signature}>
-          With warmth,<br />
-          The Fempower Team
+          Hugs,<br />
+          Your sisters
         </Text>
       </Container>
     </Body>
