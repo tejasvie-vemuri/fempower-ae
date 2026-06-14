@@ -44,11 +44,37 @@ const AdminMembers = () => {
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [status, search]);
 
   const updateStatus = async (id: string, newStatus: MemberProfile["status"]) => {
+    const member = members.find((m) => m.id === id);
+    const wasNotApproved = member?.status !== "approved";
     const patch: any = { status: newStatus };
     if (newStatus === "approved") { patch.approved_at = new Date().toISOString(); patch.approved_by = user?.id; }
     const { error } = await supabase.from("member_profiles").update(patch).eq("id", id);
     if (error) { toast({ title: "Update failed", description: error.message, variant: "destructive" }); return; }
     toast({ title: `Marked as ${newStatus}` });
+
+    // Send membership-approved email on first approval
+    if (newStatus === "approved" && wasNotApproved && member?.user_id) {
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("email")
+          .eq("user_id", member.user_id)
+          .maybeSingle();
+        if (profile?.email) {
+          await supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "membership-approved",
+              recipientEmail: profile.email,
+              idempotencyKey: `membership-approved-${member.id}`,
+              templateData: { name: member.name, siteUrl: window.location.origin },
+            },
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to send membership-approved email", e);
+      }
+    }
+
     load();
   };
 
