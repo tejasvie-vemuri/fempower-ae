@@ -37,7 +37,20 @@ const AuthPage = () => {
   const [signUpErrors, setSignUpErrors] = useState<Errors>({});
 
   useEffect(() => {
-    if (!loading && user) navigate(redirectTo, { replace: true });
+    if (loading || !user) return;
+    (async () => {
+      const [{ data: profile }, { data: roleRow }] = await Promise.all([
+        supabase.from("member_profiles").select("status").eq("user_id", user.id).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle(),
+      ]);
+      const approved = profile?.status === "approved";
+      const isAdmin = !!roleRow;
+      if (approved || isAdmin) {
+        navigate(redirectTo, { replace: true });
+      } else {
+        navigate("/pending-approval", { replace: true });
+      }
+    })();
   }, [user, loading, navigate, redirectTo]);
 
   const handleGoogle = async () => {
