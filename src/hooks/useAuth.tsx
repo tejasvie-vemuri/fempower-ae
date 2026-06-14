@@ -1,6 +1,34 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+
+const WELCOME_EMAIL_MAX_ATTEMPTS = 3;
+const WELCOME_EMAIL_BASE_DELAY_MS = 1000;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+function describeSendError(err: unknown): string {
+  if (!err) return "Unknown error";
+  const anyErr = err as { message?: string; context?: { status?: number } };
+  const status = anyErr?.context?.status;
+  if (status === 429) return "Email service is rate-limited. We'll retry shortly.";
+  if (status === 403) return "Email service rejected this address (it may be suppressed).";
+  if (status && status >= 500) return "Email service is temporarily unavailable.";
+  if (anyErr?.message?.toLowerCase().includes("failed to fetch")) return "Network error reaching the email service.";
+  return anyErr?.message || "Unexpected error sending welcome email.";
+}
+
+function isRetryable(err: unknown): boolean {
+  const anyErr = err as { message?: string; context?: { status?: number } };
+  const status = anyErr?.context?.status;
+  if (status === 429) return true;
+  if (status && status >= 500) return true;
+  if (!status && anyErr?.message?.toLowerCase().includes("failed to fetch")) return true;
+  // No status info at all – be optimistic and retry once.
+  if (!status && !anyErr?.message) return true;
+  return false;
+}
 
 async function maybeSendWelcomeEmail(user: User) {
   try {
@@ -16,30 +44,51 @@ async function maybeSendWelcomeEmail(user: User) {
     const recipient = profile.email || user.email;
     if (!recipient) return;
 
-    const { error: sendError } = await supabase.functions.invoke(
-      "send-transactional-email",
-      {
-        body: {
-          templateName: "welcome",
-          recipientEmail: recipient,
-          idempotencyKey: `welcome-${user.id}`,
-          templateData: {
-            name: profile.name || user.user_metadata?.full_name || "",
-            siteUrl: "https://fempowerae.com",
+    let lastError: unknown = null;
+    for (let attempt = 1; attempt <= WELCOME_EMAIL_MAX_ATTEMPTS; attempt++) {
+      const { error: sendError } = await supabase.functions.invoke(
+        "send-transactional-email",
+        {
+          body: {
+            templateName: "welcome",
+            recipientEmail: recipient,
+            idempotencyKey: `welcome-${user.id}`,
+            templateData: {
+              name: profile.name || user.user_metadata?.full_name || "",
+              siteUrl: "https://fempowerae.com",
+            },
           },
         },
-      },
-    );
+      );
 
-    if (sendError) {
-      console.error("Welcome email send failed", sendError);
-      return;
+      if (!sendError) {
+        await supabase
+          .from("profiles")
+          .update({ welcome_email_sent: true })
+          .eq("user_id", user.id);
+        return;
+      }
+
+      lastError = sendError;
+      console.warn(
+        `Welcome email attempt ${attempt}/${WELCOME_EMAIL_MAX_ATTEMPTS} failed:`,
+        sendError,
+      );
+
+      if (attempt === WELCOME_EMAIL_MAX_ATTEMPTS || !isRetryable(sendError)) break;
+
+      // Exponential backoff: 1s, 2s, 4s (+ small jitter)
+      const delay =
+        WELCOME_EMAIL_BASE_DELAY_MS * 2 ** (attempt - 1) + Math.floor(Math.random() * 250);
+      await sleep(delay);
     }
 
-    await supabase
-      .from("profiles")
-      .update({ welcome_email_sent: true })
-      .eq("user_id", user.id);
+    console.error("Welcome email send failed after retries", lastError);
+    toast({
+      title: "Welcome email couldn't be sent",
+      description: `${describeSendError(lastError)} You're signed in — we'll try again next time you visit.`,
+      variant: "destructive",
+    });
   } catch (e) {
     console.error("Welcome email error", e);
   }
