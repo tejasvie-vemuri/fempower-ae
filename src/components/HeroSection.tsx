@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Instagram } from "lucide-react";
 import heroImg from "@/assets/hero-community.jpg";
@@ -43,7 +44,7 @@ const HeroSection = () => {
 
         <div className="mt-7 flex flex-col sm:flex-row gap-3 sm:gap-4">
           <Button size="lg" className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs px-6 sm:px-10 h-12 w-full sm:w-auto" asChild>
-            <a href="#join">Join Us</a>
+            <Link to="/join">Join Us</Link>
           </Button>
           <Button size="lg" variant="outline" className="font-body uppercase tracking-widest text-xs px-6 sm:px-10 h-12 border-foreground/20 w-full sm:w-auto" asChild>
             <a href="#programs">Explore Programs</a>
