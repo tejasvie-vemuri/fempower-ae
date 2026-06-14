@@ -15,8 +15,11 @@ import { toast } from "sonner";
 import { ArrowLeft, Check, Download, Loader2, Undo2, RefreshCcw, UserPlus } from "lucide-react";
 import {
   parseQuestions,
+  DEFAULT_ATTENDEE_QUESTIONS,
+  DEFAULT_ATTENDEE_QUESTION_IDS,
   type AttendeeQuestion,
 } from "@/lib/attendeeQuestions";
+
 
 interface WaitlistEntry {
   id: string;
