@@ -33,6 +33,7 @@ const AdminMembers = () => {
   const [status, setStatus] = useState<MemberProfile["status"] | "all">("pending");
   const [search, setSearch] = useState("");
   const [counts, setCounts] = useState<Record<string, number>>({});
+  const [emails, setEmails] = useState<Record<string, string>>({});
 
   const load = async () => {
     setLoading(true);
@@ -43,7 +44,21 @@ const AdminMembers = () => {
       q = q.or(`name.ilike.${t},role.ilike.${t},company.ilike.${t}`);
     }
     const { data } = await q.limit(200);
-    setMembers((data ?? []) as MemberProfile[]);
+    const rows = (data ?? []) as MemberProfile[];
+    setMembers(rows);
+
+    const userIds = rows.map((r) => r.user_id).filter(Boolean);
+    if (userIds.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("user_id, email")
+        .in("user_id", userIds);
+      const map: Record<string, string> = {};
+      (profs ?? []).forEach((p: any) => { if (p.email) map[p.user_id] = p.email; });
+      setEmails(map);
+    } else {
+      setEmails({});
+    }
 
     const { data: all } = await supabase.from("member_profiles").select("status");
     const c: Record<string, number> = { pending: 0, approved: 0, hidden: 0, rejected: 0 };
@@ -146,6 +161,11 @@ const AdminMembers = () => {
                       {m.industry && <Badge variant="secondary">{m.industry}</Badge>}
                     </div>
                     <p className="text-sm text-muted-foreground">{[m.role, m.company, m.city].filter(Boolean).join(" · ") || "—"}</p>
+                    {emails[m.user_id] && (
+                      <a href={`mailto:${emails[m.user_id]}`} className="text-xs text-blush-dark hover:underline break-all">
+                        {emails[m.user_id]}
+                      </a>
+                    )}
                     {m.bio && <p className="text-sm mt-1 line-clamp-2">{m.bio}</p>}
                     <div className="flex gap-3 mt-2 text-muted-foreground">
                       {m.linkedin_url && <a href={m.linkedin_url} target="_blank" rel="noreferrer"><Linkedin size={14} /></a>}
