@@ -11,6 +11,7 @@ import {
   Html,
   Link,
   Preview,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
@@ -29,29 +30,36 @@ export const SignupEmail = ({
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
+    <Preview>Welcome to Fempower — confirm your email to join the circle</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
+        <Section style={brandBar}>
+          <Text style={brandMark}>FEMPOWER</Text>
+          <Text style={brandTagline}>Rooted Together, Rising Together</Text>
+        </Section>
+        <Heading style={h1}>Welcome, sister</Heading>
         <Text style={text}>
-          Thanks for signing up for{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
-          </Link>
-          !
+          Thank you for joining <strong>{siteName}</strong> — a community of women in the UAE
+          growing, learning, and rising together.
         </Text>
         <Text style={text}>
-          Please confirm your email address (
+          Please confirm your email address ({' '}
           <Link href={`mailto:${recipient}`} style={link}>
             {recipient}
           </Link>
-          ) by clicking the button below:
+          {' '}) to activate your account:
         </Text>
-        <Button style={button} href={confirmationUrl}>
-          Verify Email
-        </Button>
+        <Section style={buttonWrap}>
+          <Button style={button} href={confirmationUrl}>
+            Confirm my email
+          </Button>
+        </Section>
         <Text style={footer}>
           If you didn't create an account, you can safely ignore this email.
+        </Text>
+        <Text style={signature}>
+          With warmth,<br />
+          The Fempower Team
         </Text>
       </Container>
     </Body>
@@ -60,27 +68,48 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
+const main = { backgroundColor: '#ffffff', fontFamily: "'DM Sans', Helvetica, Arial, sans-serif" }
+const container = { padding: '32px 28px', maxWidth: '560px' }
+const brandBar = { borderBottom: '1px solid #EDE4D8', paddingBottom: '20px', marginBottom: '28px' }
+const brandMark = {
+  fontFamily: "'Playfair Display', Georgia, serif",
+  fontSize: '20px',
+  letterSpacing: '4px',
+  color: '#4A2040',
+  margin: '0',
   fontWeight: 'bold' as const,
-  color: '#000000',
+}
+const brandTagline = {
+  fontFamily: "'Playfair Display', Georgia, serif",
+  fontSize: '12px',
+  fontStyle: 'italic' as const,
+  color: '#D4A853',
+  margin: '4px 0 0',
+}
+const h1 = {
+  fontFamily: "'Playfair Display', Georgia, serif",
+  fontSize: '28px',
+  fontWeight: 'bold' as const,
+  color: '#4A2040',
   margin: '0 0 20px',
 }
-const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
-}
-const link = { color: 'inherit', textDecoration: 'underline' }
+const text = { fontSize: '15px', color: '#3D3540', lineHeight: '1.6', margin: '0 0 18px' }
+const link = { color: '#4A2040', textDecoration: 'underline' }
+const buttonWrap = { margin: '28px 0' }
 const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
+  backgroundColor: '#4A2040',
+  color: '#FDF8F3',
+  fontSize: '15px',
   borderRadius: '8px',
-  padding: '12px 20px',
+  padding: '14px 28px',
   textDecoration: 'none',
+  fontWeight: '500' as const,
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const footer = { fontSize: '13px', color: '#8A7E8E', margin: '24px 0 0', lineHeight: '1.5' }
+const signature = {
+  fontFamily: "'Playfair Display', Georgia, serif",
+  fontStyle: 'italic' as const,
+  fontSize: '14px',
+  color: '#4A2040',
+  margin: '32px 0 0',
+}
