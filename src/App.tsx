@@ -75,6 +75,15 @@ const App = () => (
                 </AdminRoute>
               }
             />
+            <Route
+              path="/admin/registrations"
+              element={
+                <AdminRoute>
+                  <AdminAllRegistrations />
+                </AdminRoute>
+              }
+            />
+
             <Route path="/programs" element={<Navigate to="/#programs" replace />} />
             <Route path="/events" element={<Navigate to="/#events-calendar" replace />} />
             <Route path="/join" element={<Join />} />
