@@ -12,6 +12,8 @@ import ResetPassword from "./pages/ResetPassword";
 import Join from "./pages/Join";
 import AdminEvents from "./pages/AdminEvents";
 import AdminRegistrations from "./pages/AdminRegistrations";
+import AdminAllRegistrations from "./pages/AdminAllRegistrations";
+
 import EventDetail from "./pages/EventDetail";
 import MyTickets from "./pages/MyTickets";
 import Directory from "./pages/Directory";
