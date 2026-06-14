@@ -12,6 +12,64 @@ export interface AttendeeQuestion {
 
 export type AttendeeResponses = Record<string, string>;
 
+// Default questions asked on every event registration. Stable IDs so saved
+// responses survive copy edits. Always required.
+export const DEFAULT_ATTENDEE_QUESTIONS: AttendeeQuestion[] = [
+  {
+    id: "nibbles",
+    label: "Nibbles & bites will be floating around — are you in? 🍇🧀",
+    type: "select",
+    required: true,
+    options: ["Yes please, feed me 🙋‍♀️", "I'll pass, thanks 🙅‍♀️"],
+  },
+  {
+    id: "dietary",
+    label:
+      "Any food no-nos we should know about? 🌱🥜 (allergies, vegan, halal — spill it)",
+    type: "short_text",
+    required: true,
+  },
+  {
+    id: "heard_about_us",
+    label: "How did our little circle find you? 💌✨",
+    type: "select",
+    required: true,
+    options: [
+      "Instagram",
+      "LinkedIn",
+      "A Fempower friend",
+      "WhatsApp community",
+      "An event/meetup",
+      "Somewhere else",
+    ],
+  },
+  {
+    id: "instagram_follow",
+    label:
+      "One tiny ask — are you following us on Instagram yet? 📸💕 (@fempower.ae)",
+    type: "select",
+    required: true,
+    options: [
+      "Already there 💕",
+      "Just followed — see you in the DMs!",
+      "Will follow before the event 🤞",
+    ],
+  },
+  {
+    id: "media_consent",
+    label:
+      "We sometimes capture the magic on camera 📷✨ — okay to feature you in photos/videos on our socials?",
+    type: "select",
+    required: true,
+    options: ["Yes, tag me in 💃", "No thanks, keep me off-camera 🙈"],
+  },
+];
+
+export const DEFAULT_ATTENDEE_QUESTION_IDS = new Set(
+  DEFAULT_ATTENDEE_QUESTIONS.map((q) => q.id),
+);
+
+
 export function parseQuestions(value: unknown): AttendeeQuestion[] {
   if (!Array.isArray(value)) return [];
   return value
