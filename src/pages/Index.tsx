@@ -19,9 +19,11 @@ import SeoSummary from "@/components/SeoSummary";
 import HomeStructuredData from "@/components/HomeStructuredData";
 import { JoinGateProvider } from "@/components/JoinGate";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 const Index = () => {
   const { user } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const isAuthed = !!user;
 
   return (
@@ -40,7 +42,7 @@ const Index = () => {
         <BecomingSpaceSection />
         <GallerySection />
         <SubstackFeedSection />
-        <ResourcesSection />
+        {isAdmin && <ResourcesSection />}
         {isAuthed && <JoinSection />}
         {isAuthed && <TestimonialsSection />}
         {isAuthed && <FAQSection />}
