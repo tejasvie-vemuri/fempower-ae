@@ -117,8 +117,10 @@ const AdminEvents = () => {
 
   const openCreate = () => {
     setForm(emptyForm);
+    setDefaultsAcknowledged(false);
     setOpen(true);
   };
+
 
   const openEdit = (e: EventRow) => {
     setForm({
