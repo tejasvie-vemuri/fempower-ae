@@ -55,6 +55,7 @@ Deno.serve(async (req) => {
   let idempotencyKey: string
   let messageId: string
   let templateData: Record<string, any> = {}
+  let diagnostics: Record<string, any> = {}
   try {
     const body = await req.json()
     templateName = body.templateName || body.template_name
@@ -63,6 +64,9 @@ Deno.serve(async (req) => {
     idempotencyKey = body.idempotencyKey || body.idempotency_key || messageId
     if (body.templateData && typeof body.templateData === 'object') {
       templateData = body.templateData
+    }
+    if (body.diagnostics && typeof body.diagnostics === 'object') {
+      diagnostics = body.diagnostics
     }
   } catch {
     return new Response(
@@ -73,6 +77,36 @@ Deno.serve(async (req) => {
       }
     )
   }
+
+  // Structured diagnostic logger — single JSON line per event tagged so welcome
+  // email failures during Google first sign-in are easy to grep.
+  // Search Edge Function logs for: [welcome-email]
+  const diagTag = templateName === 'welcome' ? '[welcome-email]' : '[txn-email]'
+  const maskEmail = (e: string) =>
+    !e ? '' : e.replace(/(^.).*(@.*$)/, '$1***$2')
+  const logDiag = (
+    phase: string,
+    extra: Record<string, unknown> = {},
+    isError = false,
+  ) => {
+    const entry = {
+      tag: diagTag,
+      phase,
+      templateName,
+      messageId,
+      idempotencyKey,
+      recipient: maskEmail(recipientEmail || ''),
+      userId: diagnostics.userId ?? null,
+      provider: diagnostics.provider ?? null,
+      attempt: diagnostics.attempt ?? null,
+      ts: new Date().toISOString(),
+      ...extra,
+    }
+    const line = JSON.stringify(entry)
+    if (isError) console.error(line)
+    else console.log(line)
+  }
+  logDiag('received')
 
   if (!templateName) {
     return new Response(
