@@ -560,6 +560,7 @@ export type Database = {
           looking_for: string[]
           name: string
           photo_url: string | null
+          profile_completion_email_sent_at: string | null
           role: string | null
           search_tsv: unknown
           status: string
@@ -585,6 +586,7 @@ export type Database = {
           looking_for?: string[]
           name?: string
           photo_url?: string | null
+          profile_completion_email_sent_at?: string | null
           role?: string | null
           search_tsv?: unknown
           status?: string
@@ -610,6 +612,7 @@ export type Database = {
           looking_for?: string[]
           name?: string
           photo_url?: string | null
+          profile_completion_email_sent_at?: string | null
           role?: string | null
           search_tsv?: unknown
           status?: string
