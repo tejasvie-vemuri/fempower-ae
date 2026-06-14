@@ -1,28 +1,23 @@
 project_id = "uaiymunelgvvnznkxeik"
 
-[functions.fetch-events]
-verify_jwt = false
-
-[functions.fetch-gallery]
-verify_jwt = false
-
-[functions.fetch-resources]
-verify_jwt = false
-
-[functions.fetch-substacks]
-verify_jwt = false
-
-[functions.create-checkout-session]
-verify_jwt = false
-
-[functions.verify-checkout-session]
-verify_jwt = false
-
-[functions.refund-registration]
-verify_jwt = false
-
-[functions.payments-webhook]
-verify_jwt = false
-
-[functions.process-email-queue]
-verify_jwt = true
+[functions]
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.create-checkout-session]
+    verify_jwt = false
+  [functions.fetch-events]
+    verify_jwt = false
+  [functions.fetch-gallery]
+    verify_jwt = false
+  [functions.fetch-resources]
+    verify_jwt = false
+  [functions.fetch-substacks]
+    verify_jwt = false
+  [functions.payments-webhook]
+    verify_jwt = false
+  [functions.process-email-queue]
+    verify_jwt = true
+  [functions.refund-registration]
+    verify_jwt = false
+  [functions.verify-checkout-session]
+    verify_jwt = false
