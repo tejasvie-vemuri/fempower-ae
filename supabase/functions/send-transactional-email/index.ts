@@ -141,6 +141,7 @@ Deno.serve(async (req) => {
   const effectiveRecipient = template.to || recipientEmail
 
   if (!effectiveRecipient) {
+    logDiag('error_missing_recipient', {}, true)
     return new Response(
       JSON.stringify({
         error: 'recipientEmail is required (unless the template defines a fixed recipient)',
