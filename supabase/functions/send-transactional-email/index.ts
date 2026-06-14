@@ -55,6 +55,7 @@ Deno.serve(async (req) => {
   let idempotencyKey: string
   let messageId: string
   let templateData: Record<string, any> = {}
+  let diagnostics: Record<string, any> = {}
   try {
     const body = await req.json()
     templateName = body.templateName || body.template_name
@@ -63,6 +64,9 @@ Deno.serve(async (req) => {
     idempotencyKey = body.idempotencyKey || body.idempotency_key || messageId
     if (body.templateData && typeof body.templateData === 'object') {
       templateData = body.templateData
+    }
+    if (body.diagnostics && typeof body.diagnostics === 'object') {
+      diagnostics = body.diagnostics
     }
   } catch {
     return new Response(
@@ -73,6 +77,36 @@ Deno.serve(async (req) => {
       }
     )
   }
+
+  // Structured diagnostic logger — single JSON line per event tagged so welcome
+  // email failures during Google first sign-in are easy to grep.
+  // Search Edge Function logs for: [welcome-email]
+  const diagTag = templateName === 'welcome' ? '[welcome-email]' : '[txn-email]'
+  const maskEmail = (e: string) =>
+    !e ? '' : e.replace(/(^.).*(@.*$)/, '$1***$2')
+  const logDiag = (
+    phase: string,
+    extra: Record<string, unknown> = {},
+    isError = false,
+  ) => {
+    const entry = {
+      tag: diagTag,
+      phase,
+      templateName,
+      messageId,
+      idempotencyKey,
+      recipient: maskEmail(recipientEmail || ''),
+      userId: diagnostics.userId ?? null,
+      provider: diagnostics.provider ?? null,
+      attempt: diagnostics.attempt ?? null,
+      ts: new Date().toISOString(),
+      ...extra,
+    }
+    const line = JSON.stringify(entry)
+    if (isError) console.error(line)
+    else console.log(line)
+  }
+  logDiag('received')
 
   if (!templateName) {
     return new Response(
@@ -89,6 +123,7 @@ Deno.serve(async (req) => {
 
   if (!template) {
     console.error('Template not found in registry', { templateName })
+    logDiag('error_template_not_found', { available: Object.keys(TEMPLATES) }, true)
     return new Response(
       JSON.stringify({
         error: `Template '${templateName}' not found. Available: ${Object.keys(TEMPLATES).join(', ')}`,
@@ -106,6 +141,7 @@ Deno.serve(async (req) => {
   const effectiveRecipient = template.to || recipientEmail
 
   if (!effectiveRecipient) {
+    logDiag('error_missing_recipient', {}, true)
     return new Response(
       JSON.stringify({
         error: 'recipientEmail is required (unless the template defines a fixed recipient)',
@@ -132,6 +168,10 @@ Deno.serve(async (req) => {
       error: suppressionError,
       effectiveRecipient,
     })
+    logDiag('suppression_check_failed', {
+      code: suppressionError.code,
+      message: suppressionError.message,
+    }, true)
     return new Response(
       JSON.stringify({ error: 'Failed to verify suppression status' }),
       {
@@ -142,7 +182,6 @@ Deno.serve(async (req) => {
   }
 
   if (suppressed) {
-    // Log the suppressed attempt
     await supabase.from('email_send_log').insert({
       message_id: messageId,
       template_name: templateName,
@@ -151,6 +190,7 @@ Deno.serve(async (req) => {
     })
 
     console.log('Email suppressed', { effectiveRecipient, templateName })
+    logDiag('suppressed')
     return new Response(
       JSON.stringify({ success: false, reason: 'email_suppressed' }),
       {
@@ -176,6 +216,10 @@ Deno.serve(async (req) => {
       error: tokenLookupError,
       email: normalizedEmail,
     })
+    logDiag('error_token_lookup', {
+      code: tokenLookupError.code,
+      message: tokenLookupError.message,
+    }, true)
     await supabase.from('email_send_log').insert({
       message_id: messageId,
       template_name: templateName,
@@ -278,13 +322,33 @@ Deno.serve(async (req) => {
   }
 
   // 4. Render React Email template to HTML and plain text
-  const html = await renderAsync(
-    React.createElement(template.component, templateData)
-  )
-  const plainText = await renderAsync(
-    React.createElement(template.component, templateData),
-    { plainText: true }
-  )
+  let html: string
+  let plainText: string
+  try {
+    html = await renderAsync(
+      React.createElement(template.component, templateData)
+    )
+    plainText = await renderAsync(
+      React.createElement(template.component, templateData),
+      { plainText: true }
+    )
+  } catch (renderErr) {
+    logDiag('error_render', {
+      message: (renderErr as Error)?.message,
+      stack: (renderErr as Error)?.stack?.split('\n').slice(0, 4).join(' | '),
+    }, true)
+    await supabase.from('email_send_log').insert({
+      message_id: messageId,
+      template_name: templateName,
+      recipient_email: effectiveRecipient,
+      status: 'failed',
+      error_message: `Render failed: ${(renderErr as Error)?.message}`,
+    })
+    return new Response(JSON.stringify({ error: 'Failed to render email' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
 
   // Resolve subject — supports static string or dynamic function
   const resolvedSubject =
@@ -327,13 +391,19 @@ Deno.serve(async (req) => {
       templateName,
       effectiveRecipient,
     })
+    logDiag('enqueue_failed', {
+      code: (enqueueError as any).code,
+      message: enqueueError.message,
+      details: (enqueueError as any).details,
+      hint: (enqueueError as any).hint,
+    }, true)
 
     await supabase.from('email_send_log').insert({
       message_id: messageId,
       template_name: templateName,
       recipient_email: effectiveRecipient,
       status: 'failed',
-      error_message: 'Failed to enqueue email',
+      error_message: `Failed to enqueue email: ${enqueueError.message}`,
     })
 
     return new Response(JSON.stringify({ error: 'Failed to enqueue email' }), {
@@ -343,6 +413,7 @@ Deno.serve(async (req) => {
   }
 
   console.log('Transactional email enqueued', { templateName, effectiveRecipient })
+  logDiag('enqueued')
 
   return new Response(
     JSON.stringify({ success: true, queued: true }),
