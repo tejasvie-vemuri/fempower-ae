@@ -130,13 +130,10 @@ const MyTickets = () => {
   const submitCancellation = async () => {
     if (!cancelTarget) return;
     setCancelling(true);
-    const { error } = await supabase
-      .from("registrations")
-      .update({
-        cancellation_requested_at: new Date().toISOString(),
-        cancellation_reason: cancelReason.trim() || null,
-      })
-      .eq("id", cancelTarget.id);
+    const { error } = await supabase.rpc("request_registration_cancellation", {
+      _registration_id: cancelTarget.id,
+      _reason: cancelReason,
+    });
     setCancelling(false);
     if (error) {
       toast.error(error.message);

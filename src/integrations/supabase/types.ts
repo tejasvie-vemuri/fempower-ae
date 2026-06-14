@@ -910,6 +910,19 @@ export type Database = {
           read_ct: number
         }[]
       }
+      confirm_free_registration: {
+        Args: {
+          _event_id: string
+          _responses?: Json
+          _quantity?: number
+          _guests?: Json
+        }
+        Returns: string
+      }
+      request_registration_cancellation: {
+        Args: { _registration_id: string; _reason: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "user"

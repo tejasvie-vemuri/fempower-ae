@@ -220,39 +220,12 @@ const EventDetail = () => {
     const guestsPayload = JSON.parse(JSON.stringify(cleanGuests));
     setActing(true);
     if (isFree) {
-      const { data: existing } = await supabase
-        .from("registrations")
-        .select("id, status")
-        .eq("event_id", event.id)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      let error: { message: string } | null = null;
-      if (existing) {
-        const r = await supabase
-          .from("registrations")
-          .update({
-            status: "confirmed",
-            amount_paid_cents: 0,
-            currency: event.currency,
-            responses: responsesPayload,
-            quantity: safeQty,
-            guests: guestsPayload,
-          })
-          .eq("id", existing.id);
-        error = r.error;
-      } else {
-        const r = await supabase.from("registrations").insert({
-          event_id: event.id,
-          user_id: user.id,
-          status: "confirmed",
-          amount_paid_cents: 0,
-          currency: event.currency,
-          responses: responsesPayload,
-          quantity: safeQty,
-          guests: guestsPayload,
-        });
-        error = r.error;
-      }
+      const { error } = await supabase.rpc("confirm_free_registration", {
+        _event_id: event.id,
+        _responses: responsesPayload,
+        _quantity: safeQty,
+        _guests: guestsPayload,
+      });
       setActing(false);
       if (error) {
         toast.error(error.message);
