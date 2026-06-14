@@ -1,56 +1,73 @@
-# Add Instagram Feed to Community Moments
+# Default attendee questions on event registration
 
-Add a tabbed interface to the Community Moments section so visitors can switch between the curated Moments gallery and a live Instagram feed pulled from @fempower.ae via the Instagram Graph API.
+Add 5 mandatory questions asked at checkout for every event, in a warm, quirky tone with emojis. These are global defaults (code-defined), merged with any custom per-event questions the admin has already added — so existing event-specific questions keep working.
 
-## UX
+## The 5 questions (all required)
 
-In `GallerySection.tsx`, wrap the existing grid in a `Tabs` component (shadcn) with two triggers under the section heading:
+Stable IDs so answers survive copy tweaks.
 
-- **Moments** — current rotating Google Drive gallery (unchanged behavior)
-- **Instagram** — horizontal scrollable strip of latest IG posts, each linking out to instagram.com, with a "Follow @fempower.ae" CTA at the end
+1. **`nibbles`** — single choice
+   - "Nibbles & bites will be floating around — are you in? 🍇🧀"
+   - Options: "Yes please, feed me 🙋‍♀️" · "I'll pass, thanks 🙅‍♀️"
 
-The Instagram strip uses horizontal snap-scroll on mobile and a grid on desktop, matching the editorial Gulf-inspired styling (rounded-xl, plum/gold accents). Each tile shows the post thumbnail, caption preview (line-clamp-2), and an external-link icon on hover.
+2. **`dietary`** — short text
+   - "Any food no-nos we should know about? 🌱🥜 (allergies, vegan, halal — spill it)"
+   - Placeholder: "e.g. nut allergy, vegetarian, gluten-free…" (typing "none" is valid)
 
-## Data flow
+3. **`heard_about_us`** — single choice
+   - "How did our little circle find you? 💌✨"
+   - Options: Instagram · LinkedIn · A Fempower friend · WhatsApp community · An event/meetup · Somewhere else
+
+4. **`instagram_follow`** — single choice with inline IG link
+   - "One tiny ask — are you following us on Instagram yet? 📸💕 (@fempower.ae)"
+   - Renders a tappable "Open Instagram ↗" link next to the question
+   - Options: "Already there 💕" · "Just followed — see you in the DMs!" · "Will follow before the event 🤞"
+
+5. **`media_consent`** — single choice (Yes or No, both valid)
+   - "We sometimes capture the magic on camera 📷✨ — okay to feature you in photos/videos on our socials?"
+   - Options: "Yes, tag me in 💃" · "No thanks, keep me off-camera 🙈"
+   - Helper text: "Either answer is totally fine — we'll respect it on the day."
+
+## Where they appear
+
+`EventDetail.tsx` already renders `<AttendeeQuestionsForm>` driven by `parseQuestions(event.attendee_questions)`. The flow becomes:
 
 ```text
-Browser → fetch-instagram edge fn → Instagram Graph API → cached JSON
+questions = [...DEFAULT_ATTENDEE_QUESTIONS, ...parseQuestions(event.attendee_questions)]
 ```
 
-1. New edge function `supabase/functions/fetch-instagram/index.ts`:
-   - Calls `https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&access_token=...`
-   - Filters to IMAGE / CAROUSEL_ALBUM / VIDEO (use `thumbnail_url` for videos)
-   - Returns up to 12 latest items
-   - In-memory cache for ~10 min to stay under rate limits
-   - CORS headers, no JWT required
+So defaults always show first, then any extra per-event questions the admin defined. The form already validates `required` per question — no validation change needed.
 
-2. New hook `src/hooks/useInstagramFeed.ts` fetches from the edge function and exposes `{ posts, loading, error }`.
+Same for free events (direct register) and paid events (Ziina checkout): both code paths build `responses` from the same form, so both get the new questions.
 
-3. New component `src/components/InstagramStrip.tsx` renders the horizontal scroller; consumed inside the Instagram tab of `GallerySection`.
+## Form rendering polish
 
-## Secrets needed
+`AttendeeQuestionsForm.tsx` currently uses a dropdown for `select`. To match the friendly tone:
 
-The Instagram Graph API needs a **long-lived access token** tied to a Facebook Page + linked Instagram Business/Creator account. Required secret:
+- When `options.length <= 4`, render `select` as radio-style pill buttons instead of a dropdown.
+- Special-case by question `id`:
+  - `instagram_follow`: show "Open Instagram ↗" link (target=_blank, rel=noopener noreferrer) above the options, pointing to `https://instagram.com/fempower.ae`.
+  - `media_consent`: render the helper line below the options.
 
-- `INSTAGRAM_ACCESS_TOKEN` — long-lived user token (60-day) or page token from the Meta developer dashboard
+No new question type — keeps the data model unchanged and existing admin editor compatible.
 
-I will request it via the secrets tool once you approve the plan. You'll get it from:
-1. https://developers.facebook.com → create/select an app with the "Instagram Graph API" product
-2. Link your Facebook Page that's connected to @fempower.ae (must be Business/Creator account)
-3. Generate a long-lived token (we'll document the refresh step)
+## Admin editor note
 
-If the token is short-lived, the edge function will return a clear error so we know to refresh.
+In `AttendeeQuestionsEditor.tsx`, add a small read-only banner: "5 default questions (nibbles, dietary, source, Instagram, media consent) are always asked — add extras below." So admins don't duplicate them.
 
-## Files
+## Admin registrations view
 
-- create `supabase/functions/fetch-instagram/index.ts`
-- create `src/hooks/useInstagramFeed.ts`
-- create `src/components/InstagramStrip.tsx`
-- edit `src/components/GallerySection.tsx` — wrap grid in `Tabs`, mount `InstagramStrip` in second tab
-- secret: `INSTAGRAM_ACCESS_TOKEN`
+`AdminRegistrations.tsx` already displays `responses` keyed by question label, so the new answers appear automatically — no admin UI change required.
 
 ## Out of scope
 
-- Token auto-refresh cron (manual refresh every ~50 days for now; can add later)
-- Storing posts in Supabase (using in-memory edge cache)
-- Comments/likes counts (Graph API basic media fields only)
+- No DB migration — defaults live in code so copy/options can change without a migration.
+- No admin toggle to disable defaults per event (can be added later if needed).
+- No analytics tracking of `heard_about_us` aggregates (admin can review per registration).
+
+## Files touched
+
+- edit `src/lib/attendeeQuestions.ts` — export `DEFAULT_ATTENDEE_QUESTIONS`
+- edit `src/pages/EventDetail.tsx` — merge defaults with event questions; always render the form
+- edit `src/components/AttendeeQuestionsForm.tsx` — pill-radio for short option lists; Instagram link + media-consent helper by question id
+- edit `src/components/admin/AttendeeQuestionsEditor.tsx` — info banner about defaults

@@ -10,9 +10,12 @@ import HashLink from "@/components/HashLink";
 import {
   parseQuestions,
   validateResponses,
+  DEFAULT_ATTENDEE_QUESTIONS,
+  DEFAULT_ATTENDEE_QUESTION_IDS,
   type AttendeeQuestion,
   type AttendeeResponses,
 } from "@/lib/attendeeQuestions";
+
 import { AttendeeQuestionsForm } from "@/components/AttendeeQuestionsForm";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,10 +72,14 @@ const EventDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [guests, setGuests] = useState<Guest[]>([]);
 
-  const questions: AttendeeQuestion[] = useMemo(
-    () => parseQuestions(event?.attendee_questions),
-    [event?.attendee_questions],
-  );
+  const questions: AttendeeQuestion[] = useMemo(() => {
+    // Per-event custom questions, skipping any that collide with default IDs.
+    const custom = parseQuestions(event?.attendee_questions).filter(
+      (q) => !DEFAULT_ATTENDEE_QUESTION_IDS.has(q.id),
+    );
+    return [...DEFAULT_ATTENDEE_QUESTIONS, ...custom];
+  }, [event?.attendee_questions]);
+
 
   const load = async () => {
     if (!slug) return;
