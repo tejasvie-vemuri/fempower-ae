@@ -322,13 +322,33 @@ Deno.serve(async (req) => {
   }
 
   // 4. Render React Email template to HTML and plain text
-  const html = await renderAsync(
-    React.createElement(template.component, templateData)
-  )
-  const plainText = await renderAsync(
-    React.createElement(template.component, templateData),
-    { plainText: true }
-  )
+  let html: string
+  let plainText: string
+  try {
+    html = await renderAsync(
+      React.createElement(template.component, templateData)
+    )
+    plainText = await renderAsync(
+      React.createElement(template.component, templateData),
+      { plainText: true }
+    )
+  } catch (renderErr) {
+    logDiag('error_render', {
+      message: (renderErr as Error)?.message,
+      stack: (renderErr as Error)?.stack?.split('\n').slice(0, 4).join(' | '),
+    }, true)
+    await supabase.from('email_send_log').insert({
+      message_id: messageId,
+      template_name: templateName,
+      recipient_email: effectiveRecipient,
+      status: 'failed',
+      error_message: `Render failed: ${(renderErr as Error)?.message}`,
+    })
+    return new Response(JSON.stringify({ error: 'Failed to render email' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
 
   // Resolve subject — supports static string or dynamic function
   const resolvedSubject =
