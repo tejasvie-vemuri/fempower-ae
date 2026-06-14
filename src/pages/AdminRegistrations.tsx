@@ -161,10 +161,13 @@ const AdminRegistrations = () => {
     return { confirmed, checkedIn, pending };
   }, [regs]);
 
-  const questions: AttendeeQuestion[] = useMemo(
-    () => parseQuestions(event?.attendee_questions),
-    [event?.attendee_questions],
-  );
+  const questions: AttendeeQuestion[] = useMemo(() => {
+    const custom = parseQuestions(event?.attendee_questions).filter(
+      (q) => !DEFAULT_ATTENDEE_QUESTION_IDS.has(q.id),
+    );
+    return [...DEFAULT_ATTENDEE_QUESTIONS, ...custom];
+  }, [event?.attendee_questions]);
+
 
   const toggleCheckIn = async (r: Registration) => {
     setBusyId(r.id);
