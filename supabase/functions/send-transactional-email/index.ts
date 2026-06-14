@@ -168,6 +168,10 @@ Deno.serve(async (req) => {
       error: suppressionError,
       effectiveRecipient,
     })
+    logDiag('suppression_check_failed', {
+      code: suppressionError.code,
+      message: suppressionError.message,
+    }, true)
     return new Response(
       JSON.stringify({ error: 'Failed to verify suppression status' }),
       {
@@ -176,6 +180,15 @@ Deno.serve(async (req) => {
       }
     )
   }
+
+  if (suppressed) {
+    await supabase.from('email_send_log').insert({
+      message_id: messageId,
+      template_name: templateName,
+      recipient_email: effectiveRecipient,
+      status: 'suppressed',
+    })
+    logDiag('suppressed')
 
   if (suppressed) {
     // Log the suppressed attempt
