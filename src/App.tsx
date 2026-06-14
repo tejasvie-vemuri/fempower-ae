@@ -27,6 +27,7 @@ import Meetups from "./pages/Meetups";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Unsubscribe from "./pages/Unsubscribe";
+import PendingApproval from "./pages/PendingApproval";
 import ScrollToHash from "@/components/ScrollToHash";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -50,7 +51,8 @@ const App = () => (
             <Route path="/account/tickets" element={<MyTickets />} />
             <Route path="/account/saved" element={<Saved />} />
             <Route path="/directory" element={<ProtectedRoute><Directory /></ProtectedRoute>} />
-            <Route path="/account/profile" element={<ProtectedRoute><MemberProfileEdit /></ProtectedRoute>} />
+            <Route path="/account/profile" element={<ProtectedRoute allowPending><MemberProfileEdit /></ProtectedRoute>} />
+            <Route path="/pending-approval" element={<ProtectedRoute allowPending><PendingApproval /></ProtectedRoute>} />
             <Route path="/admin/members" element={<AdminRoute><AdminMembers /></AdminRoute>} />
             <Route path="/admin/images" element={<AdminRoute><AdminImages /></AdminRoute>} />
             <Route path="/circle" element={<Circle />} />
