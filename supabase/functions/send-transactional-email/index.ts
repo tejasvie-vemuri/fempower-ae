@@ -188,18 +188,9 @@ Deno.serve(async (req) => {
       recipient_email: effectiveRecipient,
       status: 'suppressed',
     })
-    logDiag('suppressed')
-
-  if (suppressed) {
-    // Log the suppressed attempt
-    await supabase.from('email_send_log').insert({
-      message_id: messageId,
-      template_name: templateName,
-      recipient_email: effectiveRecipient,
-      status: 'suppressed',
-    })
 
     console.log('Email suppressed', { effectiveRecipient, templateName })
+    logDiag('suppressed')
     return new Response(
       JSON.stringify({ success: false, reason: 'email_suppressed' }),
       {
