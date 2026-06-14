@@ -22,9 +22,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);
       setUser(s?.user ?? null);
+
+      // Send welcome email on first Google sign-in.
+      // Email/password users already get a signup confirmation email.
+      if (event === "SIGNED_IN" && s?.user) {
+        const provider = s.user.app_metadata?.provider;
+        if (provider === "google") {
+          // Defer so we don't block the auth listener
+          setTimeout(() => {
+            void maybeSendWelcomeEmail(s.user);
+          }, 0);
+        }
+      }
     });
 
     supabase.auth.getSession().then(({ data: { session: s } }) => {
