@@ -25,4 +25,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'circle-post-pending': circlePostPending,
   'event-registration-confirmation': eventRegistrationConfirmation,
   'welcome': welcome,
+  'profile-completion-reminder': profileCompletionReminder,
 }
