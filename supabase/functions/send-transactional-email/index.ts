@@ -218,6 +218,29 @@ Deno.serve(async (req) => {
     )
   }
 
+  // Per-template authorization for non-privileged callers.
+  if (callerRole !== 'service_role' && !callerIsAdmin) {
+    if (!SELF_TEMPLATES.has(templateName)) {
+      logDiag('error_forbidden_template', { templateName, callerRole }, true)
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+    if (
+      !callerEmail ||
+      effectiveRecipient.toLowerCase() !== callerEmail
+    ) {
+      logDiag('error_recipient_mismatch', { templateName }, true)
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: recipient must match authenticated user' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+  }
+
+
+
   // Create Supabase client with service role (bypasses RLS)
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
