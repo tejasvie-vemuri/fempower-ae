@@ -38,7 +38,7 @@ type Report = {
 
 const AdminCircle = () => {
   const { toast } = useToast();
-  const [queue, setQueue] = useState<Queue>("flagged");
+  const [queue, setQueue] = useState<Queue>("pending");
   const [posts, setPosts] = useState<AdminPost[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
