@@ -874,6 +874,15 @@ export type Database = {
       }
     }
     Functions: {
+      confirm_free_registration: {
+        Args: {
+          _event_id: string
+          _guests?: Json
+          _quantity?: number
+          _responses?: Json
+        }
+        Returns: string
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -910,17 +919,8 @@ export type Database = {
           read_ct: number
         }[]
       }
-      confirm_free_registration: {
-        Args: {
-          _event_id: string
-          _responses?: Json
-          _quantity?: number
-          _guests?: Json
-        }
-        Returns: string
-      }
       request_registration_cancellation: {
-        Args: { _registration_id: string; _reason: string }
+        Args: { _reason: string; _registration_id: string }
         Returns: undefined
       }
     }
