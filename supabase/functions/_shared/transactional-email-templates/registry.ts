@@ -23,4 +23,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'circle-post-approved': circlePostApproved,
   'circle-post-pending': circlePostPending,
   'event-registration-confirmation': eventRegistrationConfirmation,
+  'welcome': welcome,
 }
