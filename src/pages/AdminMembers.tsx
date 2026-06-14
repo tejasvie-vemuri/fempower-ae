@@ -188,7 +188,6 @@ const AdminMembers = () => {
                       </AlertDialogContent>
                     </AlertDialog>
                   </div>
-                  </div>
                 </div>
               ))}
             </div>
