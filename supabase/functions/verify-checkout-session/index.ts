@@ -70,6 +70,47 @@ Deno.serve(async (req) => {
           stripe_session_id: session.id,
         })
         .eq("id", meta.registration_id);
+
+      // Send confirmation email (paid registration)
+      try {
+        const { data: reg } = await supabaseAdmin
+          .from("registrations")
+          .select("id, ticket_code, quantity, event_id")
+          .eq("id", meta.registration_id)
+          .maybeSingle();
+        const { data: profile } = await supabaseAdmin
+          .from("profiles")
+          .select("email, name")
+          .eq("user_id", userId)
+          .maybeSingle();
+        const { data: ev } = reg
+          ? await supabaseAdmin
+              .from("events")
+              .select("title, slug, starts_at, location")
+              .eq("id", reg.event_id)
+              .maybeSingle()
+          : { data: null };
+        if (profile?.email && reg && ev) {
+          await supabaseAdmin.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "event-registration-confirmation",
+              recipientEmail: profile.email,
+              idempotencyKey: `event-reg-${reg.id}`,
+              templateData: {
+                name: profile.name,
+                eventTitle: ev.title,
+                startsAt: ev.starts_at,
+                location: ev.location,
+                ticketCode: reg.ticket_code,
+                quantity: reg.quantity,
+                eventUrl: `https://fempowerae.com/events/${ev.slug}`,
+              },
+            },
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to send registration confirmation email", e);
+      }
     }
 
     return new Response(

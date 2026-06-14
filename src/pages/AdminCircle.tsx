@@ -92,9 +92,39 @@ const AdminCircle = () => {
 
   const updatePost = async (id: string, patch: Record<string, any>) => {
     if (patch.status === "published" && !patch.published_at) patch.published_at = new Date().toISOString();
+    const prev = posts.find((p) => p.id === id);
+    const becomingPublished = patch.status === "published" && prev?.status !== "published";
     const { error } = await (supabase as any).from("circle_posts").update(patch).eq("id", id);
     if (error) { toast({ title: "Failed", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Updated" });
+
+    if (becomingPublished && prev?.user_id) {
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("email, name")
+          .eq("user_id", prev.user_id)
+          .maybeSingle();
+        if (profile?.email) {
+          await supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "circle-post-approved",
+              recipientEmail: profile.email,
+              idempotencyKey: `circle-approved-${id}`,
+              templateData: {
+                name: profile.name,
+                topic: prev.topic_tag,
+                snippet: (prev.body || "").slice(0, 140),
+                postUrl: `${window.location.origin}/circle`,
+              },
+            },
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to send circle-post-approved email", e);
+      }
+    }
+
     load();
   };
 
