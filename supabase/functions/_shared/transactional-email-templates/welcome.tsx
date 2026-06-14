@@ -43,7 +43,7 @@ const Email = ({ name, siteUrl }: Props) => {
             members-only events.
           </Text>
           <Section style={s.buttonWrap}>
-            <Button style={s.button} href={`${url}/profile`}>
+            <Button style={s.button} href={`${url}/account/profile`}>
               Complete your profile
             </Button>
           </Section>

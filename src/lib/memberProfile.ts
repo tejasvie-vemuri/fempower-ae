@@ -11,16 +11,73 @@ export const LOOKING_FOR_OPTIONS = [
   "Friendship", "Speaking opportunities", "Investors", "Co-founders",
 ] as const;
 
-const optionalUrl = (host?: RegExp) =>
+const parseHttpUrl = (value: string) => {
+  if (!/^https?:\/\//i.test(value)) return null;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:" ? url : null;
+  } catch {
+    return null;
+  }
+};
+
+const hasDomain = (url: URL, domain: string) => {
+  const host = url.hostname.toLowerCase();
+  return host === domain || host.endsWith(`.${domain}`);
+};
+
+const pathSegments = (url: URL) =>
+  url.pathname.split("/").filter(Boolean);
+
+const isLinkedInProfileUrl = (value: string) => {
+  const url = parseHttpUrl(value);
+  if (!url || !hasDomain(url, "linkedin.com")) return false;
+
+  const segments = pathSegments(url);
+  return (
+    segments.length === 2 &&
+    segments[0].toLowerCase() === "in" &&
+    /^[a-zA-Z0-9_-]{3,100}$/.test(segments[1])
+  );
+};
+
+const INSTAGRAM_RESERVED_PATHS = new Set([
+  "accounts",
+  "direct",
+  "explore",
+  "p",
+  "reel",
+  "reels",
+  "stories",
+  "tv",
+]);
+
+const isInstagramProfileUrl = (value: string) => {
+  const url = parseHttpUrl(value);
+  if (!url || !hasDomain(url, "instagram.com")) return false;
+
+  const segments = pathSegments(url);
+  if (segments.length !== 1) return false;
+
+  const username = segments[0];
+  return (
+    !INSTAGRAM_RESERVED_PATHS.has(username.toLowerCase()) &&
+    /^[a-zA-Z0-9._]{1,30}$/.test(username) &&
+    !username.endsWith(".")
+  );
+};
+
+const optionalUrl = (validator?: (value: string) => boolean, message = "Must be a valid URL for this network") =>
   z.string().trim().max(300).optional().or(z.literal(""))
     .transform((v) => (v ? v : undefined))
-    .refine((v) => !v || /^https?:\/\//i.test(v), { message: "Must start with http(s)://" })
-    .refine((v) => !v || !host || host.test(v), { message: "Must be a valid URL for this network" });
+    .refine((v) => !v || !!parseHttpUrl(v), { message: "Must start with http(s)://" })
+    .refine((v) => !v || !validator || validator(v), { message });
 
-const requiredUrl = (message: string, host?: RegExp) =>
-  z.string().trim().min(1, message).max(300)
-    .refine((v) => /^https?:\/\//i.test(v), { message: "Must start with http(s)://" })
-    .refine((v) => !host || host.test(v), { message: "Must be a valid URL for this network" });
+const requiredUrl = (requiredMessage: string, validator?: (value: string) => boolean, message = "Must be a valid URL for this network") =>
+  z.string().trim().min(1, requiredMessage).max(300)
+    .refine((v) => !!parseHttpUrl(v), { message: "Must start with http(s)://" })
+    .refine((v) => !validator || validator(v), { message });
 
 export const memberProfileSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(120),
@@ -29,8 +86,15 @@ export const memberProfileSchema = z.object({
   company: z.string().trim().min(1, "Company is required").max(120),
   city: z.string().trim().min(1, "City is required").max(80),
   bio: z.string().trim().max(600).optional().or(z.literal("")).transform(v => v || null),
-  linkedin_url: requiredUrl("LinkedIn URL is required", /linkedin\.com/i),
-  instagram_url: optionalUrl(/instagram\.com/i),
+  linkedin_url: requiredUrl(
+    "LinkedIn URL is required",
+    isLinkedInProfileUrl,
+    "Must be a valid LinkedIn profile URL, like https://linkedin.com/in/your-name",
+  ),
+  instagram_url: optionalUrl(
+    isInstagramProfileUrl,
+    "Must be a valid Instagram profile URL, like https://instagram.com/username",
+  ),
   website_url: optionalUrl(),
   industry: z.string().max(60).optional().or(z.literal("")).transform(v => v || null),
   expertise_tags: z.array(z.string().trim().min(1).max(40)).max(15).default([]),
