@@ -5,6 +5,7 @@ import { template as membershipApproved } from './membership-approved.tsx'
 import { template as circlePostApproved } from './circle-post-approved.tsx'
 import { template as circlePostPending } from './circle-post-pending.tsx'
 import { template as eventRegistrationConfirmation } from './event-registration-confirmation.tsx'
+import { template as welcome } from './welcome.tsx'
 
 export type SubjectFn = (data: Record<string, unknown>) => string
 
