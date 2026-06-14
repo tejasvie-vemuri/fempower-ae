@@ -128,6 +128,46 @@ Deno.serve(async (req) => {
         });
       }
 
+      // If pending, notify all admins so they can moderate
+      if (inserted.status === "pending") {
+        try {
+          const { data: adminRoles } = await admin
+            .from("user_roles")
+            .select("user_id")
+            .eq("role", "admin");
+          const adminIds = (adminRoles ?? []).map((r: any) => r.user_id);
+          if (adminIds.length) {
+            const { data: adminProfiles } = await admin
+              .from("profiles")
+              .select("email")
+              .in("user_id", adminIds);
+            const emails = (adminProfiles ?? [])
+              .map((p: any) => p.email)
+              .filter(Boolean);
+            await Promise.all(
+              emails.map((email: string) =>
+                admin.functions.invoke("send-transactional-email", {
+                  body: {
+                    templateName: "circle-post-pending",
+                    recipientEmail: email,
+                    idempotencyKey: `circle-pending-${inserted.id}-${email}`,
+                    templateData: {
+                      authorName: isAnon ? "Anonymous member" : memberRow.name,
+                      topic,
+                      snippet: text.slice(0, 140),
+                      riskLevel,
+                      moderationUrl: "https://fempowerae.com/admin/circle",
+                    },
+                  },
+                }),
+              ),
+            );
+          }
+        } catch (e) {
+          console.warn("Failed to notify admins of pending post", e);
+        }
+      }
+
       return new Response(JSON.stringify({
         id: inserted.id,
         status: inserted.status,
