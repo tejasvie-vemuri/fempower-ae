@@ -102,7 +102,8 @@ const AuthPage = () => {
       toast.error(error.message);
     } else {
       toast.success("Welcome back");
-      navigate(redirectTo, { replace: true });
+      // The useEffect above will route to /pending-approval or redirectTo
+      // based on the user's approval status.
     }
   };
 
