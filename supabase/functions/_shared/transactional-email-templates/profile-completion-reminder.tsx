@@ -26,12 +26,14 @@ const Email = ({ name, siteUrl, missingFields }: Props) => {
   const greeting = name ? `Hi ${name},` : 'Hi sister,'
   return (
     <Html lang="en" dir="ltr">
-      <Head />
-      <Preview>You're in — let the community find you</Preview>
+      <Head>
+        <meta httpEquiv="Content-Type" content="text/html; charset=UTF-8" />
+      </Head>
+        <Preview>You're in 🦋💛 let the community find you</Preview>
       <Body style={s.main}>
         <Container style={s.container}>
           <BrandHeader />
-          <Heading style={s.h1}>You're in — let sisters find you</Heading>
+          <Heading style={s.h1}>{`You're in 🦋💛 let sisters find you`}</Heading>
           <Text style={s.text}>{greeting}</Text>
           <Text style={s.text}>
             Welcome to the Fempower community. Your membership is approved, and
@@ -48,7 +50,7 @@ const Email = ({ name, siteUrl, missingFields }: Props) => {
             </Text>
           )}
           <Section style={s.buttonWrap}>
-            <Button style={s.button} href={`${url}/profile`}>
+            <Button style={s.button} href={`${url}/account/profile`}>
               Complete your profile
             </Button>
           </Section>
