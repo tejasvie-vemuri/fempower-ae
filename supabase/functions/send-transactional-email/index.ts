@@ -123,6 +123,7 @@ Deno.serve(async (req) => {
 
   if (!template) {
     console.error('Template not found in registry', { templateName })
+    logDiag('error_template_not_found', { available: Object.keys(TEMPLATES) }, true)
     return new Response(
       JSON.stringify({
         error: `Template '${templateName}' not found. Available: ${Object.keys(TEMPLATES).join(', ')}`,
