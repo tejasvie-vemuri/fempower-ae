@@ -6,7 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Check, X, EyeOff, Eye, Linkedin, Instagram, Globe } from "lucide-react";
+import { Loader2, Check, X, EyeOff, Eye, Linkedin, Instagram, Globe, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import type { MemberProfile } from "@/lib/memberProfile";
@@ -78,6 +89,22 @@ const AdminMembers = () => {
     load();
   };
 
+  const deleteMember = async (m: MemberProfile) => {
+    if (!m.user_id) {
+      toast({ title: "Cannot delete", description: "Missing user id", variant: "destructive" });
+      return;
+    }
+    const { error } = await supabase.functions.invoke("admin-delete-member", {
+      body: { user_id: m.user_id },
+    });
+    if (error) {
+      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Member deleted", description: `${m.name || "User"} has been removed.` });
+    load();
+  };
+
   return (
     <>
       <Header />
@@ -139,6 +166,27 @@ const AdminMembers = () => {
                     {m.status !== "rejected" && (
                       <Button size="sm" variant="ghost" onClick={() => updateStatus(m.id, "rejected")}><X size={14} className="mr-1" />Reject</Button>
                     )}
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
+                          <Trash2 size={14} className="mr-1" />Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete {m.name || "this member"}?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This permanently removes the user's account, profile, and member record. This cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteMember(m)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            Delete permanently
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               ))}
