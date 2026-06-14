@@ -27,6 +27,7 @@ import Meetups from "./pages/Meetups";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Unsubscribe from "./pages/Unsubscribe";
+import PendingApproval from "./pages/PendingApproval";
 import ScrollToHash from "@/components/ScrollToHash";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
