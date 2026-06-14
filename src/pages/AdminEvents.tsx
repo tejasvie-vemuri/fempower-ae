@@ -219,12 +219,19 @@ const AdminEvents = () => {
             </Link>
             <h1 className="font-heading text-3xl text-primary">Manage Events</h1>
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={openCreate}>
-                <Plus className="h-4 w-4 mr-2" /> New event
-              </Button>
-            </DialogTrigger>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline">
+              <Link to="/admin/registrations">
+                <Users className="h-4 w-4 mr-2" /> All registrations
+              </Link>
+            </Button>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={openCreate}>
+                  <Plus className="h-4 w-4 mr-2" /> New event
+                </Button>
+              </DialogTrigger>
+
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{form.id ? "Edit event" : "Create event"}</DialogTitle>
