@@ -161,6 +161,11 @@ const AdminMembers = () => {
                       {m.industry && <Badge variant="secondary">{m.industry}</Badge>}
                     </div>
                     <p className="text-sm text-muted-foreground">{[m.role, m.company, m.city].filter(Boolean).join(" · ") || "—"}</p>
+                    {emails[m.user_id] && (
+                      <a href={`mailto:${emails[m.user_id]}`} className="text-xs text-blush-dark hover:underline break-all">
+                        {emails[m.user_id]}
+                      </a>
+                    )}
                     {m.bio && <p className="text-sm mt-1 line-clamp-2">{m.bio}</p>}
                     <div className="flex gap-3 mt-2 text-muted-foreground">
                       {m.linkedin_url && <a href={m.linkedin_url} target="_blank" rel="noreferrer"><Linkedin size={14} /></a>}
