@@ -47,6 +47,14 @@ All infrastructure is managed through Lovable + Supabase.
   - `ZIINA_TEST_MODE` (`true` for test payments; set to `false` only after a real production readiness check)
   - `PUBLIC_SITE_URL` (for example, `https://fempowerae.com`)
 - Register the Supabase `payments-webhook` Edge Function URL in Ziina using the same webhook secret
+- Register or overwrite the Ziina webhook with:
+  ```bash
+  curl --request POST \
+    --url https://api-v2.ziina.com/api/webhook \
+    --header "Authorization: Bearer $ZIINA_ACCESS_TOKEN" \
+    --header "Content-Type: application/json" \
+    --data '{"url":"https://uaiymunelgvvnznkxeik.supabase.co/functions/v1/payments-webhook","secret":"'"$ZIINA_WEBHOOK_SECRET"'"}'
+  ```
 - Run one test payment intent and one refund before publishing paid events
 
 ---

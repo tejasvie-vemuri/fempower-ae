@@ -97,6 +97,13 @@ async function confirmIfCompleted(
     .eq("id", reg.id);
 }
 
+const cleanPaymentIntentId = (value: unknown): string | undefined => {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.includes("{") || trimmed.includes("}")) return undefined;
+  return trimmed;
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -126,7 +133,41 @@ Deno.serve(async (req) => {
     const userId = claimsData.claims.sub as string;
 
     const body = await req.json().catch(() => ({}));
-    const paymentIntentId: string | undefined = body.payment_intent_id;
+    let paymentIntentId = cleanPaymentIntentId(body.payment_intent_id);
+    const registrationId = typeof body.registration_id === "string" ? body.registration_id : undefined;
+    const eventId = typeof body.event_id === "string" ? body.event_id : undefined;
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    if (!paymentIntentId && registrationId) {
+      const { data: reg } = await supabaseAdmin
+        .from("registrations")
+        .select("payment_intent_id, user_id")
+        .eq("id", registrationId)
+        .maybeSingle();
+      if (!reg || reg.user_id !== userId) {
+        return new Response(JSON.stringify({ error: "Registration does not belong to user" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      paymentIntentId = cleanPaymentIntentId(reg.payment_intent_id);
+    }
+
+    if (!paymentIntentId && eventId) {
+      const { data: regs } = await supabaseAdmin
+        .from("registrations")
+        .select("payment_intent_id")
+        .eq("event_id", eventId)
+        .eq("user_id", userId)
+        .eq("payment_provider", "ziina")
+        .order("updated_at", { ascending: false })
+        .limit(1);
+      paymentIntentId = cleanPaymentIntentId(regs?.[0]?.payment_intent_id);
+    }
+
     if (!paymentIntentId) {
       return new Response(JSON.stringify({ error: "payment_intent_id required" }), {
         status: 400,
@@ -134,10 +175,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
     const intent = await getPaymentIntent(paymentIntentId);
     await confirmIfCompleted(supabaseAdmin, intent, userId);
 

@@ -37,7 +37,6 @@ interface Registration {
   created_at: string;
   payment_intent_id: string | null;
   payment_provider: string | null;
-  stripe_payment_intent_id: string | null;
   cancellation_requested_at: string | null;
   cancellation_reason: string | null;
   responses: Record<string, unknown> | null;
@@ -95,7 +94,7 @@ const AdminRegistrations = () => {
       supabase
         .from("registrations")
         .select(
-          "id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, payment_intent_id, payment_provider, stripe_payment_intent_id, cancellation_requested_at, cancellation_reason, responses, quantity, guests",
+          "id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, payment_intent_id, payment_provider, cancellation_requested_at, cancellation_reason, responses, quantity, guests",
         )
         .eq("event_id", eventId)
         .order("created_at", { ascending: false }),
@@ -274,7 +273,7 @@ const AdminRegistrations = () => {
           r.checked_in_at ?? "",
           r.created_at,
           r.payment_provider ?? "",
-          r.payment_intent_id ?? r.stripe_payment_intent_id ?? "",
+          r.payment_intent_id ?? "",
           String(r.quantity ?? 1),
           guestsText,
           ...questions.map((q) => {

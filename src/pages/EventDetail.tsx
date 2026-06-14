@@ -136,11 +136,18 @@ const EventDetail = () => {
   // Handle return from Ziina hosted checkout.
   useEffect(() => {
     const checkout = searchParams.get("checkout");
-    const paymentIntentId = searchParams.get("payment_intent_id");
-    if (checkout === "success" && paymentIntentId && user) {
+    const rawPaymentIntentId = searchParams.get("payment_intent_id");
+    const paymentIntentId =
+      rawPaymentIntentId && !rawPaymentIntentId.includes("{") ? rawPaymentIntentId : null;
+    const registrationId = searchParams.get("registration_id");
+    if (checkout === "success" && user && (paymentIntentId || registrationId || event?.id)) {
       (async () => {
         const { data, error } = await supabase.functions.invoke("verify-checkout-session", {
-          body: { payment_intent_id: paymentIntentId },
+          body: {
+            payment_intent_id: paymentIntentId,
+            registration_id: registrationId,
+            event_id: event?.id,
+          },
         });
         if (error) {
           toast.error(error.message ?? "Could not verify payment");
@@ -151,6 +158,7 @@ const EventDetail = () => {
         }
         searchParams.delete("checkout");
         searchParams.delete("payment_intent_id");
+        searchParams.delete("registration_id");
         setSearchParams(searchParams, { replace: true });
         load();
       })();
@@ -158,17 +166,19 @@ const EventDetail = () => {
       toast.info("Checkout cancelled");
       searchParams.delete("checkout");
       searchParams.delete("payment_intent_id");
+      searchParams.delete("registration_id");
       setSearchParams(searchParams, { replace: true });
       load();
     } else if (checkout === "failed") {
       toast.error("Payment failed. You can try again whenever you're ready.");
       searchParams.delete("checkout");
       searchParams.delete("payment_intent_id");
+      searchParams.delete("registration_id");
       setSearchParams(searchParams, { replace: true });
       load();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, event?.id]);
 
   const isFree = event && event.price_cents === 0;
   const seatsLeft =

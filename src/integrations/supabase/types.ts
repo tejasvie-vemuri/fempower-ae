@@ -675,8 +675,6 @@ export type Database = {
           refund_id: string | null
           responses: Json
           status: string
-          stripe_payment_intent_id: string | null
-          stripe_session_id: string | null
           ticket_code: string
           updated_at: string
           user_id: string
@@ -699,8 +697,6 @@ export type Database = {
           refund_id?: string | null
           responses?: Json
           status?: string
-          stripe_payment_intent_id?: string | null
-          stripe_session_id?: string | null
           ticket_code?: string
           updated_at?: string
           user_id: string
@@ -723,8 +719,6 @@ export type Database = {
           refund_id?: string | null
           responses?: Json
           status?: string
-          stripe_payment_intent_id?: string | null
-          stripe_session_id?: string | null
           ticket_code?: string
           updated_at?: string
           user_id?: string

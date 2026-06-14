@@ -199,13 +199,14 @@ Deno.serve(async (req) => {
 
     const operationId = crypto.randomUUID();
     const baseReturnUrl = `${siteUrl}/events/${ev.slug}`;
+    const registrationReturnParam = `registration_id=${encodeURIComponent(registrationId!)}`;
     const intent = await createPaymentIntent({
       amount: ev.price_cents * quantity,
       currency_code: String(ev.currency ?? "AED").toUpperCase(),
       message: quantity > 1 ? `${ev.title} (x${quantity})` : ev.title,
-      success_url: `${baseReturnUrl}?checkout=success&payment_intent_id={PAYMENT_INTENT_ID}`,
-      cancel_url: `${baseReturnUrl}?checkout=cancelled&payment_intent_id={PAYMENT_INTENT_ID}`,
-      failure_url: `${baseReturnUrl}?checkout=failed&payment_intent_id={PAYMENT_INTENT_ID}`,
+      success_url: `${baseReturnUrl}?checkout=success&${registrationReturnParam}`,
+      cancel_url: `${baseReturnUrl}?checkout=cancelled&${registrationReturnParam}`,
+      failure_url: `${baseReturnUrl}?checkout=failed&${registrationReturnParam}`,
       operation_id: operationId,
       test: getZiinaTestMode(),
       allow_tips: false,
