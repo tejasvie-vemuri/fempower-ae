@@ -216,6 +216,10 @@ Deno.serve(async (req) => {
       error: tokenLookupError,
       email: normalizedEmail,
     })
+    logDiag('error_token_lookup', {
+      code: tokenLookupError.code,
+      message: tokenLookupError.message,
+    }, true)
     await supabase.from('email_send_log').insert({
       message_id: messageId,
       template_name: templateName,
