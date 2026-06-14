@@ -80,6 +80,21 @@
 /* Smooth scrolling + mobile overflow guard */
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 6rem;
+}
+
+section[id] {
+  scroll-margin-top: 6rem;
+}
+
+@media (min-width: 768px) {
+  html {
+    scroll-padding-top: 7rem;
+  }
+
+  section[id] {
+    scroll-margin-top: 7rem;
+  }
 }
 
 html,

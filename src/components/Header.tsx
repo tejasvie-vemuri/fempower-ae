@@ -15,15 +15,15 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import logo from "@/assets/fempower-logo.png";
 
 const navLinks = [
-  { label: "About", href: "#about", showFrom: "md" as const },
-  { label: "What We Do", href: "#offerings", showFrom: "lg" as const },
-  { label: "Programs", href: "#programs", showFrom: "xl" as const },
-  { label: "Events", href: "#events-calendar", showFrom: "md" as const },
-  { label: "Directory", href: "/directory", showFrom: "md" as const },
-  { label: "Gallery", href: "#gallery", showFrom: "lg" as const },
-  { label: "Join", href: "/join", showFrom: "md" as const },
-  { label: "Circle", href: "/circle", showFrom: "lg" as const },
-  { label: "FAQs", href: "#faqs", showFrom: "xl" as const },
+  { label: "About", to: "/#about", showFrom: "md" as const },
+  { label: "What We Do", to: "/#offerings", showFrom: "lg" as const },
+  { label: "Programs", to: "/#programs", showFrom: "xl" as const },
+  { label: "Events", to: "/#events-calendar", showFrom: "md" as const },
+  { label: "Directory", to: "/directory", showFrom: "md" as const },
+  { label: "Gallery", to: "/#gallery", showFrom: "lg" as const },
+  { label: "Join", to: "/join", showFrom: "md" as const },
+  { label: "Circle", to: "/circle", showFrom: "lg" as const },
+  { label: "FAQs", to: "/#faqs", showFrom: "xl" as const },
 ];
 
 const showFromClass: Record<"md" | "lg" | "xl", string> = {
@@ -46,19 +46,19 @@ const Header = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
       <div className="container flex items-center justify-between h-16 md:h-20">
-        <a href="#" className="flex-shrink-0 flex items-center">
+        <Link to="/" className="flex-shrink-0 flex items-center">
           <img src={logo} alt="Fempower" className="h-10 md:h-12 w-auto object-contain" />
-        </a>
+        </Link>
 
         <nav className="hidden md:flex items-center gap-6 lg:gap-8 xl:gap-10">
           {navLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
+            <Link
+              key={link.to}
+              to={link.to}
               className={`${showFromClass[link.showFrom]} text-xs font-body font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors`}
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -144,14 +144,14 @@ const Header = () => {
         <div className="md:hidden bg-background border-t border-border pb-6">
           <nav className="container flex flex-col gap-4 pt-4">
             {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
+              <Link
+                key={link.to}
+                to={link.to}
                 className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
                 onClick={() => setOpen(false)}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
             {user ? (
               <>

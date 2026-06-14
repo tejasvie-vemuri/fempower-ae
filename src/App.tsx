@@ -24,6 +24,7 @@ import Saved from "./pages/Saved";
 import Meetups from "./pages/Meetups";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import ScrollToHash from "@/components/ScrollToHash";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
@@ -36,6 +37,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <ScrollToHash />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthPage />} />
