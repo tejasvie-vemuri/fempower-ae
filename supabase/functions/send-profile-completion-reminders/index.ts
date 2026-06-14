@@ -193,14 +193,18 @@ Deno.serve(async (req) => {
     failures,
   })
 
+  // Detailed per-user results are kept in server logs only; the response
+  // intentionally omits user_ids and missing fields to avoid leaking PII.
+  console.log('[profile-completion-reminders] results', { results })
+
   return new Response(
     JSON.stringify({
       processed: candidates.length,
       sent,
       skippedComplete,
       failures,
-      results,
     }),
     { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
   )
+
 })
