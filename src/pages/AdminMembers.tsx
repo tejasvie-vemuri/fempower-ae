@@ -33,6 +33,7 @@ const AdminMembers = () => {
   const [status, setStatus] = useState<MemberProfile["status"] | "all">("pending");
   const [search, setSearch] = useState("");
   const [counts, setCounts] = useState<Record<string, number>>({});
+  const [emails, setEmails] = useState<Record<string, string>>({});
 
   const load = async () => {
     setLoading(true);
@@ -43,7 +44,21 @@ const AdminMembers = () => {
       q = q.or(`name.ilike.${t},role.ilike.${t},company.ilike.${t}`);
     }
     const { data } = await q.limit(200);
-    setMembers((data ?? []) as MemberProfile[]);
+    const rows = (data ?? []) as MemberProfile[];
+    setMembers(rows);
+
+    const userIds = rows.map((r) => r.user_id).filter(Boolean);
+    if (userIds.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("user_id, email")
+        .in("user_id", userIds);
+      const map: Record<string, string> = {};
+      (profs ?? []).forEach((p: any) => { if (p.email) map[p.user_id] = p.email; });
+      setEmails(map);
+    } else {
+      setEmails({});
+    }
 
     const { data: all } = await supabase.from("member_profiles").select("status");
     const c: Record<string, number> = { pending: 0, approved: 0, hidden: 0, rejected: 0 };
