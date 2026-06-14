@@ -358,12 +358,54 @@ const AdminEvents = () => {
                   </Label>
                 </div>
 
+                <div className="space-y-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
+                  <div>
+                    <h4 className="font-medium text-foreground">
+                      Default questions asked to every attendee
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      These 5 questions are always shown at checkout. Review
+                      them and confirm before saving.
+                    </p>
+                  </div>
+                  <ol className="space-y-1.5 text-sm text-foreground/90 list-decimal pl-5">
+                    {DEFAULT_ATTENDEE_QUESTIONS.map((q) => (
+                      <li key={q.id}>
+                        <span>{q.label}</span>
+                        {q.options && q.options.length > 0 && (
+                          <span className="block text-xs text-muted-foreground">
+                            Options: {q.options.join(" · ")}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                  <label className="flex items-start gap-2 text-sm pt-1">
+                    <input
+                      type="checkbox"
+                      className="mt-1"
+                      checked={defaultsAcknowledged}
+                      onChange={(e) =>
+                        setDefaultsAcknowledged(e.target.checked)
+                      }
+                    />
+                    <span>
+                      I've reviewed and approve the 5 default questions above.
+                    </span>
+                  </label>
+                </div>
+
                 <AttendeeQuestionsEditor
                   value={form.attendee_questions}
                   onChange={(next) =>
                     setForm((f) => ({ ...f, attendee_questions: next }))
                   }
                 />
+                <p className="text-xs text-muted-foreground -mt-2">
+                  Anything else you'd like to ask attendees for this event? Add
+                  extra questions above (optional).
+                </p>
+
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                     Cancel
