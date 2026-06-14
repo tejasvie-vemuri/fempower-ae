@@ -140,8 +140,10 @@ const AdminEvents = () => {
       waitlist_enabled: e.waitlist_enabled,
       attendee_questions: parseQuestions(e.attendee_questions),
     });
+    setDefaultsAcknowledged(false);
     setOpen(true);
   };
+
 
   const handleSave = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
