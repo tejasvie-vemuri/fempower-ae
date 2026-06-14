@@ -97,6 +97,8 @@ const AdminEvents = () => {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [defaultsAcknowledged, setDefaultsAcknowledged] = useState(false);
+
 
   const load = async () => {
     setLoading(true);
