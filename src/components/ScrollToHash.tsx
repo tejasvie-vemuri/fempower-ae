@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { scrollToHashTarget } from "@/lib/hashNavigation";
 
 const ScrollToHash = () => {
   const { hash, pathname } = useLocation();
@@ -10,11 +11,7 @@ const ScrollToHash = () => {
       return;
     }
 
-    const id = decodeURIComponent(hash.slice(1));
-    const frame = window.requestAnimationFrame(() => {
-      const target = document.getElementById(id);
-      target?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+    const frame = window.requestAnimationFrame(() => scrollToHashTarget(hash));
 
     return () => window.cancelAnimationFrame(frame);
   }, [hash, pathname]);

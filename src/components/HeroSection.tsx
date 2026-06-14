@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Instagram } from "lucide-react";
+import HashLink from "@/components/HashLink";
 import heroImg from "@/assets/hero-community.jpg";
 import { DuneWave } from "./GulfDecoratives";
 import { useSiteImages } from "@/hooks/useSiteImages";
@@ -47,7 +48,7 @@ const HeroSection = () => {
             <Link to="/join">Join Us</Link>
           </Button>
           <Button size="lg" variant="outline" className="font-body uppercase tracking-widest text-xs px-6 sm:px-10 h-12 border-foreground/20 w-full sm:w-auto" asChild>
-            <a href="#programs">Explore Programs</a>
+            <HashLink to="/#programs">Explore Programs</HashLink>
           </Button>
         </div>
 

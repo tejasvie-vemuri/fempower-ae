@@ -20,6 +20,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
+import HashLink from "@/components/HashLink";
 
 interface TicketRow {
   id: string;
@@ -178,7 +179,7 @@ const MyTickets = () => {
               Browse upcoming events and book your first one.
             </p>
             <Button asChild>
-              <Link to="/#events">Browse events</Link>
+              <HashLink to="/#events-calendar">Browse events</HashLink>
             </Button>
           </Card>
         ) : (

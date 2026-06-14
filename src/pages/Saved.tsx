@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BookmarkButton from "@/components/BookmarkButton";
+import HashLink from "@/components/HashLink";
 import { topicLabel } from "@/lib/circle";
 
 const SUPABASE_URL = "https://uaiymunelgvvnznkxeik.supabase.co";
@@ -257,12 +258,12 @@ const Saved = () => {
                 <div className="text-center py-20">
                   <Bookmark size={36} className="mx-auto text-muted-foreground mb-3" />
                   <p className="font-body text-muted-foreground mb-4">No saved resources yet.</p>
-                  <Link
+                  <HashLink
                     to="/#resources"
                     className="text-sm font-body font-medium text-foreground underline underline-offset-4 hover:text-blush-dark"
                   >
                     Browse Resources →
-                  </Link>
+                  </HashLink>
                 </div>
               ) : (
                 <div className="grid sm:grid-cols-2 gap-4">

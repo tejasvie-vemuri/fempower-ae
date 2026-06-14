@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, Instagram, User, LogOut, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import HashLink from "@/components/HashLink";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +24,7 @@ const navLinks = [
   { label: "Gallery", to: "/#gallery", showFrom: "lg" as const },
   { label: "Join", to: "/join", showFrom: "md" as const },
   { label: "Circle", to: "/circle", showFrom: "lg" as const },
-  { label: "FAQs", to: "/#faqs", showFrom: "xl" as const },
+  { label: "FAQs", to: "/#faqs", showFrom: "xl" as const, requiresAuth: true },
 ];
 
 const showFromClass: Record<"md" | "lg" | "xl", string> = {
@@ -42,6 +43,7 @@ const Header = () => {
     user?.email ||
     "Account";
   const initial = displayName.charAt(0).toUpperCase();
+  const visibleNavLinks = navLinks.filter((link) => !link.requiresAuth || user);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
@@ -51,14 +53,14 @@ const Header = () => {
         </Link>
 
         <nav className="hidden md:flex items-center gap-6 lg:gap-8 xl:gap-10">
-          {navLinks.map((link) => (
-            <Link
+          {visibleNavLinks.map((link) => (
+            <HashLink
               key={link.to}
               to={link.to}
               className={`${showFromClass[link.showFrom]} text-xs font-body font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors`}
             >
               {link.label}
-            </Link>
+            </HashLink>
           ))}
         </nav>
 
@@ -146,15 +148,15 @@ const Header = () => {
       {open && (
         <div className="md:hidden bg-background border-t border-border pb-6">
           <nav className="container flex flex-col gap-4 pt-4">
-            {navLinks.map((link) => (
-              <Link
+            {visibleNavLinks.map((link) => (
+              <HashLink
                 key={link.to}
                 to={link.to}
                 className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
                 onClick={() => setOpen(false)}
               >
                 {link.label}
-              </Link>
+              </HashLink>
             ))}
             {user ? (
               <>

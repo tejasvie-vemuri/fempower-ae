@@ -15,6 +15,7 @@ import {
 import { getStripe, getStripeEnvironment } from "@/lib/stripe";
 import { toast } from "sonner";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
+import HashLink from "@/components/HashLink";
 import {
   parseQuestions,
   validateResponses,
@@ -397,13 +398,13 @@ const EventDetail = () => {
         </DialogContent>
       </Dialog>
       <div className="max-w-4xl mx-auto px-4 py-10">
-        <Link
+        <HashLink
           to="/#events-calendar"
           className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-6"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
           All events
-        </Link>
+        </HashLink>
 
         {event.cover_image_url && (
           <div className="rounded-2xl overflow-hidden mb-8 aspect-[16/7] bg-muted">
