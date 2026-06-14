@@ -74,7 +74,7 @@ async function handlePaymentIntentStatus(intent: ZiinaPaymentIntent) {
   if (!reg) return;
 
   if (nextStatus === "confirmed") {
-    await getSupabase()
+    const { error } = await getSupabase()
       .from("registrations")
       .update({
         status: "confirmed",
@@ -84,13 +84,14 @@ async function handlePaymentIntentStatus(intent: ZiinaPaymentIntent) {
         payment_intent_id: intent.id,
       })
       .eq("id", reg.id);
+    if (error) throw error;
     if (reg.status !== "confirmed") {
       await sendConfirmationEmail(reg.id, reg.user_id);
     }
     return;
   }
 
-  await getSupabase()
+  const { error } = await getSupabase()
     .from("registrations")
     .update({
       status: nextStatus,
@@ -98,12 +99,13 @@ async function handlePaymentIntentStatus(intent: ZiinaPaymentIntent) {
       payment_intent_id: intent.id,
     })
     .eq("id", reg.id);
+  if (error) throw error;
 }
 
 async function handleRefundStatus(refund: ZiinaRefund) {
   if (!refund.payment_intent_id) return;
   if (refund.status !== "completed") return;
-  await getSupabase()
+  const { error } = await getSupabase()
     .from("registrations")
     .update({
       status: "refunded",
@@ -111,6 +113,7 @@ async function handleRefundStatus(refund: ZiinaRefund) {
       payment_provider: "ziina",
     })
     .eq("payment_intent_id", refund.payment_intent_id);
+  if (error) throw error;
 }
 
 Deno.serve(async (req) => {

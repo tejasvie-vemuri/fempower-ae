@@ -56,22 +56,28 @@ async function confirmIfCompleted(
   supabaseAdmin: ReturnType<typeof createClient>,
   intent: ZiinaPaymentIntent,
   userId: string,
+  registrationId?: string,
 ) {
   const nextStatus = toRegistrationStatus(intent.status);
   if (!nextStatus) return;
 
-  const { data: reg } = await supabaseAdmin
+  let query = supabaseAdmin
     .from("registrations")
-    .select("id, status, user_id")
-    .eq("payment_intent_id", intent.id)
-    .maybeSingle();
+    .select("id, status, user_id");
 
+  query = registrationId
+    ? query.eq("id", registrationId)
+    : query.eq("payment_intent_id", intent.id);
+
+  const { data: reg, error: regErr } = await query.maybeSingle();
+
+  if (regErr) throw regErr;
   if (!reg || reg.user_id !== userId) {
     throw new Error("Payment intent does not belong to user");
   }
 
   if (nextStatus === "confirmed") {
-    await supabaseAdmin
+    const { error: updateErr } = await supabaseAdmin
       .from("registrations")
       .update({
         status: "confirmed",
@@ -81,13 +87,14 @@ async function confirmIfCompleted(
         payment_intent_id: intent.id,
       })
       .eq("id", reg.id);
+    if (updateErr) throw updateErr;
     if (reg.status !== "confirmed") {
       await sendConfirmationEmail(supabaseAdmin, reg.id, userId);
     }
     return;
   }
 
-  await supabaseAdmin
+  const { error: updateErr } = await supabaseAdmin
     .from("registrations")
     .update({
       status: nextStatus,
@@ -95,6 +102,7 @@ async function confirmIfCompleted(
       payment_intent_id: intent.id,
     })
     .eq("id", reg.id);
+  if (updateErr) throw updateErr;
 }
 
 const cleanPaymentIntentId = (value: unknown): string | undefined => {
@@ -142,11 +150,12 @@ Deno.serve(async (req) => {
     );
 
     if (!paymentIntentId && registrationId) {
-      const { data: reg } = await supabaseAdmin
+      const { data: reg, error: regErr } = await supabaseAdmin
         .from("registrations")
         .select("payment_intent_id, user_id")
         .eq("id", registrationId)
         .maybeSingle();
+      if (regErr) throw regErr;
       if (!reg || reg.user_id !== userId) {
         return new Response(JSON.stringify({ error: "Registration does not belong to user" }), {
           status: 403,
@@ -157,7 +166,7 @@ Deno.serve(async (req) => {
     }
 
     if (!paymentIntentId && eventId) {
-      const { data: regs } = await supabaseAdmin
+      const { data: regs, error: regsErr } = await supabaseAdmin
         .from("registrations")
         .select("payment_intent_id")
         .eq("event_id", eventId)
@@ -165,6 +174,7 @@ Deno.serve(async (req) => {
         .eq("payment_provider", "ziina")
         .order("updated_at", { ascending: false })
         .limit(1);
+      if (regsErr) throw regsErr;
       paymentIntentId = cleanPaymentIntentId(regs?.[0]?.payment_intent_id);
     }
 
@@ -176,7 +186,7 @@ Deno.serve(async (req) => {
     }
 
     const intent = await getPaymentIntent(paymentIntentId);
-    await confirmIfCompleted(supabaseAdmin, intent, userId);
+    await confirmIfCompleted(supabaseAdmin, intent, userId, registrationId);
 
     return new Response(
       JSON.stringify({
