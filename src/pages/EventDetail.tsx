@@ -269,6 +269,42 @@ const EventDetail = () => {
         return;
       }
       toast.success("You're registered!");
+
+      // Send confirmation email (free registrations)
+      try {
+        const { data: reg } = await supabase
+          .from("registrations")
+          .select("id, ticket_code, quantity")
+          .eq("event_id", event.id)
+          .eq("user_id", user.id)
+          .maybeSingle();
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("email, name")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (profile?.email && reg) {
+          await supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "event-registration-confirmation",
+              recipientEmail: profile.email,
+              idempotencyKey: `event-reg-${reg.id}`,
+              templateData: {
+                name: profile.name,
+                eventTitle: event.title,
+                startsAt: event.starts_at,
+                location: event.location,
+                ticketCode: reg.ticket_code,
+                quantity: reg.quantity,
+                eventUrl: `${window.location.origin}/events/${event.slug}`,
+              },
+            },
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to send event registration email", e);
+      }
+
       load();
     } else {
       const { data, error } = await supabase.functions.invoke("create-checkout-session", {
