@@ -108,6 +108,70 @@ Deno.serve(async (req) => {
   }
   logDiag('received')
 
+  // ---------------------------------------------------------------------------
+  // Authorization
+  // ---------------------------------------------------------------------------
+  // verify_jwt = true ensures the gateway accepts only signed JWTs, but the
+  // anon key is public, so we additionally constrain WHO can send WHAT here.
+  //
+  // Rules:
+  //   * service_role tokens: unrestricted (used by other edge functions / cron)
+  //   * admin users: unrestricted (used by AdminMembers, AdminCircle UI)
+  //   * regular authenticated users: may only send a small allowlist of
+  //     self-addressed templates, and the recipient MUST match their own auth
+  //     email.
+  //   * anon / no token: rejected.
+  const SELF_TEMPLATES = new Set([
+    'welcome',
+    'event-registration-confirmation',
+  ])
+
+  const authHeader = req.headers.get('Authorization') ?? ''
+  const callerToken = authHeader.startsWith('Bearer ')
+    ? authHeader.slice(7).trim()
+    : ''
+
+  function decodeJwtClaims(jwt: string): Record<string, unknown> | null {
+    try {
+      const parts = jwt.split('.')
+      if (parts.length < 2) return null
+      let p = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+      while (p.length % 4) p += '='
+      return JSON.parse(atob(p))
+    } catch {
+      return null
+    }
+  }
+
+  const claims = decodeJwtClaims(callerToken) as
+    | { role?: string; sub?: string; email?: string }
+    | null
+  const callerRole = claims?.role ?? 'anon'
+  const callerSub = (claims?.sub as string | undefined) ?? null
+  const callerEmail = ((claims?.email as string | undefined) ?? '').toLowerCase()
+
+  if (!claims || callerRole === 'anon') {
+    logDiag('error_unauthorized', { reason: 'anon_or_no_jwt' }, true)
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    )
+  }
+
+  let callerIsAdmin = false
+  if (callerRole !== 'service_role' && callerSub) {
+    try {
+      const supaCheck = createClient(supabaseUrl, supabaseServiceKey)
+      const { data: isAdmin } = await supaCheck.rpc('has_role', {
+        _user_id: callerSub,
+        _role: 'admin',
+      })
+      callerIsAdmin = !!isAdmin
+    } catch (e) {
+      console.error('[txn-email] has_role check failed', e)
+    }
+  }
+
   if (!templateName) {
     return new Response(
       JSON.stringify({ error: 'templateName is required' }),
@@ -117,6 +181,7 @@ Deno.serve(async (req) => {
       }
     )
   }
+
 
   // 1. Look up template from registry (early — needed to resolve recipient)
   const template = TEMPLATES[templateName]
@@ -152,6 +217,29 @@ Deno.serve(async (req) => {
       }
     )
   }
+
+  // Per-template authorization for non-privileged callers.
+  if (callerRole !== 'service_role' && !callerIsAdmin) {
+    if (!SELF_TEMPLATES.has(templateName)) {
+      logDiag('error_forbidden_template', { templateName, callerRole }, true)
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+    if (
+      !callerEmail ||
+      effectiveRecipient.toLowerCase() !== callerEmail
+    ) {
+      logDiag('error_recipient_mismatch', { templateName }, true)
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: recipient must match authenticated user' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+  }
+
+
 
   // Create Supabase client with service role (bypasses RLS)
   const supabase = createClient(supabaseUrl, supabaseServiceKey)

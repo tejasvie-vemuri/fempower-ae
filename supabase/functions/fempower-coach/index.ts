@@ -323,13 +323,47 @@ async function fetchUpcomingEvents(): Promise<string> {
   }
 }
 
+// Lightweight in-memory per-IP rate limit to prevent anonymous abuse of the
+// LOVABLE_API_KEY quota. The coach is intentionally public (discovery feature),
+// so we don't require auth — but we cap each IP to a small burst per minute.
+const RATE_LIMIT_WINDOW_MS = 60_000
+const RATE_LIMIT_MAX = 20
+const rateBuckets = new Map<string, { count: number; resetAt: number }>()
+
+function rateLimitKey(req: Request): string {
+  const xff = req.headers.get('x-forwarded-for') ?? ''
+  const ip = xff.split(',')[0]?.trim() || req.headers.get('cf-connecting-ip') || 'unknown'
+  return ip
+}
+
+function checkRateLimit(key: string): boolean {
+  const now = Date.now()
+  const b = rateBuckets.get(key)
+  if (!b || now > b.resetAt) {
+    rateBuckets.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
+    return true
+  }
+  if (b.count >= RATE_LIMIT_MAX) return false
+  b.count++
+  return true
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const ipKey = rateLimitKey(req)
+  if (!checkRateLimit(ipKey)) {
+    return new Response(
+      JSON.stringify({ error: "Too many requests. Please slow down and try again in a minute." }),
+      { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    )
+  }
 
   try {
     const { messages, userProfile } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
 
     const eventsBlock = await fetchUpcomingEvents();
     let systemContent = SYSTEM_PROMPT + eventsBlock;
