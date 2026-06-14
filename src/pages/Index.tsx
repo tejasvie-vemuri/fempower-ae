@@ -42,7 +42,7 @@ const Index = () => {
         <BecomingSpaceSection />
         <GallerySection />
         <SubstackFeedSection />
-        <ResourcesSection />
+        {isAdmin && <ResourcesSection />}
         {isAuthed && <JoinSection />}
         {isAuthed && <TestimonialsSection />}
         {isAuthed && <FAQSection />}
