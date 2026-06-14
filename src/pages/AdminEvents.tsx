@@ -33,7 +33,9 @@ import { Loader2, Pencil, Plus, Trash2, ArrowLeft, Users } from "lucide-react";
 import {
   AttendeeQuestion,
   parseQuestions,
+  DEFAULT_ATTENDEE_QUESTIONS,
 } from "@/lib/attendeeQuestions";
+
 import { AttendeeQuestionsEditor } from "@/components/admin/AttendeeQuestionsEditor";
 
 type EventStatus = "draft" | "published" | "cancelled" | "completed";
