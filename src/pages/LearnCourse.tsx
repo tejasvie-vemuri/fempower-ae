@@ -123,6 +123,9 @@ const LearnCourse = () => {
             )}
             <div className="mt-6 max-w-sm">
               <CourseProgress completed={completedWingIds.size} total={totalWings} />
+              <p className="mt-3 text-sm font-body font-semibold text-foreground/80">
+                Inspired by Karthi Subburaman
+              </p>
             </div>
           </motion.div>
         </div>
