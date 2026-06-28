@@ -106,12 +106,16 @@ const LearnWing = () => {
       return;
     }
     setCompleted(true);
+    setCompletedSiblingIds((prev) => new Set(prev).add(wingId));
     toast.success("Wing completed!");
   };
 
   const currentIdx = allWings.findIndex((w) => w.id === wingId);
   const prevWing = currentIdx > 0 ? allWings[currentIdx - 1] : null;
   const nextWing = currentIdx < allWings.length - 1 ? allWings[currentIdx + 1] : null;
+  const totalWings = allWings.length;
+  const doneCount = completedSiblingIds.size;
+  const progressPct = totalWings > 0 ? Math.round((doneCount / totalWings) * 100) : 0;
 
   if (loading) {
     return (
