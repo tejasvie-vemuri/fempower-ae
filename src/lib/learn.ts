@@ -4,7 +4,8 @@ export interface LearnCourse {
   description: string | null;
   emoji: string;
   display_order: number;
-  status: "draft" | "published";
+  status: "draft" | "published" | "scheduled";
+  published_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -15,6 +16,7 @@ export interface LearnModule {
   title: string;
   description: string | null;
   display_order: number;
+  published_at: string | null;
   created_at: string;
   updated_at: string;
 }

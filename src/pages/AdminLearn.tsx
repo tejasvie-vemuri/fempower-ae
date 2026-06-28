@@ -46,7 +46,8 @@ const emptyCourseForm = {
   description: "",
   emoji: "🦋",
   display_order: "0",
-  status: "draft" as "draft" | "published",
+  status: "draft" as "draft" | "published" | "scheduled",
+  published_at: "",
 };
 
 function CoursesTab() {
@@ -77,6 +78,7 @@ function CoursesTab() {
       emoji: c.emoji,
       display_order: String(c.display_order),
       status: c.status,
+      published_at: c.published_at ? c.published_at.slice(0, 16) : "",
     });
     setOpen(true);
   };
@@ -89,6 +91,9 @@ function CoursesTab() {
       emoji: form.emoji || "🦋",
       display_order: parseInt(form.display_order) || 0,
       status: form.status,
+      published_at: form.status === "scheduled" && form.published_at
+        ? new Date(form.published_at).toISOString()
+        : form.status === "published" ? new Date().toISOString() : null,
     };
     const { error } = form.id
       ? await (supabase as any).from("learn_courses").update(payload).eq("id", form.id)
@@ -133,9 +138,14 @@ function CoursesTab() {
                 <TableCell>{c.emoji}</TableCell>
                 <TableCell className="font-medium">{c.title}</TableCell>
                 <TableCell>
-                  <Badge variant={c.status === "published" ? "default" : "secondary"}>
+                  <Badge variant={c.status === "published" ? "default" : c.status === "scheduled" ? "outline" : "secondary"}>
                     {c.status}
                   </Badge>
+                  {c.status === "scheduled" && c.published_at && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {new Date(c.published_at).toLocaleString("en-AE", { dateStyle: "medium", timeStyle: "short" })}
+                    </p>
+                  )}
                 </TableCell>
                 <TableCell className="text-right">{c.display_order}</TableCell>
                 <TableCell className="text-right space-x-1">
@@ -167,10 +177,17 @@ function CoursesTab() {
                   <SelectContent>
                     <SelectItem value="draft">Draft</SelectItem>
                     <SelectItem value="published">Published</SelectItem>
+                    <SelectItem value="scheduled">Scheduled</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
+            {form.status === "scheduled" && (
+              <div>
+                <Label>Publish at</Label>
+                <Input type="datetime-local" value={form.published_at} onChange={(e) => setForm({ ...form, published_at: e.target.value })} />
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
@@ -192,6 +209,7 @@ const emptyModuleForm = {
   title: "",
   description: "",
   display_order: "0",
+  published_at: "",
 };
 
 function ModulesTab() {
@@ -231,6 +249,7 @@ function ModulesTab() {
       title: m.title,
       description: m.description ?? "",
       display_order: String(m.display_order),
+      published_at: m.published_at ? m.published_at.slice(0, 16) : "",
     });
     setOpen(true);
   };
@@ -242,6 +261,7 @@ function ModulesTab() {
       title: form.title,
       description: form.description || null,
       display_order: parseInt(form.display_order) || 0,
+      published_at: form.published_at ? new Date(form.published_at).toISOString() : null,
     };
     const { error } = form.id
       ? await (supabase as any).from("learn_modules").update(payload).eq("id", form.id)
@@ -286,6 +306,7 @@ function ModulesTab() {
             <TableRow>
               <TableHead>Title</TableHead>
               <TableHead>Course</TableHead>
+              <TableHead>Publish at</TableHead>
               <TableHead className="text-right">Order</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -295,6 +316,11 @@ function ModulesTab() {
               <TableRow key={m.id}>
                 <TableCell className="font-medium">{m.title}</TableCell>
                 <TableCell className="text-muted-foreground text-sm">{courseName(m.course_id)}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {m.published_at
+                    ? new Date(m.published_at).toLocaleString("en-AE", { dateStyle: "medium", timeStyle: "short" })
+                    : <span className="italic">Immediate</span>}
+                </TableCell>
                 <TableCell className="text-right">{m.display_order}</TableCell>
                 <TableCell className="text-right space-x-1">
                   <Button size="icon" variant="ghost" onClick={() => openEdit(m)}><Pencil size={14} /></Button>
@@ -303,7 +329,7 @@ function ModulesTab() {
               </TableRow>
             ))}
             {items.length === 0 && (
-              <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No modules yet</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No modules yet</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
@@ -324,7 +350,10 @@ function ModulesTab() {
             </div>
             <div><Label>Title</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
             <div><Label>Description</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} /></div>
-            <div><Label>Order</Label><Input type="number" value={form.display_order} onChange={(e) => setForm({ ...form, display_order: e.target.value })} className="w-24" /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Order</Label><Input type="number" value={form.display_order} onChange={(e) => setForm({ ...form, display_order: e.target.value })} /></div>
+              <div><Label>Schedule publish (optional)</Label><Input type="datetime-local" value={form.published_at} onChange={(e) => setForm({ ...form, published_at: e.target.value })} /></div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
