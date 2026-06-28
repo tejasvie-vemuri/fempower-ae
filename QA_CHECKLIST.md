@@ -146,6 +146,43 @@
 
 ---
 
+## 🦋 FemPower Learn
+
+| # | Test Case | Expected Result | Status |
+|---|-----------|-----------------|--------|
+| L1 | Login gate — unauthenticated user | Redirected to `/auth` | [ ] |
+| L2 | Course listing — published courses | Published courses shown with progress bars | [ ] |
+| L3 | Course listing — draft courses | Draft courses hidden from members | [ ] |
+| L4 | Course listing — scheduled (future) | Scheduled courses hidden until publish time | [ ] |
+| L5 | Course listing — scheduled (past) | Scheduled courses with past publish time visible | [ ] |
+| L6 | Course detail — modules listed | All modules shown with accordion, wing counts | [ ] |
+| L7 | Module — scheduled (future) | Scheduled modules hidden from members | [ ] |
+| L8 | Module — wings listed | Wings shown with completion checkmarks | [ ] |
+| L9 | Wing — context renders | Context content displays with proper formatting | [ ] |
+| L10 | Wing — reflection save | Reflection saved to Supabase, toast shown | [ ] |
+| L11 | Wing — reflection update | Existing reflection updated, not duplicated | [ ] |
+| L12 | Wing — share toggle | Shared reflections visible to other members | [ ] |
+| L13 | Wing — mark complete | Progress recorded, checkmark appears | [ ] |
+| L14 | Wing — prev/next navigation | Previous/Next buttons link to correct wings | [ ] |
+| L15 | Progress — course card | Progress bar updates after completing wings | [ ] |
+| L16 | Learning Journal — reflections listed | All user reflections shown chronologically | [ ] |
+| L17 | Learning Journal — empty state | "No reflections yet" message shown | [ ] |
+| L18 | Resources — displayed on course page | External links shown with titles and descriptions | [ ] |
+| L19 | Admin — create course | Course created with status/emoji/description | [ ] |
+| L20 | Admin — schedule course | Scheduled status + publish datetime saved | [ ] |
+| L21 | Admin — create module | Module created under selected course | [ ] |
+| L22 | Admin — schedule module | Publish datetime saved on module | [ ] |
+| L23 | Admin — create wing | Wing created with context/reflection/extension | [ ] |
+| L24 | Admin — create resource | Resource created with title/URL/description | [ ] |
+| L25 | Admin — edit/delete all entities | CRUD operations work across all 4 tabs | [ ] |
+| L26 | Admin — filter modules by course | Module list filters correctly | [ ] |
+| L27 | Admin — filter wings by course/module | Wing list filters correctly | [ ] |
+| L28 | Shared reflections — other members | Shared reflections show author name from profile | [ ] |
+| L29 | Mobile — course grid | Single column on mobile, 3 columns on desktop | [ ] |
+| L30 | Mobile — wing content | Readable on mobile with proper spacing | [ ] |
+
+---
+
 ## 🛠️ Admin Panel
 
 | # | Test Case | Expected Result | Status |
@@ -232,11 +269,12 @@
 | Directory | 14 | 0 | 0 | 0 | 14 |
 | Profile Edit | 9 | 0 | 0 | 0 | 9 |
 | Events | 18 | 0 | 0 | 0 | 18 |
+| FemPower Learn | 30 | 0 | 0 | 0 | 30 |
 | Admin | 11 | 0 | 0 | 0 | 11 |
 | Homepage | 13 | 0 | 0 | 0 | 13 |
 | Responsive | 7 | 2 | 0 | 0 | 5 |
 | Security | 8 | 3 | 0 | 0 | 5 |
-| **Total** | **110** | **5** | **0** | **0** | **105** |
+| **Total** | **140** | **5** | **0** | **0** | **135** |
 
 ---
 

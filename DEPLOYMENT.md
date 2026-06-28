@@ -77,6 +77,27 @@ All infrastructure is managed through Lovable + Supabase.
 
 ---
 
+## FemPower Learn — Database Setup
+
+The Learn feature requires 6 tables + RLS policies. Run these migrations in order via the Supabase SQL Editor:
+
+1. **`supabase/migrations/20260628000000_add_learn_tables.sql`** — Creates all 6 tables (`learn_courses`, `learn_modules`, `learn_wings`, `learn_resources`, `learn_progress`, `learn_reflections`) with indexes, RLS policies, and triggers.
+
+2. **`supabase/migrations/20260628100000_add_learn_scheduling.sql`** — Adds `published_at` column to courses and modules, adds `scheduled` status option, and updates RLS policies for time-based auto-publishing.
+
+3. **`supabase/seed_learn_course1.sql`** (optional) — Seeds "Learn AI from Scratch" course with 3 modules and 22 wings of content.
+
+4. **`supabase/update_wing_actions.sql`** (optional) — Updates all 22 wings with concrete Action + Go Further steps.
+
+### Managing Content
+
+- Admin panel at `/admin/learn` provides full CRUD for courses, modules, wings, and resources
+- Courses can be Draft (hidden), Published (live now), or Scheduled (goes live at a set date/time)
+- Modules can have an optional publish date for drip-releasing content
+- Resources are auto-published when added (no draft state)
+
+---
+
 ## Known Route Behaviour
 
 Direct navigation to `/programs`, `/events`, `/join` returns a 404 because
