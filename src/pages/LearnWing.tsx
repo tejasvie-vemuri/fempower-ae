@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import {
   Loader2,
@@ -35,6 +36,7 @@ const LearnWing = () => {
   const [wing, setWing] = useState<LearnWingType | null>(null);
   const [allWings, setAllWings] = useState<LearnWingType[]>([]);
   const [completed, setCompleted] = useState(false);
+  const [completedSiblingIds, setCompletedSiblingIds] = useState<Set<string>>(new Set());
   const [myReflection, setMyReflection] = useState<LearnReflection | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -57,7 +59,7 @@ const LearnWing = () => {
     setAllWings(siblingsRes.data ?? []);
 
     if (user && wingId) {
-      const [progressRes, reflectionRes] = await Promise.all([
+      const [progressRes, reflectionRes, moduleProgressRes] = await Promise.all([
         (supabase as any)
           .from("learn_progress")
           .select("id")
@@ -70,9 +72,19 @@ const LearnWing = () => {
           .eq("user_id", user.id)
           .eq("wing_id", wingId)
           .maybeSingle(),
+        (supabase as any)
+          .from("learn_progress")
+          .select("wing_id")
+          .eq("user_id", user.id)
+          .in("wing_id", (siblingsRes.data ?? []).map((w: { id: string }) => w.id)),
       ]);
       setCompleted(!!progressRes.data);
       setMyReflection(reflectionRes.data);
+      setCompletedSiblingIds(
+        new Set((moduleProgressRes.data ?? []).map((r: { wing_id: string }) => r.wing_id))
+      );
+    } else {
+      setCompletedSiblingIds(new Set());
     }
 
     setLoading(false);
@@ -94,12 +106,16 @@ const LearnWing = () => {
       return;
     }
     setCompleted(true);
+    setCompletedSiblingIds((prev) => new Set(prev).add(wingId));
     toast.success("Wing completed!");
   };
 
   const currentIdx = allWings.findIndex((w) => w.id === wingId);
   const prevWing = currentIdx > 0 ? allWings[currentIdx - 1] : null;
   const nextWing = currentIdx < allWings.length - 1 ? allWings[currentIdx + 1] : null;
+  const totalWings = allWings.length;
+  const doneCount = completedSiblingIds.size;
+  const progressPct = totalWings > 0 ? Math.round((doneCount / totalWings) * 100) : 0;
 
   if (loading) {
     return (
@@ -156,6 +172,21 @@ const LearnWing = () => {
             </Badge>
           )}
         </div>
+
+        {/* Module progress */}
+        {totalWings > 0 && (
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-body text-muted-foreground">
+                Wing {currentIdx + 1} of {totalWings} · {mod.title}
+              </span>
+              <span className="text-xs font-body text-muted-foreground">
+                {doneCount}/{totalWings} completed ({progressPct}%)
+              </span>
+            </div>
+            <Progress value={progressPct} className="h-2" />
+          </div>
+        )}
 
         {/* Context */}
         <section className="mt-10">
