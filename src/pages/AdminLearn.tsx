@@ -654,10 +654,10 @@ function ResourcesTab() {
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <h2 className="font-heading text-lg">Resources</h2>
-          <Select value={courseFilter} onValueChange={setCourseFilter}>
+          <Select value={courseFilter || "__all__"} onValueChange={(v) => setCourseFilter(v === "__all__" ? "" : v)}>
             <SelectTrigger className="w-48"><SelectValue placeholder="All courses" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All courses</SelectItem>
+              <SelectItem value="__all__">All courses</SelectItem>
               {courses.map((c) => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}
             </SelectContent>
           </Select>
