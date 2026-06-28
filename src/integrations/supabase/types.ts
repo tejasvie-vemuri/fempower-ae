@@ -430,6 +430,229 @@ export type Database = {
         }
         Relationships: []
       }
+      learn_courses: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          emoji: string | null
+          id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          emoji?: string | null
+          id?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          emoji?: string | null
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      learn_modules: {
+        Row: {
+          course_id: string
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learn_modules_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "learn_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learn_progress: {
+        Row: {
+          completed_at: string
+          id: string
+          user_id: string
+          wing_id: string
+        }
+        Insert: {
+          completed_at?: string
+          id?: string
+          user_id: string
+          wing_id: string
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          user_id?: string
+          wing_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learn_progress_wing_id_fkey"
+            columns: ["wing_id"]
+            isOneToOne: false
+            referencedRelation: "learn_wings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learn_reflections: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_shared: boolean
+          updated_at: string
+          user_id: string
+          wing_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_shared?: boolean
+          updated_at?: string
+          user_id: string
+          wing_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_shared?: boolean
+          updated_at?: string
+          user_id?: string
+          wing_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learn_reflections_wing_id_fkey"
+            columns: ["wing_id"]
+            isOneToOne: false
+            referencedRelation: "learn_wings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learn_resources: {
+        Row: {
+          course_id: string
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          title: string
+          url: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          title: string
+          url: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          title?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learn_resources_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "learn_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learn_wings: {
+        Row: {
+          context_content: string
+          created_at: string
+          display_order: number
+          estimated_minutes: number | null
+          extension_content: string
+          id: string
+          module_id: string
+          reflection_prompt: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          context_content?: string
+          created_at?: string
+          display_order?: number
+          estimated_minutes?: number | null
+          extension_content?: string
+          id?: string
+          module_id: string
+          reflection_prompt?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          context_content?: string
+          created_at?: string
+          display_order?: number
+          estimated_minutes?: number | null
+          extension_content?: string
+          id?: string
+          module_id?: string
+          reflection_prompt?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learn_wings_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "learn_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meetup_reports: {
         Row: {
           created_at: string
