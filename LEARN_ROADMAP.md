@@ -1,4 +1,4 @@
-# FemPower Learn — Feature Roadmap
+# FemPower — Feature Roadmap
 
 > Brainstormed on June 28, 2026. Parked for future sessions.
 
@@ -50,6 +50,42 @@ Some wings would land harder as 2-minute audio — a voice note feel. Even just 
 - [ ] Add bookmarking support for wings (extend existing BookmarkButton)
 - [ ] Add search/filter to Learn page when course count grows past 5
 - [ ] Consider rich text (markdown rendering) for wing content instead of plain whitespace-pre-wrap
+
+---
+
+---
+
+## Competitive Edge Features (Brainstormed June 28)
+
+### Private DMs Between Members
+Members can't contact each other through the platform today. Add a "Request to Connect" button on directory profiles that sends an intro email or opens a simple messaging thread. Keeps connections inside FemPower instead of losing them to LinkedIn/Instagram.
+
+### Job / Opportunity Board
+UAE women face specific job market challenges — visa transfers, part-time roles, return-to-work after career breaks, freelance gigs. A curated board where members or partner companies post opportunities specifically for women in the UAE. No one owns this space.
+
+### Visa & Legal Resource Hub
+Spouse visa work permits, freelance licenses, mainland vs freezone, golden visa eligibility. A curated, always-updated resource section verified by members who've actually been through the process. The thing women Google and land on FemPower for.
+
+### Interest-Based Sub-Circles
+Allow topic-specific sub-circles within the Circle forum: "Founders Circle", "Mums in Tech", "New to Dubai", "Career Switchers." Each has its own feed. Members self-select. This is how communities scale without getting noisy.
+
+### Event Replays & Content Library
+Record events (hosted every 15 days). Upload replays behind the member gate. Over time this becomes a library that makes membership increasingly valuable — "Join now and get access to 50+ past sessions."
+
+### Accountability Partnerships
+Pair two members for a 4-week accountability sprint. Each sets one goal, they check in weekly via the platform. Simple shared card with two goals, two weekly check-in fields. Builds deep 1:1 bonds.
+
+### "Ask the Community" AI Layer
+Extend Zara (AI coach) to search anonymised Circle posts and shared reflections. "23 FemPower members have discussed this topic — here's what came up." Community-trained AI. No competitor has this.
+
+### UAE Cultural Calendar Integration
+Auto-surface relevant content and events around Ramadan, Eid, UAE National Day, International Women's Day, back-to-school season. Platform adapts to the month — featured wings change, event suggestions shift, coach prompts are contextual.
+
+### Arabic Language Support
+Even partial — reflection prompts in Arabic, coach that responds in Arabic, RTL layout. 40%+ of UAE population is Arabic-speaking. Most English-first platforms ignore this. A bilingual toggle on key pages would be a differentiator.
+
+### Partner Dashboard for Corporates
+Companies in the UAE want to support women's development (DEI budgets, Emiratisation goals). A partner page where companies sponsor events, fund course scholarships, or get branded access for their female employees. Revenue channel and a moat.
 
 ---
 
