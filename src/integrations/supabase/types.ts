@@ -619,6 +619,7 @@ export type Database = {
           display_order: number
           estimated_minutes: number | null
           extension_content: string
+          featured_until: string | null
           id: string
           module_id: string
           reflection_prompt: string
@@ -631,6 +632,7 @@ export type Database = {
           display_order?: number
           estimated_minutes?: number | null
           extension_content?: string
+          featured_until?: string | null
           id?: string
           module_id: string
           reflection_prompt?: string
@@ -643,6 +645,7 @@ export type Database = {
           display_order?: number
           estimated_minutes?: number | null
           extension_content?: string
+          featured_until?: string | null
           id?: string
           module_id?: string
           reflection_prompt?: string
