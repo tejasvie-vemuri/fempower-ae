@@ -58,7 +58,7 @@ const LearnWing = () => {
     setAllWings(siblingsRes.data ?? []);
 
     if (user && wingId) {
-      const [progressRes, reflectionRes] = await Promise.all([
+      const [progressRes, reflectionRes, moduleProgressRes] = await Promise.all([
         (supabase as any)
           .from("learn_progress")
           .select("id")
@@ -71,9 +71,19 @@ const LearnWing = () => {
           .eq("user_id", user.id)
           .eq("wing_id", wingId)
           .maybeSingle(),
+        (supabase as any)
+          .from("learn_progress")
+          .select("wing_id")
+          .eq("user_id", user.id)
+          .in("wing_id", (siblingsRes.data ?? []).map((w: { id: string }) => w.id)),
       ]);
       setCompleted(!!progressRes.data);
       setMyReflection(reflectionRes.data);
+      setCompletedSiblingIds(
+        new Set((moduleProgressRes.data ?? []).map((r: { wing_id: string }) => r.wing_id))
+      );
+    } else {
+      setCompletedSiblingIds(new Set());
     }
 
     setLoading(false);
