@@ -21,6 +21,7 @@ const navLinks = [
   { label: "Programs", to: "/#programs", showFrom: "xl" as const },
   { label: "Events", to: "/#events-calendar", showFrom: "md" as const },
   { label: "Directory", to: "/directory", showFrom: "md" as const },
+  { label: "Learn", to: "/learn", showFrom: "lg" as const },
   { label: "Gallery", to: "/#gallery", showFrom: "lg" as const },
   { label: "Join", to: "/join", showFrom: "md" as const },
   { label: "Circle", to: "/circle", showFrom: "lg" as const },
@@ -115,6 +116,9 @@ const Header = () => {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/admin/circle">Admin · Circle</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/learn">Admin · Learn</Link>
                     </DropdownMenuItem>
                   </>
                 )}

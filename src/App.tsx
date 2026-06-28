@@ -28,6 +28,12 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Unsubscribe from "./pages/Unsubscribe";
 import PendingApproval from "./pages/PendingApproval";
+import Learn from "./pages/Learn";
+import LearnCourse from "./pages/LearnCourse";
+import LearnModule from "./pages/LearnModule";
+import LearnWing from "./pages/LearnWing";
+import LearnJournal from "./pages/LearnJournal";
+import AdminLearn from "./pages/AdminLearn";
 import ScrollToHash from "@/components/ScrollToHash";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -85,7 +91,12 @@ const App = () => (
                 </AdminRoute>
               }
             />
-
+            <Route path="/learn" element={<ProtectedRoute><Learn /></ProtectedRoute>} />
+            <Route path="/learn/journal" element={<ProtectedRoute><LearnJournal /></ProtectedRoute>} />
+            <Route path="/learn/:courseId" element={<ProtectedRoute><LearnCourse /></ProtectedRoute>} />
+            <Route path="/learn/:courseId/:moduleId" element={<ProtectedRoute><LearnModule /></ProtectedRoute>} />
+            <Route path="/learn/:courseId/:moduleId/:wingId" element={<ProtectedRoute><LearnWing /></ProtectedRoute>} />
+            <Route path="/admin/learn" element={<AdminRoute><AdminLearn /></AdminRoute>} />
             <Route path="/programs" element={<Navigate to="/#programs" replace />} />
             <Route path="/events" element={<Navigate to="/#events-calendar" replace />} />
             <Route path="/join" element={<Join />} />
