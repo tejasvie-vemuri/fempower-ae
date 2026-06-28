@@ -476,18 +476,18 @@ function WingsTab() {
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div className="flex items-center gap-3 flex-wrap">
           <h2 className="font-heading text-lg">Wings</h2>
-          <Select value={courseFilter} onValueChange={setCourseFilter}>
+          <Select value={courseFilter || "__all__"} onValueChange={(v) => setCourseFilter(v === "__all__" ? "" : v)}>
             <SelectTrigger className="w-44"><SelectValue placeholder="All courses" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All courses</SelectItem>
+              <SelectItem value="__all__">All courses</SelectItem>
               {courses.map((c) => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}
             </SelectContent>
           </Select>
           {modules.length > 0 && (
-            <Select value={moduleFilter} onValueChange={setModuleFilter}>
+            <Select value={moduleFilter || "__all__"} onValueChange={(v) => setModuleFilter(v === "__all__" ? "" : v)}>
               <SelectTrigger className="w-44"><SelectValue placeholder="All modules" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All modules</SelectItem>
+                <SelectItem value="__all__">All modules</SelectItem>
                 {modules.map((m) => <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>)}
               </SelectContent>
             </Select>
