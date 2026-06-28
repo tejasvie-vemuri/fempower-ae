@@ -437,6 +437,7 @@ export type Database = {
           display_order: number
           emoji: string | null
           id: string
+          published_at: string | null
           status: string
           title: string
           updated_at: string
@@ -447,6 +448,7 @@ export type Database = {
           display_order?: number
           emoji?: string | null
           id?: string
+          published_at?: string | null
           status?: string
           title: string
           updated_at?: string
@@ -457,6 +459,7 @@ export type Database = {
           display_order?: number
           emoji?: string | null
           id?: string
+          published_at?: string | null
           status?: string
           title?: string
           updated_at?: string
@@ -470,6 +473,7 @@ export type Database = {
           description: string | null
           display_order: number
           id: string
+          published_at: string | null
           title: string
           updated_at: string
         }
@@ -479,6 +483,7 @@ export type Database = {
           description?: string | null
           display_order?: number
           id?: string
+          published_at?: string | null
           title: string
           updated_at?: string
         }
@@ -488,6 +493,7 @@ export type Database = {
           description?: string | null
           display_order?: number
           id?: string
+          published_at?: string | null
           title?: string
           updated_at?: string
         }
