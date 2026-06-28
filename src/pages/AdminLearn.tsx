@@ -30,7 +30,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, Pencil, Plus, Trash2, Sparkles } from "lucide-react";
 import type {
   LearnCourse,
   LearnModule,
@@ -469,6 +469,18 @@ function WingsTab() {
     loadWings();
   };
 
+  const handleFeature = async (id: string) => {
+    const until = new Date();
+    until.setDate(until.getDate() + 7);
+    const { error } = await (supabase as any)
+      .from("learn_wings")
+      .update({ featured_until: until.toISOString() })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Wing featured for 7 days!");
+    loadWings();
+  };
+
   const moduleName = (id: string) => modules.find((m) => m.id === id)?.title ?? "—";
 
   return (
@@ -511,11 +523,19 @@ function WingsTab() {
           <TableBody>
             {items.map((w) => (
               <TableRow key={w.id}>
-                <TableCell className="font-medium">{w.title}</TableCell>
+                <TableCell className="font-medium">
+                  {w.title}
+                  {w.featured_until && new Date(w.featured_until) > new Date() && (
+                    <Badge variant="outline" className="ml-2 text-xs text-blush-dark border-blush-dark">
+                      <Sparkles size={10} className="mr-1" /> Featured
+                    </Badge>
+                  )}
+                </TableCell>
                 <TableCell className="text-muted-foreground text-sm">{moduleName(w.module_id)}</TableCell>
                 <TableCell className="text-right">{w.estimated_minutes}</TableCell>
                 <TableCell className="text-right">{w.display_order}</TableCell>
                 <TableCell className="text-right space-x-1">
+                  <Button size="icon" variant="ghost" title="Feature for 7 days" onClick={() => handleFeature(w.id)}><Sparkles size={14} /></Button>
                   <Button size="icon" variant="ghost" onClick={() => openEdit(w)}><Pencil size={14} /></Button>
                   <Button size="icon" variant="ghost" onClick={() => handleDelete(w.id)}><Trash2 size={14} /></Button>
                 </TableCell>

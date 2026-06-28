@@ -30,6 +30,7 @@ export interface LearnWing {
   extension_content: string;
   display_order: number;
   estimated_minutes: number | null;
+  featured_until: string | null;
   created_at: string;
   updated_at: string;
 }

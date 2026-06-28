@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Loader2, BookOpen } from "lucide-react";
+import LearnStreak from "@/components/learn/LearnStreak";
+import WingOfTheWeek from "@/components/learn/WingOfTheWeek";
 import type { LearnCourse, CourseWithProgress } from "@/lib/learn";
 
 const Learn = () => {
@@ -113,10 +115,11 @@ const Learn = () => {
             <p className="mt-5 text-base md:text-lg text-muted-foreground font-body leading-relaxed max-w-2xl">
               Bite-sized learning designed for ambitious women. Pick a course, work through the wings, and reflect on what you learn along the way.
             </p>
-            <div className="mt-7">
+            <div className="mt-7 flex items-center gap-6 flex-wrap">
               <Button asChild variant="outline" size="sm" className="font-body uppercase tracking-widest text-xs">
                 <Link to="/learn/journal">My Learning Journal</Link>
               </Button>
+              <LearnStreak />
             </div>
           </motion.div>
         </div>
@@ -124,6 +127,7 @@ const Learn = () => {
 
       <main className="bg-secondary pb-20">
         <div className="container max-w-6xl pt-10">
+          <WingOfTheWeek />
           {loading ? (
             <div className="flex justify-center py-20">
               <Loader2 className="animate-spin text-muted-foreground" size={28} />
