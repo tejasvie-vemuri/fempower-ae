@@ -173,6 +173,21 @@ const LearnWing = () => {
           )}
         </div>
 
+        {/* Module progress */}
+        {totalWings > 0 && (
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-body text-muted-foreground">
+                Wing {currentIdx + 1} of {totalWings} · {mod.title}
+              </span>
+              <span className="text-xs font-body text-muted-foreground">
+                {doneCount}/{totalWings} completed ({progressPct}%)
+              </span>
+            </div>
+            <Progress value={progressPct} className="h-2" />
+          </div>
+        )}
+
         {/* Context */}
         <section className="mt-10">
           <h2 className="font-heading text-xl flex items-center gap-2 mb-4">
