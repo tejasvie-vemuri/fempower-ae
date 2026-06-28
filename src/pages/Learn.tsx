@@ -39,7 +39,7 @@ const Learn = () => {
         .in("course_id", courseIds);
 
       const moduleIds = (moduleRows ?? []).map((m: any) => m.id);
-      const moduleCourseMap = new Map(
+      const moduleCourseMap = new Map<string, string>(
         (moduleRows ?? []).map((m: any) => [m.id, m.course_id])
       );
 

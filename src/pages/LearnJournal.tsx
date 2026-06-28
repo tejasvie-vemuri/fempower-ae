@@ -61,9 +61,9 @@ const LearnJournal = () => {
         .select("id, title")
         .in("id", courseIds);
 
-      const wingMap = new Map((wings ?? []).map((w: any) => [w.id, w]));
-      const moduleMap = new Map((modules ?? []).map((m: any) => [m.id, m]));
-      const courseMap = new Map((courses ?? []).map((c: any) => [c.id, c]));
+      const wingMap = new Map<string, any>((wings ?? []).map((w: any) => [w.id, w]));
+      const moduleMap = new Map<string, any>((modules ?? []).map((m: any) => [m.id, m]));
+      const courseMap = new Map<string, any>((courses ?? []).map((c: any) => [c.id, c]));
 
       setEntries(
         reflections.map((r: any) => {
