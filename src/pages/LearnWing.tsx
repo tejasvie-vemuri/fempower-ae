@@ -36,6 +36,7 @@ const LearnWing = () => {
   const [wing, setWing] = useState<LearnWingType | null>(null);
   const [allWings, setAllWings] = useState<LearnWingType[]>([]);
   const [completed, setCompleted] = useState(false);
+  const [completedSiblingIds, setCompletedSiblingIds] = useState<Set<string>>(new Set());
   const [myReflection, setMyReflection] = useState<LearnReflection | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(true);
