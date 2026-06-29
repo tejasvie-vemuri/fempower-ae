@@ -17,6 +17,8 @@ import MeetupsSection from "@/components/MeetupsSection";
 import SubstackFeedSection from "@/components/SubstackFeedSection";
 import SeoSummary from "@/components/SeoSummary";
 import HomeStructuredData from "@/components/HomeStructuredData";
+import CelebrationsStrip from "@/components/CelebrationsStrip";
+import SpotlightCard from "@/components/SpotlightCard";
 import { JoinGateProvider } from "@/components/JoinGate";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -36,6 +38,8 @@ const Index = () => {
         <AboutSection />
         <OfferingsSection />
         <ProgramsSection />
+        {isAuthed && <SpotlightCard />}
+        {isAuthed && <CelebrationsStrip />}
         {isAuthed && <CircleTeaser />}
         {isAuthed && <MeetupsSection />}
         <EventsCalendarSection />

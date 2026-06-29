@@ -34,6 +34,8 @@ import LearnModule from "./pages/LearnModule";
 import LearnWing from "./pages/LearnWing";
 import LearnJournal from "./pages/LearnJournal";
 import AdminLearn from "./pages/AdminLearn";
+import ShareWin from "./pages/ShareWin";
+import AdminMilestones from "./pages/AdminMilestones";
 import ScrollToHash from "@/components/ScrollToHash";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -96,7 +98,9 @@ const App = () => (
             <Route path="/learn/:courseId" element={<ProtectedRoute><LearnCourse /></ProtectedRoute>} />
             <Route path="/learn/:courseId/:moduleId" element={<ProtectedRoute><LearnModule /></ProtectedRoute>} />
             <Route path="/learn/:courseId/:moduleId/:wingId" element={<ProtectedRoute><LearnWing /></ProtectedRoute>} />
+            <Route path="/share-win" element={<ProtectedRoute><ShareWin /></ProtectedRoute>} />
             <Route path="/admin/learn" element={<AdminRoute><AdminLearn /></AdminRoute>} />
+            <Route path="/admin/milestones" element={<AdminRoute><AdminMilestones /></AdminRoute>} />
             <Route path="/programs" element={<Navigate to="/#programs" replace />} />
             <Route path="/events" element={<Navigate to="/#events-calendar" replace />} />
             <Route path="/join" element={<Join />} />
