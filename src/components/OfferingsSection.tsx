@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Footprints, Users, CalendarHeart } from "lucide-react";
-import whatsappImg from "@/assets/community-networking.jpg";
+import whatsappAsset from "@/assets/community-networking.jpg.asset.json";
+const whatsappImg = whatsappAsset.url;
 import walkImg from "@/assets/mentor-walk-women.jpg";
 import coachingImg from "@/assets/community-coaching.jpg";
 import eventImg from "@/assets/community-event.jpg";
