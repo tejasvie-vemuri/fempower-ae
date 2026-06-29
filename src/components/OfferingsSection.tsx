@@ -18,7 +18,7 @@ const offerings = [
     tag: "Daily",
     desc: "Daily prompts + unfiltered conversations on women at work in the UAE, book club, fitness challenges, and real-life wins.",
     image: whatsappImg,
-    imageAlt: "A Fempower facilitator presenting the Annual Planning 2026 session to the community",
+    imageAlt: "A large group of Fempower women smiling together at a community gathering",
   },
   {
     icon: Footprints,
