@@ -224,9 +224,17 @@ const Header = () => {
                 <User size={14} className="inline mr-2" /> Sign in
               </Link>
             )}
-            <Button className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full" asChild>
-              <Link to="/join" onClick={() => setOpen(false)}>Join Us</Link>
-            </Button>
+            {isApprovedMember ? (
+              <InviteSisterDialog>
+                <Button className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full">
+                  <Heart size={13} className="mr-2" /> Invite a sister
+                </Button>
+              </InviteSisterDialog>
+            ) : (
+              <Button className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full" asChild>
+                <Link to="/join" onClick={() => setOpen(false)}>Join Us</Link>
+              </Button>
+            )}
           </nav>
         </div>
       )}
