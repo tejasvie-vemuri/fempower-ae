@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Footprints, Users, CalendarHeart } from "lucide-react";
-import whatsappAsset from "@/assets/community-networking.jpg.asset.json";
+import whatsappAsset from "@/assets/fempower-annual-planning.jpg.asset.json";
 const whatsappImg = whatsappAsset.url;
 import walkImg from "@/assets/mentor-walk-women.jpg";
 import coachingImg from "@/assets/community-coaching.jpg";
@@ -15,7 +15,7 @@ const offerings = [
     tag: "Daily",
     desc: "Daily prompts + unfiltered conversations on women at work in the UAE, book club, fitness challenges, and real-life wins.",
     image: whatsappImg,
-    imageAlt: "A group of women laughing and connecting at a Fempower community gathering",
+    imageAlt: "A Fempower facilitator presenting the Annual Planning 2026 session to the community",
   },
   {
     icon: Footprints,
