@@ -171,11 +171,36 @@ const GallerySection = () => {
 
       <AnimatePresence>
         {selected !== null && images[selected] && (
-          <Lightbox
-            src={images[selected].url}
-            alt={`Community moment ${selected + 1}`}
-            onClose={() => setSelected(null)}
-          />
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Community moment lightbox"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-foreground/90 flex items-center justify-center p-4"
+            onClick={() => setSelected(null)}
+          >
+            <button
+              type="button"
+              aria-label="Close lightbox"
+              className="absolute top-6 right-6 text-primary-foreground p-2 rounded-full hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelected(null);
+              }}
+            >
+              <X size={28} />
+            </button>
+            <motion.img
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              src={images[selected].url}
+              alt={`Community moment ${selected + 1}`}
+              className="max-w-full max-h-[85vh] rounded-lg object-contain"
+            />
+          </motion.div>
         )}
       </AnimatePresence>
     </section>
