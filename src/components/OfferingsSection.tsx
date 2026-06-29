@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Footprints, Users, CalendarHeart } from "lucide-react";
 import whatsappAsset from "@/assets/fempower-annual-planning.jpg.asset.json";
 const whatsappImg = whatsappAsset.url;
-import walkImg from "@/assets/mentor-walk-women.jpg";
-import coachingImg from "@/assets/community-coaching.jpg";
+import walkAsset from "@/assets/mentor-walks.jpg.asset.json";
+const walkImg = walkAsset.url;
+import coachingAsset from "@/assets/coaching-circle.jpg.asset.json";
+const coachingImg = coachingAsset.url;
 import eventImg from "@/assets/community-event.jpg";
 import { PalmDivider } from "./GulfDecoratives";
 
@@ -23,7 +25,7 @@ const offerings = [
     tag: "Quarterly · Limited Slots",
     desc: "We match you with mentors. Runs quarterly. 10 mentor–mentee pairs only per cohort.",
     image: walkImg,
-    imageAlt: "Women walking together outdoors during a Fempower mentor walk",
+    imageAlt: "Two Fempower members smiling together in front of the community memories wall",
   },
   {
     icon: Users,
@@ -31,7 +33,7 @@ const offerings = [
     tag: "Ongoing",
     desc: "Group coaching conversations on leading with empathy, negotiation skills, personal brand, and your inner compass journey.",
     image: coachingImg,
-    imageAlt: "Women sitting in a circle having a supportive peer coaching conversation",
+    imageAlt: "A small group of Fempower women in close conversation during a peer coaching circle",
   },
   {
     icon: CalendarHeart,
