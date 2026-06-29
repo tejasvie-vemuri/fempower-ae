@@ -154,6 +154,7 @@ const GallerySection = () => {
                             />
                           );
                         })()}
+                      </motion.div>
                     );
                   })}
                 </AnimatePresence>
