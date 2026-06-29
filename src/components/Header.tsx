@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Instagram, User, LogOut, Bookmark } from "lucide-react";
+import { Menu, X, Instagram, User, LogOut, Bookmark, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import HashLink from "@/components/HashLink";
 import {
@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useMemberProfile } from "@/hooks/useMemberProfile";
+import InviteSisterDialog from "@/components/InviteSisterDialog";
 import logo from "@/assets/fempower-logo.png";
 
 const navLinks = [
@@ -38,6 +40,8 @@ const Header = () => {
   const [open, setOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const { profile } = useMemberProfile();
+  const isApprovedMember = profile?.status === "approved";
   const displayName =
     (user?.user_metadata?.name as string | undefined) ||
     (user?.user_metadata?.full_name as string | undefined) ||
@@ -142,9 +146,20 @@ const Header = () => {
             </Button>
           )}
 
-          <Button size="sm" className="hidden sm:inline-flex bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs px-5" asChild>
-            <Link to="/join">Join Us</Link>
-          </Button>
+          {isApprovedMember ? (
+            <InviteSisterDialog>
+              <Button
+                size="sm"
+                className="hidden sm:inline-flex bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs px-5"
+              >
+                <Heart size={13} className="mr-2" /> Invite a sister
+              </Button>
+            </InviteSisterDialog>
+          ) : (
+            <Button size="sm" className="hidden sm:inline-flex bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs px-5" asChild>
+              <Link to="/join">Join Us</Link>
+            </Button>
+          )}
 
           <button className="md:hidden text-foreground" onClick={() => setOpen(!open)} aria-label="Toggle menu">
             {open ? <X size={24} /> : <Menu size={24} />}
@@ -209,9 +224,17 @@ const Header = () => {
                 <User size={14} className="inline mr-2" /> Sign in
               </Link>
             )}
-            <Button className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full" asChild>
-              <Link to="/join" onClick={() => setOpen(false)}>Join Us</Link>
-            </Button>
+            {isApprovedMember ? (
+              <InviteSisterDialog>
+                <Button className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full">
+                  <Heart size={13} className="mr-2" /> Invite a sister
+                </Button>
+              </InviteSisterDialog>
+            ) : (
+              <Button className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full" asChild>
+                <Link to="/join" onClick={() => setOpen(false)}>Join Us</Link>
+              </Button>
+            )}
           </nav>
         </div>
       )}
