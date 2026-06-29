@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Instagram, User, LogOut, Bookmark } from "lucide-react";
+import { Menu, X, Instagram, User, LogOut, Bookmark, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import HashLink from "@/components/HashLink";
 import {
@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useMemberProfile } from "@/hooks/useMemberProfile";
+import InviteSisterDialog from "@/components/InviteSisterDialog";
 import logo from "@/assets/fempower-logo.png";
 
 const navLinks = [
