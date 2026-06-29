@@ -5,6 +5,7 @@ import { DuneWave } from "./GulfDecoratives";
 import { useSiteImages } from "@/hooks/useSiteImages";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import InstagramStrip from "./InstagramStrip";
+import { responsiveImage } from "@/lib/responsiveImage";
 
 interface GalleryImage {
   id: string;
@@ -134,15 +135,25 @@ const GallerySection = () => {
                         }`}
                         onClick={() => setSelected(imgIndex)}
                       >
-                        <img
-                          src={img.url}
-                          alt={`Community moment ${imgIndex + 1}`}
-                          width={600}
-                          height={600}
-                          loading="lazy"
-                          decoding="async"
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 aspect-square"
-                        />
+                        {(() => {
+                          const r = responsiveImage(img.url, {
+                            widths: [240, 360, 480, 720, 960],
+                            sizes: "(min-width: 768px) 33vw, 50vw",
+                          });
+                          return (
+                            <img
+                              src={r.src}
+                              srcSet={r.srcSet}
+                              sizes={r.sizes}
+                              alt={`Community moment ${imgIndex + 1}`}
+                              width={600}
+                              height={600}
+                              loading="lazy"
+                              decoding="async"
+                              className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 aspect-square"
+                            />
+                          );
+                        })()}
                       </motion.div>
                     );
                   })}
