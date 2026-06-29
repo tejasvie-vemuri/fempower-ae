@@ -42,7 +42,7 @@ const offerings = [
     tag: "Bi-monthly",
     desc: "Engaging meetups like Iftar nights, annual review sessions, Busy Girl Glam Ups, and more.",
     image: eventImg,
-    imageAlt: "Women gathered together enjoying a vibrant Fempower community event",
+    imageAlt: "A Fempower facilitator presenting the Annual Planning 2026 session at a community event",
   },
 ];
 
