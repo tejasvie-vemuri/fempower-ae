@@ -131,5 +131,14 @@ export const STATUS_LABELS: Record<MemberProfile["status"], string> = {
   pending: "Pending review",
   approved: "Live in directory",
   rejected: "Not approved",
-  hidden: "Hidden",
+  hidden: "Hidden from directory",
 };
+
+/**
+ * Members with `approved` or `hidden` status have full access to the site
+ * (Circle, Meetups, etc). `hidden` members are simply not surfaced in the
+ * public directory — but they remain active members otherwise.
+ */
+export const isActiveMemberStatus = (
+  status: MemberProfile["status"] | null | undefined,
+): boolean => status === "approved" || status === "hidden";

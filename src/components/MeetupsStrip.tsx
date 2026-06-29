@@ -15,7 +15,7 @@ const MeetupsStrip = () => {
     (async () => {
       const { data: prof } = await supabase
         .from("member_profiles").select("status").eq("user_id", user.id).maybeSingle();
-      if (prof?.status !== "approved") { setApproved(false); return; }
+      if (prof?.status !== "approved" && prof?.status !== "hidden") { setApproved(false); return; }
       setApproved(true);
       const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
       const { data } = await (supabase as any)

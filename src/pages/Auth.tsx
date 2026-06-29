@@ -43,9 +43,9 @@ const AuthPage = () => {
         supabase.from("member_profiles").select("status").eq("user_id", user.id).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle(),
       ]);
-      const approved = profile?.status === "approved";
+      const active = profile?.status === "approved" || profile?.status === "hidden";
       const isAdmin = !!roleRow;
-      if (approved || isAdmin) {
+      if (active || isAdmin) {
         navigate(redirectTo, { replace: true });
       } else {
         navigate("/pending-approval", { replace: true });
