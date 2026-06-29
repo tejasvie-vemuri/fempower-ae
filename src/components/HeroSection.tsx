@@ -17,7 +17,7 @@ const HeroSection = () => {
       <img
         src={bg?.url ?? heroImg}
         alt={bg?.alt ?? "Women of the Fempower community gathering in Dubai, UAE"}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-cover object-[center_70%] sm:object-[center_60%] md:object-[center_55%] lg:object-center"
         fetchPriority="high"
         decoding="async"
       />
