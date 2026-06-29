@@ -25,7 +25,7 @@ const offerings = [
     tag: "Quarterly · Limited Slots",
     desc: "We match you with mentors. Runs quarterly. 10 mentor–mentee pairs only per cohort.",
     image: walkImg,
-    imageAlt: "Women walking together outdoors during a Fempower mentor walk",
+    imageAlt: "Two Fempower members smiling together in front of the community memories wall",
   },
   {
     icon: Users,
@@ -33,7 +33,7 @@ const offerings = [
     tag: "Ongoing",
     desc: "Group coaching conversations on leading with empathy, negotiation skills, personal brand, and your inner compass journey.",
     image: coachingImg,
-    imageAlt: "Women sitting in a circle having a supportive peer coaching conversation",
+    imageAlt: "A small group of Fempower women in close conversation during a peer coaching circle",
   },
   {
     icon: CalendarHeart,
