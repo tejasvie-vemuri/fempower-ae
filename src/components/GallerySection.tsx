@@ -5,6 +5,7 @@ import { DuneWave } from "./GulfDecoratives";
 import { useSiteImages } from "@/hooks/useSiteImages";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import InstagramStrip from "./InstagramStrip";
+import { responsiveImage } from "@/lib/responsiveImage";
 
 interface GalleryImage {
   id: string;
