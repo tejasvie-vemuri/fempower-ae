@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Instagram } from "lucide-react";
 import HashLink from "@/components/HashLink";
-import heroImg from "@/assets/hero-community.jpg";
+import heroAsset from "@/assets/hero-community.jpg.asset.json";
+const heroImg = heroAsset.url;
 import { DuneWave } from "./GulfDecoratives";
 import { useSiteImages } from "@/hooks/useSiteImages";
 
