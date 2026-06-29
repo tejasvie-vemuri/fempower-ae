@@ -77,8 +77,8 @@ describe("OfferingsSection", () => {
   it("renders the tag chip for each pillar", () => {
     render(<OfferingsSection />);
     expect(screen.getByText("Daily")).toBeInTheDocument();
-    expect(screen.getByText(/quarterly/i)).toBeInTheDocument();
+    expect(screen.getByText(/quarterly · limited slots/i)).toBeInTheDocument();
     expect(screen.getByText("Ongoing")).toBeInTheDocument();
-    expect(screen.getByText(/bi-monthly/i)).toBeInTheDocument();
+    expect(screen.getByText("Bi-monthly")).toBeInTheDocument();
   });
 });
