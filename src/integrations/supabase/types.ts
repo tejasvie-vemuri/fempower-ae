@@ -774,6 +774,54 @@ export type Database = {
         }
         Relationships: []
       }
+      member_milestones: {
+        Row: {
+          category: string
+          circle_post_id: string | null
+          created_at: string
+          custom_text: string | null
+          id: string
+          milestone_key: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          circle_post_id?: string | null
+          created_at?: string
+          custom_text?: string | null
+          id?: string
+          milestone_key: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          circle_post_id?: string | null
+          created_at?: string
+          custom_text?: string | null
+          id?: string
+          milestone_key?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_milestones_circle_post_id_fkey"
+            columns: ["circle_post_id"]
+            isOneToOne: false
+            referencedRelation: "circle_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_milestones_circle_post_id_fkey"
+            columns: ["circle_post_id"]
+            isOneToOne: false
+            referencedRelation: "circle_posts_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_profiles: {
         Row: {
           approved_at: string | null
@@ -852,6 +900,33 @@ export type Database = {
           user_id?: string
           website_url?: string | null
           why_here?: string | null
+        }
+        Relationships: []
+      }
+      member_spotlights: {
+        Row: {
+          active_from: string
+          active_until: string
+          created_at: string
+          id: string
+          story: string
+          user_id: string
+        }
+        Insert: {
+          active_from?: string
+          active_until: string
+          created_at?: string
+          id?: string
+          story: string
+          user_id: string
+        }
+        Update: {
+          active_from?: string
+          active_until?: string
+          created_at?: string
+          id?: string
+          story?: string
+          user_id?: string
         }
         Relationships: []
       }
