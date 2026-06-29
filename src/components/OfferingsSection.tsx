@@ -102,7 +102,7 @@ const OfferingsSection = () => {
             </div>
           </div>
 
-          <div className="hidden lg:block relative aspect-square w-full">
+          <div className="hidden lg:block relative aspect-[4/5] xl:aspect-square w-full">
             <AnimatePresence mode="wait">
               <motion.img
                 key={active.image}
@@ -112,7 +112,7 @@ const OfferingsSection = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.97 }}
                 transition={{ duration: 0.35 }}
-                className="absolute inset-0 rounded-2xl shadow-lg object-cover w-full h-full"
+                className="absolute inset-0 rounded-2xl shadow-lg object-cover object-[center_60%] xl:object-center w-full h-full"
               />
             </AnimatePresence>
           </div>
