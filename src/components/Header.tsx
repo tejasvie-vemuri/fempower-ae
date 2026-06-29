@@ -146,9 +146,20 @@ const Header = () => {
             </Button>
           )}
 
-          <Button size="sm" className="hidden sm:inline-flex bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs px-5" asChild>
-            <Link to="/join">Join Us</Link>
-          </Button>
+          {isApprovedMember ? (
+            <InviteSisterDialog>
+              <Button
+                size="sm"
+                className="hidden sm:inline-flex bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs px-5"
+              >
+                <Heart size={13} className="mr-2" /> Invite a sister
+              </Button>
+            </InviteSisterDialog>
+          ) : (
+            <Button size="sm" className="hidden sm:inline-flex bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs px-5" asChild>
+              <Link to="/join">Join Us</Link>
+            </Button>
+          )}
 
           <button className="md:hidden text-foreground" onClick={() => setOpen(!open)} aria-label="Toggle menu">
             {open ? <X size={24} /> : <Menu size={24} />}
