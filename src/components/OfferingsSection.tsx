@@ -15,6 +15,7 @@ const offerings = [
     tag: "Daily",
     desc: "Daily prompts + unfiltered conversations on women at work in the UAE, book club, fitness challenges, and real-life wins.",
     image: whatsappImg,
+    imageAlt: "A group of women laughing and connecting at a Fempower community gathering",
   },
   {
     icon: Footprints,
@@ -22,6 +23,7 @@ const offerings = [
     tag: "Quarterly · Limited Slots",
     desc: "We match you with mentors. Runs quarterly. 10 mentor–mentee pairs only per cohort.",
     image: walkImg,
+    imageAlt: "Women walking together outdoors during a Fempower mentor walk",
   },
   {
     icon: Users,
@@ -29,6 +31,7 @@ const offerings = [
     tag: "Ongoing",
     desc: "Group coaching conversations on leading with empathy, negotiation skills, personal brand, and your inner compass journey.",
     image: coachingImg,
+    imageAlt: "Women sitting in a circle having a supportive peer coaching conversation",
   },
   {
     icon: CalendarHeart,
@@ -36,6 +39,7 @@ const offerings = [
     tag: "Bi-monthly",
     desc: "Engaging meetups like Iftar nights, annual review sessions, Busy Girl Glam Ups, and more.",
     image: eventImg,
+    imageAlt: "Women gathered together enjoying a vibrant Fempower community event",
   },
 ];
 
