@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Footprints, Users, CalendarHeart } from "lucide-react";
-import whatsappAsset from "@/assets/fempower-annual-planning.jpg.asset.json";
+import whatsappAsset from "@/assets/whatsapp-community-group.jpg.asset.json";
 const whatsappImg = whatsappAsset.url;
 import walkAsset from "@/assets/mentor-walks.jpg.asset.json";
 const walkImg = walkAsset.url;
 import coachingAsset from "@/assets/coaching-circle.jpg.asset.json";
 const coachingImg = coachingAsset.url;
-import eventImg from "@/assets/community-event.jpg";
+import eventAsset from "@/assets/event-presentation.jpg.asset.json";
+const eventImg = eventAsset.url;
 import { PalmDivider } from "./GulfDecoratives";
 
 const offerings = [
