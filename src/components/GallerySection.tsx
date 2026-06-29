@@ -72,6 +72,16 @@ const GallerySection = () => {
     return () => observer.disconnect();
   }, []);
 
+  // Close lightbox with Escape key
+  useEffect(() => {
+    if (selected === null) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelected(null);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [selected]);
+
   // Rotate one image at a time every 5s, only while in view
   useEffect(() => {
     if (!inView) return;
