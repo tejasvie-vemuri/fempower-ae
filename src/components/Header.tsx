@@ -44,7 +44,7 @@ const Header = () => {
     user?.email ||
     "Account";
   const initial = displayName.charAt(0).toUpperCase();
-  const visibleNavLinks = navLinks.filter((link) => !link.requiresAuth || user);
+  const visibleNavLinks = navLinks;
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
