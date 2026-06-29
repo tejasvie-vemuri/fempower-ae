@@ -35,5 +35,5 @@ class MockResizeObserver {
   unobserve() {}
   disconnect() {}
 }
-// @ts-expect-error attach mock to global for jsdom
+// @ts-ignore attach mock to global for jsdom
 globalThis.ResizeObserver = MockResizeObserver;
