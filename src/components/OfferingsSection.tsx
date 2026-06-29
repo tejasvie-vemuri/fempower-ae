@@ -102,7 +102,7 @@ const OfferingsSection = () => {
             </div>
           </div>
 
-          <div className="hidden lg:block relative aspect-square w-full">
+          <div className="hidden lg:block relative aspect-[4/5] xl:aspect-square w-full">
             <AnimatePresence mode="wait">
               <motion.img
                 key={active.image}
