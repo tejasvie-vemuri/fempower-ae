@@ -40,6 +40,8 @@ const Header = () => {
   const [open, setOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const { profile } = useMemberProfile();
+  const isApprovedMember = profile?.status === "approved";
   const displayName =
     (user?.user_metadata?.name as string | undefined) ||
     (user?.user_metadata?.full_name as string | undefined) ||
