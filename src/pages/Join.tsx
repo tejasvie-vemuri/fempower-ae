@@ -90,7 +90,7 @@ const JoinPage = () => {
   const status = profile?.status ?? "pending";
 
   // 3. Approved → community access
-  if (status === "approved") {
+  if (status === "approved" || status === "hidden") {
     return (
       <Shell>
         <Card>
