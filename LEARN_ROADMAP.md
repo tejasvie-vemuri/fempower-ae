@@ -15,6 +15,21 @@
 - [x] Course 1: "Learn AI from Scratch" — 3 modules, 22 wings, fully seeded
 - [x] Streak counter — consecutive day streak + wings this week
 - [x] Wing of the Week — admin features a wing, shows on Learn page with WhatsApp share
+- [x] Member Milestones — self-reported career/life wins, admin approval, auto-posts to Circle, celebrations strip on homepage
+- [x] Member Spotlights — admin picks monthly featured member, story card on homepage
+
+---
+
+## Ready to Build (Specced, Parked)
+
+### Mentor Matching (Quarterly Cycles)
+Every quarter, admin opens a matching cycle. Members opt in as mentor/mentee/both via a short form (skills offered/wanted, industry, experience bracket, quarter goal). AI suggests best matches. Admin reviews and approves pairs. Pairs get a shared goal card and write end-of-cycle reflections.
+
+**Tables:** `mentor_cycles`, `mentor_applications`, `mentor_pairs`, `mentor_reflections`
+
+**Matching tags (UAE-focused):** Leadership & management, Career pivots & transitions, Salary negotiation, AI & technology skills, Personal branding & LinkedIn, Entrepreneurship & startups, Finance & investing, Networking in the UAE, Work-life balance, Public speaking & confidence, Freelancing & side hustles, Navigating multicultural workplaces
+
+**Flow:** Admin opens cycle → members opt in by deadline → AI suggests matches (mentor offers what mentee wants, 3+ year experience gap) → admin approves pairs → pairs get shared goal card → end-of-cycle reflections
 
 ---
 
