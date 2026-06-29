@@ -112,6 +112,11 @@ const OfferingsSection = () => {
                 key={active.image}
                 src={active.image}
                 alt={active.imageAlt}
+                loading="lazy"
+                decoding="async"
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                width={1200}
+                height={1200}
                 initial={{ opacity: 0, scale: 0.97 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.97 }}
@@ -119,6 +124,14 @@ const OfferingsSection = () => {
                 className="absolute inset-0 rounded-2xl shadow-lg object-cover object-[center_60%] xl:object-center w-full h-full"
               />
             </AnimatePresence>
+            {/* Preload non-active images at low priority so transitions are instant */}
+            <div className="hidden" aria-hidden="true">
+              {offerings.map((o) =>
+                o.image === active.image ? null : (
+                  <img key={o.image} src={o.image} alt="" loading="lazy" decoding="async" />
+                )
+              )}
+            </div>
           </div>
         </div>
       </div>
