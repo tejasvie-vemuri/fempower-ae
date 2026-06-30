@@ -51,11 +51,12 @@ test.describe("Mobile header drawer", () => {
     const firstLink = drawer.getByRole("link", { name: "About", exact: true });
     await expect(firstLink).toBeFocused();
 
-    // Radix Dialog scopes Tab to the drawer; focus cannot escape to the
-    // background page links.
+    // Radix Dialog scopes Tab to the drawer; focused element stays inside it.
     await page.keyboard.press("Tab");
-    const heroLink = page.locator("header a", { hasText: "Fempower" }).first();
-    await expect(heroLink).not.toBeFocused();
+    const focusedInDrawer = await drawer.evaluate(
+      (el) => el.contains(document.activeElement),
+    );
+    expect(focusedInDrawer).toBe(true);
   });
 
   test("closes the drawer with the Escape key", async ({ page }) => {
