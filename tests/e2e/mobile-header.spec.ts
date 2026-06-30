@@ -24,15 +24,16 @@ test.describe("Mobile header drawer", () => {
   });
 
   test("opens the drawer and reveals all nav links", async ({ page }) => {
-    await page.getByLabel("Toggle menu").click();
+    const header = page.getByRole("banner");
+    await header.getByLabel("Toggle menu").click();
 
     for (const label of ["About", "What We Do", "Programs", "Events", "Directory", "Learn"]) {
-      await expect(page.getByRole("link", { name: label, exact: true })).toBeVisible();
+      await expect(header.getByRole("link", { name: label, exact: true })).toBeVisible();
     }
 
     // Auth CTAs are stacked at the bottom of the drawer for logged-out users.
-    await expect(page.getByRole("link", { name: /sign in/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /join us/i })).toBeVisible();
+    await expect(header.getByRole("link", { name: /sign in/i })).toBeVisible();
+    await expect(header.getByRole("link", { name: /join us/i })).toBeVisible();
   });
 
   test("closes the drawer when the X icon is clicked", async ({ page }) => {
