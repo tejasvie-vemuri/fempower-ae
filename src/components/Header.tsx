@@ -222,12 +222,15 @@ const Header = () => {
             )}
             {isApprovedMember ? (
               <InviteSisterDialog>
-                <Button className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full">
+                <Button
+                  onClick={() => setOpen(false)}
+                  className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full mt-2"
+                >
                   <Heart size={13} className="mr-2" /> Invite a sister
                 </Button>
               </InviteSisterDialog>
             ) : (
-              <Button className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full" asChild>
+              <Button className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full mt-2" asChild>
                 <Link to="/join" onClick={() => setOpen(false)}>Join Us</Link>
               </Button>
             )}
