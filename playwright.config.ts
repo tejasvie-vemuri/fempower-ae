@@ -2,9 +2,11 @@ import { defineConfig, devices } from "@playwright/test";
 
 /**
  * Playwright config for end-to-end / responsive UI tests.
- * Assumes the Vite dev server is already running at http://localhost:8080
- * (Lovable sandbox keeps it up). For local use, run `bun run dev` separately,
- * or uncomment the `webServer` block below.
+ * Assumes the Vite dev server is already running at http://localhost:8080.
+ *
+ * Project matrix covers the four key breakpoints; individual specs decide
+ * which viewports they're meaningful in via `test.skip(...)` based on
+ * `testInfo.project.name`.
  */
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -17,18 +19,20 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "mobile-320",
+      name: "vp-320",
       use: { ...devices["Desktop Chrome"], viewport: { width: 320, height: 700 } },
     },
     {
-      name: "mobile-375",
+      name: "vp-375",
       use: { ...devices["Desktop Chrome"], viewport: { width: 375, height: 800 } },
     },
+    {
+      name: "vp-768",
+      use: { ...devices["Desktop Chrome"], viewport: { width: 768, height: 900 } },
+    },
+    {
+      name: "vp-1024",
+      use: { ...devices["Desktop Chrome"], viewport: { width: 1024, height: 900 } },
+    },
   ],
-  // webServer: {
-  //   command: "bun run dev",
-  //   url: "http://localhost:8080",
-  //   reuseExistingServer: true,
-  //   timeout: 60_000,
-  // },
 });

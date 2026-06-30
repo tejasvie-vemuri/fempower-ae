@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Instagram, User, LogOut, Bookmark, Heart } from "lucide-react";
+import { Menu, Instagram, User, LogOut, Bookmark, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import HashLink from "@/components/HashLink";
 import {
@@ -11,6 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useMemberProfile } from "@/hooks/useMemberProfile";
@@ -157,86 +164,108 @@ const Header = () => {
             </Button>
           )}
 
-          <button className="md:hidden text-foreground" onClick={() => setOpen(!open)} aria-label="Toggle menu">
-            {open ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <button
+                className="md:hidden inline-flex items-center justify-center min-h-11 min-w-11 text-foreground rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label="Toggle menu"
+                aria-haspopup="dialog"
+                aria-expanded={open}
+                aria-controls="mobile-nav-drawer"
+              >
+                <Menu size={24} aria-hidden="true" />
+              </button>
+            </SheetTrigger>
+            <SheetContent
+              side="right"
+              id="mobile-nav-drawer"
+              aria-label="Main navigation"
+              className="w-[85vw] max-w-sm overflow-y-auto"
+              onOpenAutoFocus={(e) => {
+                // Focus the first nav link inside the drawer for keyboard users.
+                e.preventDefault();
+                const first = document.querySelector<HTMLElement>(
+                  '#mobile-nav-drawer a, #mobile-nav-drawer button'
+                );
+                first?.focus();
+              }}
+            >
+              <SheetTitle className="sr-only">Main navigation</SheetTitle>
+              <nav aria-label="Mobile" className="flex flex-col gap-4 pt-2">
+                {visibleNavLinks.map((link) => (
+                  <HashLink
+                    key={link.to}
+                    to={link.to}
+                    className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors min-h-11 flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                    onClick={() => setOpen(false)}
+                  >
+                    {link.label}
+                  </HashLink>
+                ))}
+                {user ? (
+                  <>
+                    <Link
+                      to="/account/profile"
+                      onClick={() => setOpen(false)}
+                      className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground min-h-11 flex items-center"
+                    >
+                      My profile
+                    </Link>
+                    <Link
+                      to="/account/saved"
+                      onClick={() => setOpen(false)}
+                      className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground min-h-11 inline-flex items-center gap-2"
+                    >
+                      <Bookmark size={13} aria-hidden="true" /> Saved
+                    </Link>
+                    {isAdmin && (
+                      <Link
+                        to="/admin/members"
+                        onClick={() => setOpen(false)}
+                        className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground min-h-11 flex items-center"
+                      >
+                        Admin
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => {
+                        setOpen(false);
+                        signOut();
+                      }}
+                      className="text-left text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground min-h-11"
+                    >
+                      Sign out
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    to="/auth"
+                    onClick={() => setOpen(false)}
+                    className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground min-h-11 flex items-center"
+                  >
+                    <User size={14} className="inline mr-2" aria-hidden="true" /> Sign in
+                  </Link>
+                )}
+                {isApprovedMember ? (
+                  <InviteSisterDialog>
+                    <Button
+                      onClick={() => setOpen(false)}
+                      className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full mt-2"
+                    >
+                      <Heart size={13} className="mr-2" aria-hidden="true" /> Invite a sister
+                    </Button>
+                  </InviteSisterDialog>
+                ) : (
+                  <Button className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full mt-2" asChild>
+                    <Link to="/join" onClick={() => setOpen(false)}>Join Us</Link>
+                  </Button>
+                )}
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
 
-      {open && (
-        <div className="md:hidden bg-background border-t border-border pb-6">
-          <nav className="container flex flex-col gap-4 pt-4">
-            {visibleNavLinks.map((link) => (
-              <HashLink
-                key={link.to}
-                to={link.to}
-                className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setOpen(false)}
-              >
-                {link.label}
-              </HashLink>
-            ))}
-            {user ? (
-              <>
-                <Link
-                  to="/account/profile"
-                  onClick={() => setOpen(false)}
-                  className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground"
-                >
-                  My profile
-                </Link>
-                <Link
-                  to="/account/saved"
-                  onClick={() => setOpen(false)}
-                  className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground inline-flex items-center gap-2"
-                >
-                  <Bookmark size={13} /> Saved
-                </Link>
-                {isAdmin && (
-                  <Link
-                    to="/admin/members"
-                    onClick={() => setOpen(false)}
-                    className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground"
-                  >
-                    Admin
-                  </Link>
-                )}
-                <button
-                  onClick={() => {
-                    setOpen(false);
-                    signOut();
-                  }}
-                  className="text-left text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground"
-                >
-                  Sign out
-                </button>
-              </>
-            ) : (
-              <Link
-                to="/auth"
-                onClick={() => setOpen(false)}
-                className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground"
-              >
-                <User size={14} className="inline mr-2" /> Sign in
-              </Link>
-            )}
-            {isApprovedMember ? (
-              <InviteSisterDialog>
-                <Button
-                  onClick={() => setOpen(false)}
-                  className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full mt-2"
-                >
-                  <Heart size={13} className="mr-2" /> Invite a sister
-                </Button>
-              </InviteSisterDialog>
-            ) : (
-              <Button className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full mt-2" asChild>
-                <Link to="/join" onClick={() => setOpen(false)}>Join Us</Link>
-              </Button>
-            )}
-          </nav>
-        </div>
-      )}
     </header>
   );
 };
