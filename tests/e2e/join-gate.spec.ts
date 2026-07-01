@@ -7,7 +7,9 @@ import { test, expect } from "@playwright/test";
 test.describe("JoinGate — guest CTAs", () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "vp-375", "run once at one representative viewport");
-    await page.goto("/");
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    // Wait for auth state to resolve — JoinGate no-ops while loading.
+    await expect(page.getByRole("link", { name: /^Sign in$/i }).first()).toBeVisible();
   });
 
   test("clicking a Programs Spotlight item opens the join dialog with QR + IG CTA", async ({ page }) => {
