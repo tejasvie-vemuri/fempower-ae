@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -6,8 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, X } from "lucide-react";
+import {
+  Loader2, X, Check, User, Briefcase, Heart, Compass, Link2, Sparkles, Wand2,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,6 +20,7 @@ import { PhotoUpload } from "@/components/directory/PhotoUpload";
 import {
   memberProfileSchema, INDUSTRIES, LOOKING_FOR_OPTIONS, STATUS_LABELS,
 } from "@/lib/memberProfile";
+import { cn } from "@/lib/utils";
 
 const TagInput = ({ value, onChange, placeholder, max = 15 }: {
   value: string[]; onChange: (v: string[]) => void; placeholder?: string; max?: number;
@@ -33,7 +37,7 @@ const TagInput = ({ value, onChange, placeholder, max = 15 }: {
         {value.map(t => (
           <Badge key={t} variant="secondary" className="gap-1">
             {t}
-            <button type="button" onClick={() => onChange(value.filter(x => x !== t))}><X size={12} /></button>
+            <button type="button" aria-label={`Remove ${t}`} onClick={() => onChange(value.filter(x => x !== t))}><X size={12} /></button>
           </Badge>
         ))}
       </div>
@@ -49,6 +53,55 @@ const TagInput = ({ value, onChange, placeholder, max = 15 }: {
 };
 
 const NONE = "__none__";
+
+const WHY_STARTERS = [
+  "I'm here to find mentors and grow with women who get it.",
+  "I want to build genuine friendships beyond work titles.",
+  "I'm building my business and need a supportive circle around me.",
+  "I recently moved to the UAE and want to root myself in community.",
+];
+
+const SectionCard = ({
+  icon: Icon, title, subtitle, children,
+}: { icon: React.ComponentType<{ size?: number; className?: string }>; title: string; subtitle?: string; children: React.ReactNode }) => (
+  <section className="bg-card border rounded-lg p-5 sm:p-6 space-y-4">
+    <header className="flex items-start gap-3">
+      <span className="mt-0.5 rounded-full bg-primary/10 text-primary p-2"><Icon size={18} /></span>
+      <div>
+        <h2 className="font-heading text-lg text-primary leading-tight">{title}</h2>
+        {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+      </div>
+    </header>
+    <div className="space-y-4">{children}</div>
+  </section>
+);
+
+// Inline validity indicator
+const FieldOK = ({ show }: { show: boolean }) =>
+  show ? (
+    <span className="inline-flex items-center gap-1 text-xs text-emerald-600 mt-1">
+      <Check size={12} /> Looks good
+    </span>
+  ) : null;
+
+const FieldError = ({ msg }: { msg?: string | null }) =>
+  msg ? <p className="text-xs text-destructive mt-1">{msg}</p> : null;
+
+// Nicely title-case a linkedin slug like "maya-hassan_22" → "Maya Hassan"
+const nameFromLinkedIn = (url: string): string | null => {
+  try {
+    const u = new URL(url);
+    if (!/linkedin\.com$/i.test(u.hostname) && !/\.linkedin\.com$/i.test(u.hostname)) return null;
+    const seg = u.pathname.split("/").filter(Boolean);
+    if (seg.length < 2 || seg[0].toLowerCase() !== "in") return null;
+    const raw = seg[1].replace(/[_\d]+$/g, "").replace(/[-_]+/g, " ").trim();
+    if (!raw) return null;
+    return raw
+      .split(/\s+/)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ");
+  } catch { return null; }
+};
 
 const MemberProfileEdit = () => {
   const { user, loading: authLoading } = useAuth();
@@ -89,6 +142,66 @@ const MemberProfileEdit = () => {
     }
   }, [profile]);
 
+  // Per-field validation using the shared schema (inline, live)
+  const fieldIssues = useMemo(() => {
+    const parsed = memberProfileSchema.safeParse(form);
+    const issues: Record<string, string> = {};
+    if (!parsed.success) {
+      for (const i of parsed.error.issues) {
+        const key = i.path[0]?.toString();
+        if (key && !issues[key]) issues[key] = i.message;
+      }
+    }
+    return issues;
+  }, [form]);
+
+  // Completeness meter (weights every meaningful field)
+  const completeness = useMemo(() => {
+    const items: [boolean, number][] = [
+      [!!form.name.trim(), 10],
+      [!!form.role.trim(), 10],
+      [!!form.company.trim(), 10],
+      [!!form.city.trim(), 8],
+      [!!form.linkedin_url.trim() && !fieldIssues.linkedin_url, 12],
+      [!!form.why_here.trim(), 15],
+      [!!form.photo_url, 12],
+      [!!form.bio && form.bio.trim().length >= 40, 8],
+      [!!form.industry, 5],
+      [form.expertise_tags.length >= 2, 4],
+      [form.interests.length >= 2, 3],
+      [form.looking_for.length >= 1, 3],
+    ];
+    const total = items.reduce((a, [, w]) => a + w, 0);
+    const got = items.reduce((a, [ok, w]) => a + (ok ? w : 0), 0);
+    return Math.round((got / total) * 100);
+  }, [form, fieldIssues]);
+
+  // Next best nudge for the progress bar
+  const nextNudge = useMemo(() => {
+    if (!form.photo_url) return "Add a photo — profiles with a face get 3× more connections.";
+    if (!form.why_here.trim()) return "Share why you're here — sisters love to know your story.";
+    if (!form.bio || form.bio.trim().length < 40) return "Add a short bio (a line or two) to introduce yourself.";
+    if (!form.industry) return "Pick your industry so we can match you with the right sisters.";
+    if (form.expertise_tags.length < 2) return "Add a couple of expertise tags — this helps others find you.";
+    if (form.looking_for.length === 0) return "Tell us what you're open to — mentoring, friendship, hiring…";
+    if (completeness === 100) return "You're a 100% sparkle ✨ — thank you!";
+    return "Almost there — polish a few more details to shine.";
+  }, [form, completeness]);
+
+  const applyLinkedInSmartFill = () => {
+    if (!form.linkedin_url.trim()) {
+      toast({ title: "Paste your LinkedIn URL first", description: "Then tap Smart-fill again." });
+      return;
+    }
+    const guess = nameFromLinkedIn(form.linkedin_url);
+    if (!guess) {
+      toast({ title: "Couldn't read that URL", description: "Make sure it looks like linkedin.com/in/your-name", variant: "destructive" });
+      return;
+    }
+    setForm(f => ({ ...f, name: f.name.trim() ? f.name : guess }));
+    toast({ title: "Prefilled from LinkedIn", description: `Set your name to "${guess}" — edit as needed.` });
+  };
+
   const onSave = async () => {
     if (!user) return;
     const parsed = memberProfileSchema.safeParse(form);
@@ -100,7 +213,6 @@ const MemberProfileEdit = () => {
     setSaving(true);
     const wasUnapproved = profile && profile.status !== "approved";
     const updates: any = { ...parsed.data };
-    // Re-submit for review if member had been rejected/hidden and now updates
     if (profile?.status === "rejected") updates.status = "pending";
 
     const { error } = await supabase
@@ -123,12 +235,18 @@ const MemberProfileEdit = () => {
   }
   if (!profile) return null;
 
+  const ok = (k: keyof typeof form) => {
+    const v = form[k];
+    const hasValue = Array.isArray(v) ? v.length > 0 : !!(v && String(v).trim());
+    return hasValue && !fieldIssues[k as string];
+  };
+
   return (
     <>
       <Header />
       <main className="pt-24 pb-20 min-h-screen bg-background">
-        <div className="container max-w-2xl">
-          <div className="flex items-center justify-between mb-6">
+        <div className="container max-w-3xl">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             <div>
               <h1 className="font-heading text-3xl md:text-4xl text-primary">Your Profile</h1>
               <p className="text-sm text-muted-foreground mt-1">
@@ -138,71 +256,173 @@ const MemberProfileEdit = () => {
             <Button variant="outline" asChild><Link to="/directory">Back to directory</Link></Button>
           </div>
 
-          <div className="space-y-6 bg-card border rounded-lg p-6">
-            <PhotoUpload userId={user!.id} value={form.photo_url || null} onChange={url => setForm(f => ({ ...f, photo_url: url || "" }))} />
-
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div><Label>Full name *</Label><Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} /></div>
-              <div><Label>City *</Label><Input value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} placeholder="Dubai" /></div>
-              <div><Label>Role / Title *</Label><Input value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} placeholder="Product Manager" /></div>
-              <div><Label>Company *</Label><Input value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} /></div>
+          {/* Completeness meter */}
+          <div className="bg-card border rounded-lg p-5 mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Sparkles size={16} className="text-primary" />
+                <span className="text-sm font-medium">Profile completeness</span>
+              </div>
+              <span className="text-sm font-semibold text-primary tabular-nums">{completeness}%</span>
             </div>
+            <Progress value={completeness} aria-label={`Profile ${completeness}% complete`} />
+            <p className="text-xs text-muted-foreground mt-2">{nextNudge}</p>
+          </div>
 
-            <div>
-              <Label>Short bio</Label>
-              <Textarea rows={3} maxLength={600} value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} placeholder="A line or two about yourself." />
-            </div>
+          <div className="space-y-5">
+            {/* WHO YOU ARE */}
+            <SectionCard icon={User} title="Who you are" subtitle="The basics — so sisters recognise you.">
+              <PhotoUpload
+                userId={user!.id}
+                value={form.photo_url || null}
+                onChange={url => setForm(f => ({ ...f, photo_url: url || "" }))}
+              />
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <Label>Full name *</Label>
+                  <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+                  <FieldOK show={ok("name")} />
+                  <FieldError msg={form.name ? fieldIssues.name : null} />
+                </div>
+                <div>
+                  <Label>City *</Label>
+                  <Input value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} placeholder="Dubai" />
+                  <FieldOK show={ok("city")} />
+                </div>
+              </div>
+            </SectionCard>
 
-            <div>
-              <Label>Why are you part of Fempower? *</Label>
-              <Textarea rows={2} maxLength={400} value={form.why_here} onChange={e => setForm(f => ({ ...f, why_here: e.target.value }))} />
-            </div>
+            {/* WHAT YOU DO */}
+            <SectionCard icon={Briefcase} title="What you do" subtitle="Your work in the world.">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <Label>Role / Title *</Label>
+                  <Input value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} placeholder="Product Manager" />
+                  <FieldOK show={ok("role")} />
+                </div>
+                <div>
+                  <Label>Company *</Label>
+                  <Input value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} />
+                  <FieldOK show={ok("company")} />
+                </div>
+              </div>
+              <div>
+                <Label>Industry</Label>
+                <Select value={form.industry || NONE} onValueChange={v => setForm(f => ({ ...f, industry: v === NONE ? "" : v }))}>
+                  <SelectTrigger><SelectValue placeholder="Choose industry" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NONE}>—</SelectItem>
+                    {INDUSTRIES.map(i => <SelectItem key={i} value={i}>{i}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Areas of expertise</Label>
+                <TagInput value={form.expertise_tags} onChange={v => setForm(f => ({ ...f, expertise_tags: v }))} placeholder="Type and press Enter" />
+              </div>
+            </SectionCard>
 
-            <div>
-              <Label>Industry</Label>
-              <Select value={form.industry || NONE} onValueChange={v => setForm(f => ({ ...f, industry: v === NONE ? "" : v }))}>
-                <SelectTrigger><SelectValue placeholder="Choose industry" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NONE}>—</SelectItem>
-                  {INDUSTRIES.map(i => <SelectItem key={i} value={i}>{i}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* YOUR STORY */}
+            <SectionCard icon={Heart} title="Your story" subtitle="A few honest lines. No corporate speak needed.">
+              <div>
+                <Label>Short bio</Label>
+                <Textarea rows={3} maxLength={600} value={form.bio}
+                  onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
+                  placeholder="A line or two about yourself — what you love, what you're building." />
+                <div className="flex justify-between mt-1">
+                  <FieldOK show={!!form.bio && form.bio.trim().length >= 40} />
+                  <span className="text-xs text-muted-foreground">{(form.bio || "").length}/600</span>
+                </div>
+              </div>
+              <div>
+                <Label>Why are you part of Fempower? *</Label>
+                <Textarea rows={3} maxLength={400} value={form.why_here}
+                  onChange={e => setForm(f => ({ ...f, why_here: e.target.value }))}
+                  placeholder="Share what brought you here." />
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  <span className="text-xs text-muted-foreground w-full mb-0.5">Not sure where to start? Try one of these:</span>
+                  {WHY_STARTERS.map(s => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, why_here: s }))}
+                      className="text-xs px-2.5 py-1 rounded-full border border-input hover:border-primary hover:bg-primary/5 transition text-left"
+                    >
+                      {s.length > 60 ? s.slice(0, 58) + "…" : s}
+                    </button>
+                  ))}
+                </div>
+                <FieldOK show={ok("why_here")} />
+              </div>
+              <div>
+                <Label>Interests</Label>
+                <TagInput value={form.interests} onChange={v => setForm(f => ({ ...f, interests: v }))} placeholder="Type and press Enter" />
+              </div>
+            </SectionCard>
 
-            <div>
-              <Label>Areas of expertise</Label>
-              <TagInput value={form.expertise_tags} onChange={v => setForm(f => ({ ...f, expertise_tags: v }))} placeholder="Type and press Enter" />
-            </div>
-
-            <div>
-              <Label>Interests</Label>
-              <TagInput value={form.interests} onChange={v => setForm(f => ({ ...f, interests: v }))} placeholder="Type and press Enter" />
-            </div>
-
-            <div>
-              <Label>Open to</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
+            {/* WHAT YOU'RE LOOKING FOR */}
+            <SectionCard icon={Compass} title="What you're open to" subtitle="Help sisters know how to show up for you.">
+              <div className="flex flex-wrap gap-2">
                 {LOOKING_FOR_OPTIONS.map(opt => {
                   const active = form.looking_for.includes(opt);
                   return (
                     <button key={opt} type="button"
-                      onClick={() => setForm(f => ({ ...f, looking_for: active ? f.looking_for.filter(x => x !== opt) : [...f.looking_for, opt] }))}
-                      className={`px-3 py-1.5 text-xs rounded-full border transition ${active ? "bg-primary text-primary-foreground border-primary" : "bg-background border-input hover:border-primary"}`}>
+                      onClick={() => setForm(f => ({
+                        ...f,
+                        looking_for: active ? f.looking_for.filter(x => x !== opt) : [...f.looking_for, opt],
+                      }))}
+                      className={cn(
+                        "px-3 py-1.5 text-xs rounded-full border transition",
+                        active
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-input hover:border-primary",
+                      )}>
                       {opt}
                     </button>
                   );
                 })}
               </div>
-            </div>
+            </SectionCard>
 
-            <div className="grid sm:grid-cols-3 gap-4">
-              <div><Label>LinkedIn URL *</Label><Input value={form.linkedin_url} onChange={e => setForm(f => ({ ...f, linkedin_url: e.target.value }))} placeholder="https://linkedin.com/in/…" /></div>
-              <div><Label>Instagram URL</Label><Input value={form.instagram_url} onChange={e => setForm(f => ({ ...f, instagram_url: e.target.value }))} placeholder="https://instagram.com/…" /></div>
-              <div><Label>Website</Label><Input value={form.website_url} onChange={e => setForm(f => ({ ...f, website_url: e.target.value }))} placeholder="https://…" /></div>
-            </div>
+            {/* LINKS */}
+            <SectionCard icon={Link2} title="Your links" subtitle="LinkedIn is required for verification.">
+              <div>
+                <Label>LinkedIn URL *</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={form.linkedin_url}
+                    onChange={e => setForm(f => ({ ...f, linkedin_url: e.target.value }))}
+                    placeholder="https://linkedin.com/in/your-name"
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={applyLinkedInSmartFill} className="shrink-0 gap-1.5">
+                    <Wand2 size={14} /> Smart-fill
+                  </Button>
+                </div>
+                <FieldOK show={ok("linkedin_url")} />
+                <FieldError msg={form.linkedin_url ? fieldIssues.linkedin_url : null} />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Tip: Smart-fill reads your name from the URL to save typing.
+                </p>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <Label>Instagram URL</Label>
+                  <Input value={form.instagram_url} onChange={e => setForm(f => ({ ...f, instagram_url: e.target.value }))} placeholder="https://instagram.com/…" />
+                  <FieldError msg={form.instagram_url ? fieldIssues.instagram_url : null} />
+                </div>
+                <div>
+                  <Label>Website</Label>
+                  <Input value={form.website_url} onChange={e => setForm(f => ({ ...f, website_url: e.target.value }))} placeholder="https://…" />
+                  <FieldError msg={form.website_url ? fieldIssues.website_url : null} />
+                </div>
+              </div>
+            </SectionCard>
 
-            <div className="flex justify-end pt-2">
-              <Button onClick={onSave} disabled={saving}>
+            <div className="flex items-center justify-between gap-3 pt-2">
+              <p className="text-xs text-muted-foreground">
+                {completeness < 100 ? `${100 - completeness}% to a sparkle profile ✨` : "Sparkle profile unlocked ✨"}
+              </p>
+              <Button onClick={onSave} disabled={saving} size="lg">
                 {saving && <Loader2 className="animate-spin mr-2" size={14} />}Save profile
               </Button>
             </div>
