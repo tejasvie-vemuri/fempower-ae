@@ -5,9 +5,8 @@ import { test, expect } from "@playwright/test";
  * on the landing page. Only run at one representative viewport to avoid noise.
  */
 test.describe("JoinGate — guest CTAs", () => {
-  test.skip(({}, testInfo) => testInfo.project.name !== "vp-375", "run once");
-
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "vp-375", "run once at one representative viewport");
     await page.goto("/");
   });
 
