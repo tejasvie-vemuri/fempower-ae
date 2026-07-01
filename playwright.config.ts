@@ -11,12 +11,20 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
-  retries: 0,
-  reporter: "list",
+  retries: process.env.CI ? 2 : 0,
+  reporter: process.env.CI ? [["list"], ["html", { open: "never" }], ["github"]] : "list",
   use: {
     baseURL: "http://localhost:8080",
     trace: "retain-on-failure",
   },
+  webServer: process.env.CI
+    ? {
+        command: "npm run dev -- --host 127.0.0.1 --port 8080",
+        url: "http://localhost:8080",
+        reuseExistingServer: false,
+        timeout: 120_000,
+      }
+    : undefined,
   projects: [
     {
       name: "vp-320",
