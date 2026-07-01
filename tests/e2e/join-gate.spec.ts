@@ -37,8 +37,9 @@ test.describe("JoinGate — guest CTAs", () => {
   });
 
   test("Sign In link inside the dialog navigates to /auth and closes the dialog", async ({ page }) => {
-    await page.locator("#programs").scrollIntoViewIfNeeded();
-    await page.getByRole("button", { name: /Mentor Walks/i }).first().click();
+    const programs = page.locator("#programs");
+    await programs.scrollIntoViewIfNeeded();
+    await programs.getByRole("button", { name: /Mentor Walks/i }).click();
 
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
