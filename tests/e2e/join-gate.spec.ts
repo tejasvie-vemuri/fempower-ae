@@ -13,9 +13,9 @@ test.describe("JoinGate — guest CTAs", () => {
   });
 
   test("clicking a Programs Spotlight item opens the join dialog with QR + IG CTA", async ({ page }) => {
-    // Scroll the programs section into view and click any accordion trigger.
-    await page.locator("#programs").scrollIntoViewIfNeeded();
-    await page.getByRole("button", { name: /WhatsApp Community/i }).first().click();
+    const programs = page.locator("#programs");
+    await programs.scrollIntoViewIfNeeded();
+    await programs.getByRole("button", { name: /WhatsApp Community/i }).click();
 
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
