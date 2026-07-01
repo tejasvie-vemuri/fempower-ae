@@ -6,7 +6,9 @@ import { test, expect } from "@playwright/test";
  * the auth page's ability to bounce back to the profile editor.
  */
 test.describe("Profile edit — access control", () => {
-  test.skip(({}, testInfo) => testInfo.project.name !== "vp-375", "run once");
+  test.beforeEach(async ({}, testInfo) => {
+    test.skip(testInfo.project.name !== "vp-375", "run once at one representative viewport");
+  });
 
   test("guest visiting /account/profile is redirected to /auth with a redirect param", async ({ page }) => {
     await page.goto("/account/profile");
