@@ -63,7 +63,7 @@ const WHY_STARTERS = [
 
 const SectionCard = ({
   icon: Icon, title, subtitle, children,
-}: { icon: React.ComponentType<{ size?: number; className?: string }>; title: string; subtitle?: string; children: React.ReactNode }) => (
+}: { icon: React.ElementType; title: string; subtitle?: string; children: React.ReactNode }) => (
   <section className="bg-card border rounded-lg p-5 sm:p-6 space-y-4">
     <header className="flex items-start gap-3">
       <span className="mt-0.5 rounded-full bg-primary/10 text-primary p-2"><Icon size={18} /></span>
