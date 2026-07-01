@@ -34,7 +34,6 @@ const Index = () => {
         <HomeStructuredData />
         <SeoSummary />
         <HeroSection />
-        <AboutSection />
         <OfferingsSection />
         <ProgramsSection />
         {isAuthed && <SpotlightCard />}
