@@ -25,8 +25,7 @@ import InviteSisterDialog from "@/components/InviteSisterDialog";
 import logo from "@/assets/fempower-logo.png";
 
 const navLinks = [
-  { label: "About", to: "/#about", showFrom: "md" as const },
-  { label: "What We Do", to: "/#offerings", showFrom: "lg" as const },
+  { label: "What We Do", to: "/#offerings", showFrom: "md" as const },
   { label: "Programs", to: "/#programs", showFrom: "xl" as const },
   { label: "Events", to: "/#events-calendar", showFrom: "md" as const },
   { label: "Directory", to: "/directory", showFrom: "md" as const },
