@@ -36,6 +36,9 @@ import LearnJournal from "./pages/LearnJournal";
 import AdminLearn from "./pages/AdminLearn";
 import ShareWin from "./pages/ShareWin";
 import AdminMilestones from "./pages/AdminMilestones";
+import LifestyleManager from "./pages/LifestyleManager";
+import ThePause from "./pages/ThePause";
+import AdminLifestyleManager from "./pages/AdminLifestyleManager";
 import ScrollToHash from "@/components/ScrollToHash";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -101,6 +104,9 @@ const App = () => (
             <Route path="/share-win" element={<ProtectedRoute><ShareWin /></ProtectedRoute>} />
             <Route path="/admin/learn" element={<AdminRoute><AdminLearn /></AdminRoute>} />
             <Route path="/admin/milestones" element={<AdminRoute><AdminMilestones /></AdminRoute>} />
+            <Route path="/lifestyle-manager" element={<ProtectedRoute><LifestyleManager /></ProtectedRoute>} />
+            <Route path="/the-pause" element={<ProtectedRoute><ThePause /></ProtectedRoute>} />
+            <Route path="/admin/lifestyle-manager" element={<AdminRoute><AdminLifestyleManager /></AdminRoute>} />
             <Route path="/programs" element={<Navigate to="/#programs" replace />} />
             <Route path="/events" element={<Navigate to="/#events-calendar" replace />} />
             <Route path="/join" element={<Join />} />

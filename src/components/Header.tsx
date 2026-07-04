@@ -25,6 +25,8 @@ const navLinks = [
   { label: "Gallery", to: "/#gallery", showFrom: "lg" as const },
   { label: "Join", to: "/join", showFrom: "md" as const },
   { label: "Circle", to: "/circle", showFrom: "lg" as const },
+  { label: "Lifestyle Manager", to: "/lifestyle-manager", showFrom: "lg" as const, requiresAuth: true },
+  { label: "The Pause", to: "/the-pause", showFrom: "lg" as const, requiresAuth: true },
   { label: "FAQs", to: "/#faqs", showFrom: "xl" as const, requiresAuth: true },
 ];
 
@@ -122,6 +124,9 @@ const Header = () => {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/admin/milestones">Admin · Milestones</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/lifestyle-manager">Admin · Lifestyle Manager</Link>
                     </DropdownMenuItem>
                   </>
                 )}

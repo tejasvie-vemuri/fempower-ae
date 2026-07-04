@@ -31,6 +31,17 @@
     --blush-light: 350 50% 95%;
     --blush-dark: 350 40% 75%;
 
+    /* Lifestyle Manager (Zoya) + The Pause: warm, human, never corporate.
+       Deliberately not another pastel pink/lavender "for her" palette. */
+    --lm-ivory: 35 38% 97%;
+    --lm-terracotta: 16 62% 47%;
+    --lm-terracotta-light: 16 55% 92%;
+    --lm-gold: 42 68% 50%;
+    --lm-gold-light: 42 60% 92%;
+    --lm-sage: 155 22% 34%;
+    --lm-sage-light: 155 25% 92%;
+    --lm-espresso: 25 30% 18%;
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 

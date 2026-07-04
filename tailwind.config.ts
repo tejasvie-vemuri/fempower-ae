@@ -55,6 +55,16 @@ export default {
           light: "hsl(var(--blush-light))",
           dark: "hsl(var(--blush-dark))",
         },
+        lifestyle: {
+          ivory: "hsl(var(--lm-ivory))",
+          terracotta: "hsl(var(--lm-terracotta))",
+          "terracotta-light": "hsl(var(--lm-terracotta-light))",
+          gold: "hsl(var(--lm-gold))",
+          "gold-light": "hsl(var(--lm-gold-light))",
+          sage: "hsl(var(--lm-sage))",
+          "sage-light": "hsl(var(--lm-sage-light))",
+          espresso: "hsl(var(--lm-espresso))",
+        },
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
