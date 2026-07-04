@@ -378,6 +378,28 @@ const LifestyleManager = () => {
 
             {/* ── Chat ── */}
             <TabsContent value="chat" className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      sendChatMessage();
+                    }
+                  }}
+                  placeholder={`Tell ${displayAssistantName} anything...`}
+                  className="font-body"
+                  disabled={chatSending}
+                />
+                <Button
+                  onClick={sendChatMessage}
+                  disabled={chatSending || !chatInput.trim()}
+                  className="bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90"
+                >
+                  <Send size={16} />
+                </Button>
+              </div>
               <div className="rounded-xl border border-border bg-card p-4 min-h-[320px] max-h-[480px] overflow-y-auto flex flex-col gap-3">
                 {chatMessages.length === 0 ? (
                   <p className="text-center text-muted-foreground font-body py-16">
@@ -403,28 +425,6 @@ const LifestyleManager = () => {
                     <Loader2 size={14} className="animate-spin" /> Thinking
                   </div>
                 )}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      sendChatMessage();
-                    }
-                  }}
-                  placeholder={`Tell ${displayAssistantName} anything...`}
-                  className="font-body"
-                  disabled={chatSending}
-                />
-                <Button
-                  onClick={sendChatMessage}
-                  disabled={chatSending || !chatInput.trim()}
-                  className="bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90"
-                >
-                  <Send size={16} />
-                </Button>
               </div>
             </TabsContent>
 
