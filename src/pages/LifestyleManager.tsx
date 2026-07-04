@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ArrowLeft, Plus, Check, ShoppingBag, Sparkles } from "lucide-react";
+import { Loader2, ArrowLeft, Plus, Check, ShoppingBag, Sparkles, Send } from "lucide-react";
 
 interface LmProfile {
   user_id: string;
@@ -54,6 +54,12 @@ interface GroceryItem {
   status: string;
 }
 
+interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+}
+
 const GROCERY_APPS = [
   { label: "Instashop", url: "https://www.instashop.com" },
   { label: "Noon Minutes", url: "https://food.noon.com" },
@@ -91,6 +97,10 @@ const LifestyleManager = () => {
   const [assistantNameDraft, setAssistantNameDraft] = useState("");
   const [preferredNameDraft, setPreferredNameDraft] = useState("");
 
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatSending, setChatSending] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     (async () => {
@@ -122,20 +132,86 @@ const LifestyleManager = () => {
         .maybeSingle();
       if (config?.trial_days) setTrialDays(config.trial_days);
 
-      const [peopleRes, datesRes, remindersRes, groceriesRes] = await Promise.all([
+      const [peopleRes, datesRes, remindersRes, groceriesRes, chatRes] = await Promise.all([
         (supabase as any).from("people").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
         (supabase as any).from("important_dates").select("*").eq("user_id", user.id),
         (supabase as any).from("reminders").select("*").eq("user_id", user.id).order("due_date", { ascending: true }),
         (supabase as any).from("grocery_items").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        (supabase as any)
+          .from("chat_messages")
+          .select("id, role, content")
+          .eq("user_id", user.id)
+          .eq("channel", "web")
+          .order("created_at", { ascending: true }),
       ]);
 
       setPeople(peopleRes.data ?? []);
       setDates(datesRes.data ?? []);
       setReminders(remindersRes.data ?? []);
       setGroceries(groceriesRes.data ?? []);
+      setChatMessages(chatRes.data ?? []);
       setLoading(false);
     })();
   }, [user]);
+
+  const refetchLifestyleData = async () => {
+    if (!user) return;
+    const [peopleRes, datesRes, remindersRes, groceriesRes] = await Promise.all([
+      (supabase as any).from("people").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      (supabase as any).from("important_dates").select("*").eq("user_id", user.id),
+      (supabase as any).from("reminders").select("*").eq("user_id", user.id).order("due_date", { ascending: true }),
+      (supabase as any).from("grocery_items").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+    ]);
+    setPeople(peopleRes.data ?? []);
+    setDates(datesRes.data ?? []);
+    setReminders(remindersRes.data ?? []);
+    setGroceries(groceriesRes.data ?? []);
+  };
+
+  const sendChatMessage = async () => {
+    const text = chatInput.trim();
+    if (!text || !user || chatSending) return;
+
+    const userMsg: ChatMessage = { id: `local-${Date.now()}`, role: "user", content: text };
+    const nextMessages = [...chatMessages, userMsg];
+    setChatMessages(nextMessages);
+    setChatInput("");
+    setChatSending(true);
+
+    await (supabase as any)
+      .from("chat_messages")
+      .insert({ user_id: user.id, role: "user", content: text, channel: "web" });
+
+    const { data, error } = await supabase.functions.invoke("zoya-chat", {
+      body: {
+        messages: nextMessages.map((m) => ({ role: m.role, content: m.content })),
+        assistantName: profile?.assistant_name,
+        preferredName: profile?.preferred_name,
+      },
+    });
+
+    setChatSending(false);
+
+    if (error || !data?.reply) {
+      toast({ title: "Couldn't reach Zoya", description: error?.message ?? "Try again in a moment.", variant: "destructive" });
+      return;
+    }
+
+    const assistantMsg: ChatMessage = { id: `local-${Date.now()}-a`, role: "assistant", content: data.reply };
+    setChatMessages((prev) => [...prev, assistantMsg]);
+
+    await (supabase as any).from("chat_messages").insert({
+      user_id: user.id,
+      role: "assistant",
+      content: data.reply,
+      channel: "web",
+      intent: data.toolsUsed?.[0] ?? null,
+    });
+
+    if (data.toolsUsed?.length > 0) {
+      await refetchLifestyleData();
+    }
+  };
 
   const peopleById = useMemo(() => new Map(people.map((p) => [p.id, p])), [people]);
 
@@ -290,14 +366,67 @@ const LifestyleManager = () => {
             )}
           </motion.div>
 
-          <Tabs defaultValue="today" className="mt-8">
+          <Tabs defaultValue="chat" className="mt-8">
             <TabsList className="mb-6 flex-wrap h-auto">
+              <TabsTrigger value="chat">Chat</TabsTrigger>
               <TabsTrigger value="today">Today</TabsTrigger>
               <TabsTrigger value="people">People</TabsTrigger>
               <TabsTrigger value="groceries">Groceries</TabsTrigger>
               <TabsTrigger value="history">History</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
+
+            {/* ── Chat ── */}
+            <TabsContent value="chat" className="space-y-4">
+              <div className="rounded-xl border border-border bg-card p-4 min-h-[320px] max-h-[480px] overflow-y-auto flex flex-col gap-3">
+                {chatMessages.length === 0 ? (
+                  <p className="text-center text-muted-foreground font-body py-16">
+                    Tell {displayAssistantName} anything, "remind me to get Mum a card Friday", "add milk to my
+                    list", she'll take it from there.
+                  </p>
+                ) : (
+                  chatMessages.map((m) => (
+                    <div
+                      key={m.id}
+                      className={`max-w-[85%] rounded-2xl px-4 py-2.5 font-body text-sm whitespace-pre-wrap ${
+                        m.role === "user"
+                          ? "self-end bg-lifestyle-terracotta text-white"
+                          : "self-start bg-lifestyle-gold-light text-lifestyle-espresso"
+                      }`}
+                    >
+                      {m.content}
+                    </div>
+                  ))
+                )}
+                {chatSending && (
+                  <div className="self-start flex items-center gap-2 text-muted-foreground text-sm font-body">
+                    <Loader2 size={14} className="animate-spin" /> Thinking
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      sendChatMessage();
+                    }
+                  }}
+                  placeholder={`Tell ${displayAssistantName} anything...`}
+                  className="font-body"
+                  disabled={chatSending}
+                />
+                <Button
+                  onClick={sendChatMessage}
+                  disabled={chatSending || !chatInput.trim()}
+                  className="bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90"
+                >
+                  <Send size={16} />
+                </Button>
+              </div>
+            </TabsContent>
 
             {/* ── Today ── */}
             <TabsContent value="today" className="space-y-5">
