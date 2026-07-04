@@ -14,6 +14,125 @@ export type Database = {
   }
   public: {
     Tables: {
+      approval_actions: {
+        Row: {
+          action_type: string
+          approved_at: string | null
+          created_at: string
+          id: string
+          related_entity_id: string | null
+          related_entity_type: string | null
+          status: string
+          summary: string
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          approved_at?: string | null
+          created_at?: string
+          id?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          status?: string
+          summary: string
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          approved_at?: string | null
+          created_at?: string
+          id?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          status?: string
+          summary?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      booking_requests: {
+        Row: {
+          created_at: string
+          google_place_url: string | null
+          id: string
+          occasion_note: string | null
+          party_size: number | null
+          requested_at: string | null
+          status: string
+          user_id: string
+          venue_id: string | null
+          venue_name_freeform: string | null
+        }
+        Insert: {
+          created_at?: string
+          google_place_url?: string | null
+          id?: string
+          occasion_note?: string | null
+          party_size?: number | null
+          requested_at?: string | null
+          status?: string
+          user_id: string
+          venue_id?: string | null
+          venue_name_freeform?: string | null
+        }
+        Update: {
+          created_at?: string
+          google_place_url?: string | null
+          id?: string
+          occasion_note?: string | null
+          party_size?: number | null
+          requested_at?: string | null
+          status?: string
+          user_id?: string
+          venue_id?: string | null
+          venue_name_freeform?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_requests_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          channel: string
+          content: string
+          created_at: string
+          id: string
+          intent: string | null
+          linked_entity_id: string | null
+          linked_entity_type: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          channel?: string
+          content: string
+          created_at?: string
+          id?: string
+          intent?: string | null
+          linked_entity_id?: string | null
+          linked_entity_type?: string | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          content?: string
+          created_at?: string
+          id?: string
+          intent?: string | null
+          linked_entity_id?: string | null
+          linked_entity_type?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       circle_bans: {
         Row: {
           banned_by: string | null
@@ -430,6 +549,161 @@ export type Database = {
         }
         Relationships: []
       }
+      google_calendar_tokens: {
+        Row: {
+          access_token: string | null
+          connected_at: string
+          expires_at: string | null
+          refresh_token: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          connected_at?: string
+          expires_at?: string | null
+          refresh_token?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          connected_at?: string
+          expires_at?: string | null
+          refresh_token?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      grocery_items: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          is_recurring: boolean
+          item_name: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_recurring?: boolean
+          item_name: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_recurring?: boolean
+          item_name?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      important_dates: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          label: string
+          person_id: string
+          recurrence: string
+          reminder_lead_days: number[]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          label: string
+          person_id: string
+          recurrence?: string
+          reminder_lead_days?: number[]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          label?: string
+          person_id?: string
+          recurrence?: string
+          reminder_lead_days?: number[]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "important_dates_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_entries: {
+        Row: {
+          created_at: string
+          entry_date: string
+          free_text: string | null
+          gratitude_text: string | null
+          id: string
+          learning_text: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entry_date?: string
+          free_text?: string | null
+          gratitude_text?: string | null
+          id?: string
+          learning_text?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entry_date?: string
+          free_text?: string | null
+          gratitude_text?: string | null
+          id?: string
+          learning_text?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      journal_nudge_settings: {
+        Row: {
+          consecutive_misses: number
+          current_interval_days: number
+          enabled: boolean
+          last_entry_at: string | null
+          last_nudge_sent_at: string | null
+          preferred_time: string
+          user_id: string
+        }
+        Insert: {
+          consecutive_misses?: number
+          current_interval_days?: number
+          enabled?: boolean
+          last_entry_at?: string | null
+          last_nudge_sent_at?: string | null
+          preferred_time?: string
+          user_id: string
+        }
+        Update: {
+          consecutive_misses?: number
+          current_interval_days?: number
+          enabled?: boolean
+          last_entry_at?: string | null
+          last_nudge_sent_at?: string | null
+          preferred_time?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       learn_courses: {
         Row: {
           created_at: string
@@ -661,6 +935,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      lm_profile: {
+        Row: {
+          assistant_name: string
+          city: string | null
+          created_at: string
+          notification_prefs: Json
+          plan_tier: string
+          preferred_name: string | null
+          trial_started_at: string
+          updated_at: string
+          user_id: string
+          whatsapp_number: string | null
+        }
+        Insert: {
+          assistant_name?: string
+          city?: string | null
+          created_at?: string
+          notification_prefs?: Json
+          plan_tier?: string
+          preferred_name?: string | null
+          trial_started_at?: string
+          updated_at?: string
+          user_id: string
+          whatsapp_number?: string | null
+        }
+        Update: {
+          assistant_name?: string
+          city?: string | null
+          created_at?: string
+          notification_prefs?: Json
+          plan_tier?: string
+          preferred_name?: string | null
+          trial_started_at?: string
+          updated_at?: string
+          user_id?: string
+          whatsapp_number?: string | null
+        }
+        Relationships: []
       }
       meetup_reports: {
         Row: {
@@ -930,6 +1243,114 @@ export type Database = {
         }
         Relationships: []
       }
+      occasion_calendar: {
+        Row: {
+          created_at: string
+          day: number | null
+          id: string
+          month: number
+          name: string
+          note: string | null
+        }
+        Insert: {
+          created_at?: string
+          day?: number | null
+          id?: string
+          month: number
+          name: string
+          note?: string | null
+        }
+        Update: {
+          created_at?: string
+          day?: number | null
+          id?: string
+          month?: number
+          name?: string
+          note?: string | null
+        }
+        Relationships: []
+      }
+      people: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          relationship: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          relationship?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          relationship?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      places_cache: {
+        Row: {
+          cached_at: string
+          opening_hours: Json | null
+          photos: Json | null
+          place_id: string
+          rating: number | null
+          review_count: number | null
+        }
+        Insert: {
+          cached_at?: string
+          opening_hours?: Json | null
+          photos?: Json | null
+          place_id: string
+          rating?: number | null
+          review_count?: number | null
+        }
+        Update: {
+          cached_at?: string
+          opening_hours?: Json | null
+          photos?: Json | null
+          place_id?: string
+          rating?: number | null
+          review_count?: number | null
+        }
+        Relationships: []
+      }
+      plan_config: {
+        Row: {
+          id: number
+          price_amount: number
+          price_currency: string
+          trial_days: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: number
+          price_amount?: number
+          price_currency?: string
+          trial_days?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: number
+          price_amount?: number
+          price_currency?: string
+          trial_days?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -1039,6 +1460,86 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      reminders: {
+        Row: {
+          created_at: string
+          due_date: string | null
+          id: string
+          person_id: string | null
+          source: string
+          status: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          person_id?: string | null
+          source?: string
+          status?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          person_id?: string | null
+          source?: string
+          status?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminders_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant_venues: {
+        Row: {
+          area: string | null
+          created_at: string
+          cuisine: string | null
+          emirate: string | null
+          google_place_id: string | null
+          id: string
+          name: string
+          phone: string | null
+          vibe_tags: string[]
+          website: string | null
+        }
+        Insert: {
+          area?: string | null
+          created_at?: string
+          cuisine?: string | null
+          emirate?: string | null
+          google_place_id?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          vibe_tags?: string[]
+          website?: string | null
+        }
+        Update: {
+          area?: string | null
+          created_at?: string
+          cuisine?: string | null
+          emirate?: string | null
+          google_place_id?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          vibe_tags?: string[]
+          website?: string | null
+        }
+        Relationships: []
       }
       site_images: {
         Row: {
