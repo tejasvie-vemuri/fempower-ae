@@ -85,7 +85,7 @@ const Circle = () => {
   }, [user]);
 
   const load = async () => {
-    if (!user || memberStatus !== "approved") return;
+    if (!user || (memberStatus !== "approved" && memberStatus !== "hidden")) return;
     setLoading(true);
     // Use the public-safe view so anonymous posts have no identity
     let q = (supabase as any)
@@ -260,7 +260,7 @@ const Circle = () => {
       </>
     );
   }
-  if (memberStatus && memberStatus !== "approved") {
+  if (memberStatus && memberStatus !== "approved" && memberStatus !== "hidden") {
     return (
       <>
         <Header />

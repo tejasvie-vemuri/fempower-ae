@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (!memberRow || memberRow.status !== "approved") {
+    if (!memberRow || (memberRow.status !== "approved" && memberRow.status !== "hidden")) {
       return new Response(JSON.stringify({ error: "Members must be approved to post in the Circle." }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

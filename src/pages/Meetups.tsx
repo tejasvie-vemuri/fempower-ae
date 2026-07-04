@@ -64,7 +64,7 @@ const Meetups = () => {
   }, [user]);
 
   const load = async () => {
-    if (!user || memberStatus !== "approved") return;
+    if (!user || (memberStatus !== "approved" && memberStatus !== "hidden")) return;
     setLoading(true);
     // Hide meetups whose start time was more than 2 hours ago
     const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
@@ -214,7 +214,7 @@ const Meetups = () => {
       </>
     );
   }
-  if (memberStatus && memberStatus !== "approved") {
+  if (memberStatus && memberStatus !== "approved" && memberStatus !== "hidden") {
     return (
       <>
         <Header />

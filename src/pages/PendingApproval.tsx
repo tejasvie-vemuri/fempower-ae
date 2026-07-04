@@ -66,7 +66,7 @@ const PendingApproval = () => {
         <div className="bg-card border border-border rounded-2xl p-6 space-y-3 text-left">
           {status === "missing" && (
             <Button asChild className="w-full font-body uppercase tracking-widest text-xs">
-              <Link to="/profile">Complete my profile</Link>
+              <Link to="/account/profile">Complete my profile</Link>
             </Button>
           )}
 

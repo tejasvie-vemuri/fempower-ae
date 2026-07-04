@@ -2,6 +2,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useMemberProfile } from "@/hooks/useMemberProfile";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { isActiveMemberStatus } from "@/lib/memberProfile";
 import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
@@ -29,8 +30,8 @@ export const ProtectedRoute = ({ children, allowPending = false }: ProtectedRout
     return <Navigate to={`/auth?redirect=${redirect}`} replace />;
   }
 
-  const approved = profile?.status === "approved";
-  if (!approved && !isAdmin && !allowPending) {
+  const active = isActiveMemberStatus(profile?.status);
+  if (!active && !isAdmin && !allowPending) {
     return <Navigate to="/pending-approval" replace />;
   }
 
