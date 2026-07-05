@@ -573,7 +573,7 @@ const LifestyleManager = () => {
                   enterKeyHint="send"
                 />
                 <Button
-                  onClick={sendChatMessage}
+                  onClick={() => sendChatMessage()}
                   disabled={chatSending || !chatInput.trim()}
                   className="shrink-0 bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90"
                 >
