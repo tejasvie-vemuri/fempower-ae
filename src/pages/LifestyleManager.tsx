@@ -698,6 +698,60 @@ const LifestyleManager = () => {
                     className="font-body"
                   />
                 </div>
+
+                <div className="pt-2 border-t border-border space-y-4">
+                  <p className="text-xs font-body uppercase tracking-widest text-muted-foreground">
+                    Notifications
+                  </p>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <Label htmlFor="notif-whatsapp" className="font-body text-sm text-lifestyle-espresso">
+                        WhatsApp nudges
+                      </Label>
+                      <p className="text-xs text-muted-foreground font-body">Reminders and check-ins on WhatsApp.</p>
+                    </div>
+                    <Switch
+                      id="notif-whatsapp"
+                      checked={notifPrefsDraft.whatsapp}
+                      onCheckedChange={(v) => setNotifPrefsDraft((p) => ({ ...p, whatsapp: v }))}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <Label htmlFor="notif-email" className="font-body text-sm text-lifestyle-espresso">
+                        Email digest
+                      </Label>
+                      <p className="text-xs text-muted-foreground font-body">A gentle summary in your inbox.</p>
+                    </div>
+                    <Switch
+                      id="notif-email"
+                      checked={notifPrefsDraft.email}
+                      onCheckedChange={(v) => setNotifPrefsDraft((p) => ({ ...p, email: v }))}
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="font-body text-sm text-lifestyle-espresso mb-1.5 block">
+                      Daily digest time
+                    </Label>
+                    <Select
+                      value={notifPrefsDraft.digest_time}
+                      onValueChange={(v) => setNotifPrefsDraft((p) => ({ ...p, digest_time: v }))}
+                    >
+                      <SelectTrigger className="font-body">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["06:00","07:00","08:00","09:00","10:00","12:00","18:00","20:00","21:00"].map((t) => (
+                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 <div className="min-h-[20px] text-xs font-body text-muted-foreground flex items-center gap-2" aria-live="polite">
                   {profileSaveStatus === "saving" && (
                     <><Loader2 size={12} className="animate-spin" /> Saving…</>
