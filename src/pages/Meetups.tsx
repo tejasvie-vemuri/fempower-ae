@@ -90,15 +90,14 @@ const Meetups = () => {
       setMeetups([]); setLoading(false); return;
     }
 
-    const hostIds = Array.from(new Set(list.map((m) => m.host_id))) as string[];
     const ids = list.map((m) => m.id);
     const [{ data: hosts }, { data: rsvps }] = await Promise.all([
-      supabase.from("member_profiles").select("user_id, name, photo_url").in("user_id", hostIds),
+      (supabase as any).from("meetup_hosts_public").select("meetup_id, display_name, photo_url").in("meetup_id", ids),
       (supabase as any).from("meetup_rsvps").select("meetup_id, user_id").in("meetup_id", ids),
     ]);
 
-    const hostMap: Record<string, any> = {};
-    (hosts ?? []).forEach((h: any) => { hostMap[h.user_id] = h; });
+    const hostMap: Record<string, { name: string | null; photo_url: string | null }> = {};
+    (hosts ?? []).forEach((h: any) => { hostMap[h.meetup_id] = { name: h.display_name ?? null, photo_url: h.photo_url ?? null }; });
 
     const rsvpUserIds: string[] = Array.from(new Set((rsvps ?? []).map((r: any) => r.user_id as string)));
     let attendeeMap: Record<string, any> = {};
@@ -112,7 +111,7 @@ const Meetups = () => {
       const ours = (rsvps ?? []).filter((r: any) => r.meetup_id === m.id);
       return {
         ...m,
-        host: hostMap[m.host_id],
+        host: hostMap[m.id],
         rsvp_count: ours.length,
         attendees: ours.slice(0, 6).map((r: any) => ({
           user_id: r.user_id,
