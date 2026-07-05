@@ -43,10 +43,20 @@
 
 ---
 
-## Manual steps outstanding right now
+## Bug fixes (July 5)
+- [x] Zoya now knows today's actual date, so relative phrases ("Thursday", "next month") resolve correctly instead of landing on hallucinated dates
+- [x] Today shows every pending reminder and date regardless of how far out or overdue, no more 14-day cutoff hiding things that were actually saved
+- [x] Yearly recurring dates (birthdays, anniversaries) count toward their next occurrence, not the raw stored date
+- [x] A toast confirms the moment a chat action actually saves something, a second signal beyond Zoya's reply
 
-For the Web Push + email digest to actually go live:
-1. Run the new migration (`20260705100000_add_digest_notifications.sql`) in the Supabase SQL editor
-2. Before running it, create the cron secret in Vault (one-off, not committed to git, given to you separately in chat)
-3. Add two Supabase Edge Function secrets: `VAPID_PRIVATE_KEY` and `DIGEST_CRON_SECRET`
-4. Ask Lovable's agent to deploy the new `send-lifestyle-digest` edge function, same as `zoya-chat` before it
+---
+
+## Ideas — brainstormed, not designed yet
+
+Raised July 5, worth coming back to, none of these have a data model or a plan yet:
+
+- [ ] **Document & bill renewal reminders** — Emirates ID, visa, trade license, car registration, DEWA, low-cost extension of the existing reminders system, mostly content and prompting, not new architecture
+- [ ] **Meal planning → grocery list** — "what should I make this week" generates simple suggestions and drops the ingredients straight into Groceries
+- [ ] **Ramadan-aware behavior** — Zoya shifts tone and digest timing during Ramadan, suhoor/iftar aware, same spirit as Zara's existing UAE-specific system prompt
+- [ ] **Trusted service-provider directory** — peer-recommended plumber/AC repair/driving instructor type listings, probably a Circle/community feature more than a Zoya one
+- [ ] **School logistics for working mums** — a distinct memory category for term dates, school runs, PTA reminders
