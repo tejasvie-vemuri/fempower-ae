@@ -13,6 +13,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowLeft, Plus, Check, ShoppingBag, Sparkles, Send } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+
+interface NotificationPrefs {
+  whatsapp: boolean;
+  email: boolean;
+  digest_time: string;
+}
+
+const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
+  whatsapp: true,
+  email: false,
+  digest_time: "08:00",
+};
 
 interface LmProfile {
   user_id: string;
@@ -20,6 +35,7 @@ interface LmProfile {
   preferred_name: string | null;
   whatsapp_number: string | null;
   city: string | null;
+  notification_prefs: NotificationPrefs;
   trial_started_at: string;
   plan_tier: string;
 }
@@ -96,6 +112,7 @@ const LifestyleManager = () => {
   const [savingAssistantName, setSavingAssistantName] = useState(false);
   const [assistantNameDraft, setAssistantNameDraft] = useState("");
   const [preferredNameDraft, setPreferredNameDraft] = useState("");
+  const [notifPrefsDraft, setNotifPrefsDraft] = useState<NotificationPrefs>(DEFAULT_NOTIFICATION_PREFS);
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
@@ -124,6 +141,10 @@ const LifestyleManager = () => {
       setProfile(lmProfile);
       setAssistantNameDraft(lmProfile?.assistant_name ?? "Zoya");
       setPreferredNameDraft(lmProfile?.preferred_name ?? "");
+      setNotifPrefsDraft({
+        ...DEFAULT_NOTIFICATION_PREFS,
+        ...(lmProfile?.notification_prefs ?? {}),
+      });
 
       const { data: config } = await (supabase as any)
         .from("plan_config")
@@ -240,22 +261,20 @@ const LifestyleManager = () => {
   const [profileSaveStatus, setProfileSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [profileSaveError, setProfileSaveError] = useState<string | null>(null);
 
-  const persistProfile = async (assistantName: string, preferredName: string) => {
+  const persistProfile = async (patch: Partial<Pick<LmProfile, "assistant_name" | "preferred_name" | "notification_prefs">>) => {
     if (!user) return;
     setProfileSaveStatus("saving");
     setProfileSaveError(null);
-    const nextAssistant = assistantName.trim() || "Zoya";
-    const nextPreferred = preferredName.trim() || null;
     const { error } = await (supabase as any)
       .from("lm_profile")
-      .update({ assistant_name: nextAssistant, preferred_name: nextPreferred })
+      .update(patch)
       .eq("user_id", user.id);
     if (error) {
       setProfileSaveStatus("error");
       setProfileSaveError(error.message);
       return;
     }
-    setProfile((p) => (p ? { ...p, assistant_name: nextAssistant, preferred_name: nextPreferred } : p));
+    setProfile((p) => (p ? { ...p, ...patch } as LmProfile : p));
     setProfileSaveStatus("saved");
   };
 
@@ -264,17 +283,35 @@ const LifestyleManager = () => {
     if (!profile || !user) return;
     const currentAssistant = profile.assistant_name ?? "Zoya";
     const currentPreferred = profile.preferred_name ?? "";
-    const draftAssistant = (assistantNameDraft.trim() || "Zoya");
-    const draftPreferred = preferredNameDraft.trim();
-    if (draftAssistant === currentAssistant && draftPreferred === (currentPreferred ?? "")) {
+    const nextAssistant = assistantNameDraft.trim() || "Zoya";
+    const nextPreferred = preferredNameDraft.trim() || null;
+    if (nextAssistant === currentAssistant && (nextPreferred ?? "") === (currentPreferred ?? "")) {
       return;
     }
     const t = setTimeout(() => {
-      persistProfile(assistantNameDraft, preferredNameDraft);
+      persistProfile({ assistant_name: nextAssistant, preferred_name: nextPreferred });
     }, 800);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assistantNameDraft, preferredNameDraft, profile?.assistant_name, profile?.preferred_name, user]);
+
+  // Debounced auto-save for notification preferences
+  useEffect(() => {
+    if (!profile || !user) return;
+    const current = { ...DEFAULT_NOTIFICATION_PREFS, ...(profile.notification_prefs ?? {}) };
+    if (
+      current.whatsapp === notifPrefsDraft.whatsapp &&
+      current.email === notifPrefsDraft.email &&
+      current.digest_time === notifPrefsDraft.digest_time
+    ) {
+      return;
+    }
+    const t = setTimeout(() => {
+      persistProfile({ notification_prefs: notifPrefsDraft });
+    }, 500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notifPrefsDraft, profile?.notification_prefs, user]);
 
   // Fade "saved" indicator after a moment
   useEffect(() => {
@@ -661,6 +698,60 @@ const LifestyleManager = () => {
                     className="font-body"
                   />
                 </div>
+
+                <div className="pt-2 border-t border-border space-y-4">
+                  <p className="text-xs font-body uppercase tracking-widest text-muted-foreground">
+                    Notifications
+                  </p>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <Label htmlFor="notif-whatsapp" className="font-body text-sm text-lifestyle-espresso">
+                        WhatsApp nudges
+                      </Label>
+                      <p className="text-xs text-muted-foreground font-body">Reminders and check-ins on WhatsApp.</p>
+                    </div>
+                    <Switch
+                      id="notif-whatsapp"
+                      checked={notifPrefsDraft.whatsapp}
+                      onCheckedChange={(v) => setNotifPrefsDraft((p) => ({ ...p, whatsapp: v }))}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <Label htmlFor="notif-email" className="font-body text-sm text-lifestyle-espresso">
+                        Email digest
+                      </Label>
+                      <p className="text-xs text-muted-foreground font-body">A gentle summary in your inbox.</p>
+                    </div>
+                    <Switch
+                      id="notif-email"
+                      checked={notifPrefsDraft.email}
+                      onCheckedChange={(v) => setNotifPrefsDraft((p) => ({ ...p, email: v }))}
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="font-body text-sm text-lifestyle-espresso mb-1.5 block">
+                      Daily digest time
+                    </Label>
+                    <Select
+                      value={notifPrefsDraft.digest_time}
+                      onValueChange={(v) => setNotifPrefsDraft((p) => ({ ...p, digest_time: v }))}
+                    >
+                      <SelectTrigger className="font-body">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["06:00","07:00","08:00","09:00","10:00","12:00","18:00","20:00","21:00"].map((t) => (
+                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 <div className="min-h-[20px] text-xs font-body text-muted-foreground flex items-center gap-2" aria-live="polite">
                   {profileSaveStatus === "saving" && (
                     <><Loader2 size={12} className="animate-spin" /> Saving…</>
@@ -672,7 +763,11 @@ const LifestyleManager = () => {
                       <button
                         type="button"
                         className="underline"
-                        onClick={() => persistProfile(assistantNameDraft, preferredNameDraft)}
+                        onClick={() => persistProfile({
+                          assistant_name: assistantNameDraft.trim() || "Zoya",
+                          preferred_name: preferredNameDraft.trim() || null,
+                          notification_prefs: notifPrefsDraft,
+                        })}
                       >
                         Retry
                       </button>
