@@ -13,6 +13,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowLeft, Plus, Check, ShoppingBag, Sparkles, Send } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+
+interface NotificationPrefs {
+  whatsapp: boolean;
+  email: boolean;
+  digest_time: string;
+}
+
+const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
+  whatsapp: true,
+  email: false,
+  digest_time: "08:00",
+};
 
 interface LmProfile {
   user_id: string;
@@ -20,6 +35,7 @@ interface LmProfile {
   preferred_name: string | null;
   whatsapp_number: string | null;
   city: string | null;
+  notification_prefs: NotificationPrefs;
   trial_started_at: string;
   plan_tier: string;
 }
