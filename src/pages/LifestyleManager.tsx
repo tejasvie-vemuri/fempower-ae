@@ -377,8 +377,8 @@ const LifestyleManager = () => {
             </TabsList>
 
             {/* ── Chat ── */}
-            <TabsContent value="chat" className="space-y-4">
-              <div className="flex gap-2">
+            <TabsContent value="chat" className="space-y-3 sm:space-y-4">
+              <div className="flex items-center gap-2">
                 <Input
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
@@ -395,12 +395,12 @@ const LifestyleManager = () => {
                 <Button
                   onClick={sendChatMessage}
                   disabled={chatSending || !chatInput.trim()}
-                  className="bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90"
+                  className="shrink-0 bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90"
                 >
                   <Send size={16} />
                 </Button>
               </div>
-              <div className="rounded-xl border border-border bg-card p-4 min-h-[320px] max-h-[480px] overflow-y-auto flex flex-col gap-3">
+              <div className="rounded-xl border border-border bg-card p-4 min-h-[260px] max-h-[55vh] sm:min-h-[320px] sm:max-h-[480px] overflow-y-auto flex flex-col gap-3">
                 {chatMessages.length === 0 ? (
                   <p className="text-center text-muted-foreground font-body py-16">
                     Tell {displayAssistantName} anything, "remind me to get Mum a card Friday", "add milk to my
