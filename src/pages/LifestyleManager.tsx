@@ -714,6 +714,25 @@ const LifestyleManager = () => {
                     className="font-body"
                   />
                 </div>
+                <div>
+                  <p className="text-xs font-body uppercase tracking-widest text-muted-foreground mb-1.5">
+                    Which city are you in?
+                  </p>
+                  <Select
+                    value={cityDraft || "__none"}
+                    onValueChange={(v) => setCityDraft(v === "__none" ? "" : v)}
+                  >
+                    <SelectTrigger className="font-body">
+                      <SelectValue placeholder="Select your city" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">Prefer not to say</SelectItem>
+                      {UAE_CITIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 <div className="pt-2 border-t border-border space-y-4">
                   <p className="text-xs font-body uppercase tracking-widest text-muted-foreground">
