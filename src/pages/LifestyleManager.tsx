@@ -113,6 +113,9 @@ const LifestyleManager = () => {
   const [assistantNameDraft, setAssistantNameDraft] = useState("");
   const [preferredNameDraft, setPreferredNameDraft] = useState("");
   const [notifPrefsDraft, setNotifPrefsDraft] = useState<NotificationPrefs>(DEFAULT_NOTIFICATION_PREFS);
+  const [cityDraft, setCityDraft] = useState("");
+
+  const UAE_CITIES = ["Abu Dhabi", "Dubai", "Sharjah", "Ajman", "Umm Al Quwain", "Ras Al Khaimah", "Fujairah", "Al Ain"];
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
@@ -145,6 +148,7 @@ const LifestyleManager = () => {
         ...DEFAULT_NOTIFICATION_PREFS,
         ...(lmProfile?.notification_prefs ?? {}),
       });
+      setCityDraft(lmProfile?.city ?? "");
 
       const { data: config } = await (supabase as any)
         .from("plan_config")
@@ -261,7 +265,7 @@ const LifestyleManager = () => {
   const [profileSaveStatus, setProfileSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [profileSaveError, setProfileSaveError] = useState<string | null>(null);
 
-  const persistProfile = async (patch: Partial<Pick<LmProfile, "assistant_name" | "preferred_name" | "notification_prefs">>) => {
+  const persistProfile = async (patch: Partial<Pick<LmProfile, "assistant_name" | "preferred_name" | "notification_prefs" | "city">>) => {
     if (!user) return;
     setProfileSaveStatus("saving");
     setProfileSaveError(null);
@@ -312,6 +316,18 @@ const LifestyleManager = () => {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notifPrefsDraft, profile?.notification_prefs, user]);
+
+  // Debounced auto-save for city
+  useEffect(() => {
+    if (!profile || !user) return;
+    const nextCity = cityDraft.trim() || null;
+    if ((profile.city ?? null) === nextCity) return;
+    const t = setTimeout(() => {
+      persistProfile({ city: nextCity });
+    }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cityDraft, profile?.city, user]);
 
   // Fade "saved" indicator after a moment
   useEffect(() => {
@@ -697,6 +713,25 @@ const LifestyleManager = () => {
                     onChange={(e) => setPreferredNameDraft(e.target.value)}
                     className="font-body"
                   />
+                </div>
+                <div>
+                  <p className="text-xs font-body uppercase tracking-widest text-muted-foreground mb-1.5">
+                    Which city are you in?
+                  </p>
+                  <Select
+                    value={cityDraft || "__none"}
+                    onValueChange={(v) => setCityDraft(v === "__none" ? "" : v)}
+                  >
+                    <SelectTrigger className="font-body">
+                      <SelectValue placeholder="Select your city" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">Prefer not to say</SelectItem>
+                      {UAE_CITIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="pt-2 border-t border-border space-y-4">
