@@ -21,6 +21,21 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Loader2, ArrowLeft, Plus, Check, ShoppingBag, Sparkles, Send } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+
+interface NotificationPrefs {
+  whatsapp: boolean;
+  email: boolean;
+  digest_time: string;
+}
+
+const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
+  whatsapp: true,
+  email: false,
+  digest_time: "08:00",
+};
 
 interface LmProfile {
   user_id: string;
@@ -28,6 +43,7 @@ interface LmProfile {
   preferred_name: string | null;
   whatsapp_number: string | null;
   city: string | null;
+  notification_prefs: NotificationPrefs;
   trial_started_at: string;
   plan_tier: string;
 }
@@ -107,9 +123,12 @@ const LifestyleManager = () => {
   const [newReminderTitle, setNewReminderTitle] = useState("");
   const [newReminderDate, setNewReminderDate] = useState("");
   const [newGroceryItem, setNewGroceryItem] = useState("");
-  const [savingAssistantName, setSavingAssistantName] = useState(false);
   const [assistantNameDraft, setAssistantNameDraft] = useState("");
   const [preferredNameDraft, setPreferredNameDraft] = useState("");
+  const [notifPrefsDraft, setNotifPrefsDraft] = useState<NotificationPrefs>(DEFAULT_NOTIFICATION_PREFS);
+  const [cityDraft, setCityDraft] = useState("");
+
+  const UAE_CITIES = ["Abu Dhabi", "Dubai", "Sharjah", "Ajman", "Umm Al Quwain", "Ras Al Khaimah", "Fujairah", "Al Ain"];
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
@@ -118,7 +137,6 @@ const LifestyleManager = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingName, setOnboardingName] = useState("");
   const [onboardingAssistantName, setOnboardingAssistantName] = useState("Zoya");
-  const [savingOnboarding, setSavingOnboarding] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -145,6 +163,11 @@ const LifestyleManager = () => {
       setPreferredNameDraft(lmProfile?.preferred_name ?? "");
       setOnboardingAssistantName(lmProfile?.assistant_name ?? "Zoya");
       if (!lmProfile?.preferred_name) setShowOnboarding(true);
+      setNotifPrefsDraft({
+        ...DEFAULT_NOTIFICATION_PREFS,
+        ...(lmProfile?.notification_prefs ?? {}),
+      });
+      setCityDraft(lmProfile?.city ?? "");
 
       const { data: config } = await (supabase as any)
         .from("plan_config")
@@ -258,41 +281,90 @@ const LifestyleManager = () => {
     ? trialDays - Math.floor((Date.now() - new Date(profile.trial_started_at).getTime()) / (1000 * 60 * 60 * 24))
     : null;
 
-  const saveAssistantIdentity = async () => {
+  const [profileSaveStatus, setProfileSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [profileSaveError, setProfileSaveError] = useState<string | null>(null);
+
+  const persistProfile = async (patch: Partial<Pick<LmProfile, "assistant_name" | "preferred_name" | "notification_prefs" | "city">>) => {
     if (!user) return;
-    setSavingAssistantName(true);
+    setProfileSaveStatus("saving");
+    setProfileSaveError(null);
     const { error } = await (supabase as any)
       .from("lm_profile")
-      .update({ assistant_name: assistantNameDraft || "Zoya", preferred_name: preferredNameDraft || null })
+      .update(patch)
       .eq("user_id", user.id);
-    setSavingAssistantName(false);
     if (error) {
-      toast({ title: "Couldn't save that", description: error.message, variant: "destructive" });
+      setProfileSaveStatus("error");
+      setProfileSaveError(error.message);
       return;
     }
-    setProfile((p) => (p ? { ...p, assistant_name: assistantNameDraft, preferred_name: preferredNameDraft || null } : p));
-    toast({ title: "Saved" });
+    setProfile((p) => (p ? { ...p, ...patch } as LmProfile : p));
+    setProfileSaveStatus("saved");
   };
 
-  const completeOnboarding = async (skip: boolean) => {
-    if (!user) return;
-    setSavingOnboarding(true);
+  // First-run naming moment just sets the drafts, the debounced auto-save
+  // effects below (already wired for the Settings tab) persist it, same
+  // path, no separate write.
+  const completeOnboarding = (skip: boolean) => {
     const finalAssistantName = onboardingAssistantName.trim() || "Zoya";
     const finalPreferredName = skip ? "there" : onboardingName.trim() || "there";
-    const { error } = await (supabase as any)
-      .from("lm_profile")
-      .update({ assistant_name: finalAssistantName, preferred_name: finalPreferredName })
-      .eq("user_id", user.id);
-    setSavingOnboarding(false);
-    if (error) {
-      toast({ title: "Couldn't save that", description: error.message, variant: "destructive" });
-      return;
-    }
-    setProfile((p) => (p ? { ...p, assistant_name: finalAssistantName, preferred_name: finalPreferredName } : p));
     setAssistantNameDraft(finalAssistantName);
     setPreferredNameDraft(finalPreferredName);
     setShowOnboarding(false);
   };
+
+  // Debounced auto-save for profile identity fields
+  useEffect(() => {
+    if (!profile || !user) return;
+    const currentAssistant = profile.assistant_name ?? "Zoya";
+    const currentPreferred = profile.preferred_name ?? "";
+    const nextAssistant = assistantNameDraft.trim() || "Zoya";
+    const nextPreferred = preferredNameDraft.trim() || null;
+    if (nextAssistant === currentAssistant && (nextPreferred ?? "") === (currentPreferred ?? "")) {
+      return;
+    }
+    const t = setTimeout(() => {
+      persistProfile({ assistant_name: nextAssistant, preferred_name: nextPreferred });
+    }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assistantNameDraft, preferredNameDraft, profile?.assistant_name, profile?.preferred_name, user]);
+
+  // Debounced auto-save for notification preferences
+  useEffect(() => {
+    if (!profile || !user) return;
+    const current = { ...DEFAULT_NOTIFICATION_PREFS, ...(profile.notification_prefs ?? {}) };
+    if (
+      current.whatsapp === notifPrefsDraft.whatsapp &&
+      current.email === notifPrefsDraft.email &&
+      current.digest_time === notifPrefsDraft.digest_time
+    ) {
+      return;
+    }
+    const t = setTimeout(() => {
+      persistProfile({ notification_prefs: notifPrefsDraft });
+    }, 500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notifPrefsDraft, profile?.notification_prefs, user]);
+
+  // Debounced auto-save for city
+  useEffect(() => {
+    if (!profile || !user) return;
+    const nextCity = cityDraft.trim() || null;
+    if ((profile.city ?? null) === nextCity) return;
+    const t = setTimeout(() => {
+      persistProfile({ city: nextCity });
+    }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cityDraft, profile?.city, user]);
+
+  // Fade "saved" indicator after a moment
+  useEffect(() => {
+    if (profileSaveStatus !== "saved") return;
+    const t = setTimeout(() => setProfileSaveStatus("idle"), 2000);
+    return () => clearTimeout(t);
+  }, [profileSaveStatus]);
 
   const addPerson = async () => {
     if (!user || !newPersonName.trim()) return;
@@ -417,10 +489,9 @@ const LifestyleManager = () => {
           <DialogFooter className="flex-col sm:flex-col gap-2">
             <Button
               onClick={() => completeOnboarding(false)}
-              disabled={savingOnboarding}
               className="w-full bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90"
             >
-              {savingOnboarding ? <Loader2 size={16} className="animate-spin" /> : "Let's go"}
+              Let's go
             </Button>
             <button
               onClick={() => completeOnboarding(true)}
@@ -472,8 +543,40 @@ const LifestyleManager = () => {
             </TabsList>
 
             {/* ── Chat ── */}
-            <TabsContent value="chat" className="space-y-4">
-              <div className="rounded-xl border border-border bg-card p-4 min-h-[320px] max-h-[480px] overflow-y-auto flex flex-col gap-3">
+            <TabsContent value="chat" className="space-y-3 sm:space-y-4">
+              <div
+                className="flex items-center gap-2 sticky top-2 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70 py-2 -mx-1 px-1 rounded-lg"
+                style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+              >
+                <Input
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      sendChatMessage();
+                    }
+                  }}
+                  onFocus={(e) => {
+                    // Ensure the input stays visible above the iOS keyboard
+                    setTimeout(() => {
+                      e.target.scrollIntoView({ block: "center", behavior: "smooth" });
+                    }, 300);
+                  }}
+                  placeholder={`Tell ${displayAssistantName} anything...`}
+                  className="font-body"
+                  disabled={chatSending}
+                  enterKeyHint="send"
+                />
+                <Button
+                  onClick={sendChatMessage}
+                  disabled={chatSending || !chatInput.trim()}
+                  className="shrink-0 bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90"
+                >
+                  <Send size={16} />
+                </Button>
+              </div>
+              <div className="rounded-xl border border-border bg-card p-4 min-h-[260px] max-h-[55dvh] sm:min-h-[320px] sm:max-h-[480px] overflow-y-auto flex flex-col gap-3">
                 {chatMessages.length === 0 ? (
                   <div className="py-10 text-center space-y-5">
                     <p className="text-muted-foreground font-body">
@@ -512,28 +615,6 @@ const LifestyleManager = () => {
                     <Loader2 size={14} className="animate-spin" /> Thinking
                   </div>
                 )}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      sendChatMessage();
-                    }
-                  }}
-                  placeholder={`Tell ${displayAssistantName} anything...`}
-                  className="font-body"
-                  disabled={chatSending}
-                />
-                <Button
-                  onClick={sendChatMessage}
-                  disabled={chatSending || !chatInput.trim()}
-                  className="bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90"
-                >
-                  <Send size={16} />
-                </Button>
               </div>
             </TabsContent>
 
@@ -730,13 +811,101 @@ const LifestyleManager = () => {
                     className="font-body"
                   />
                 </div>
-                <Button
-                  onClick={saveAssistantIdentity}
-                  disabled={savingAssistantName}
-                  className="bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90"
-                >
-                  {savingAssistantName ? <Loader2 size={16} className="animate-spin" /> : "Save"}
-                </Button>
+                <div>
+                  <p className="text-xs font-body uppercase tracking-widest text-muted-foreground mb-1.5">
+                    Which city are you in?
+                  </p>
+                  <Select
+                    value={cityDraft || "__none"}
+                    onValueChange={(v) => setCityDraft(v === "__none" ? "" : v)}
+                  >
+                    <SelectTrigger className="font-body">
+                      <SelectValue placeholder="Select your city" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">Prefer not to say</SelectItem>
+                      {UAE_CITIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="pt-2 border-t border-border space-y-4">
+                  <p className="text-xs font-body uppercase tracking-widest text-muted-foreground">
+                    Notifications
+                  </p>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <Label htmlFor="notif-whatsapp" className="font-body text-sm text-lifestyle-espresso">
+                        WhatsApp nudges
+                      </Label>
+                      <p className="text-xs text-muted-foreground font-body">Reminders and check-ins on WhatsApp.</p>
+                    </div>
+                    <Switch
+                      id="notif-whatsapp"
+                      checked={notifPrefsDraft.whatsapp}
+                      onCheckedChange={(v) => setNotifPrefsDraft((p) => ({ ...p, whatsapp: v }))}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <Label htmlFor="notif-email" className="font-body text-sm text-lifestyle-espresso">
+                        Email digest
+                      </Label>
+                      <p className="text-xs text-muted-foreground font-body">A gentle summary in your inbox.</p>
+                    </div>
+                    <Switch
+                      id="notif-email"
+                      checked={notifPrefsDraft.email}
+                      onCheckedChange={(v) => setNotifPrefsDraft((p) => ({ ...p, email: v }))}
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="font-body text-sm text-lifestyle-espresso mb-1.5 block">
+                      Daily digest time
+                    </Label>
+                    <Select
+                      value={notifPrefsDraft.digest_time}
+                      onValueChange={(v) => setNotifPrefsDraft((p) => ({ ...p, digest_time: v }))}
+                    >
+                      <SelectTrigger className="font-body">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["06:00","07:00","08:00","09:00","10:00","12:00","18:00","20:00","21:00"].map((t) => (
+                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="min-h-[20px] text-xs font-body text-muted-foreground flex items-center gap-2" aria-live="polite">
+                  {profileSaveStatus === "saving" && (
+                    <><Loader2 size={12} className="animate-spin" /> Saving…</>
+                  )}
+                  {profileSaveStatus === "saved" && <span className="text-lifestyle-terracotta">Saved ✓</span>}
+                  {profileSaveStatus === "error" && (
+                    <span className="text-destructive">
+                      Couldn't save{profileSaveError ? `: ${profileSaveError}` : ""}.{" "}
+                      <button
+                        type="button"
+                        className="underline"
+                        onClick={() => persistProfile({
+                          assistant_name: assistantNameDraft.trim() || "Zoya",
+                          preferred_name: preferredNameDraft.trim() || null,
+                          notification_prefs: notifPrefsDraft,
+                        })}
+                      >
+                        Retry
+                      </button>
+                    </span>
+                  )}
+                </div>
               </Card>
             </TabsContent>
           </Tabs>
