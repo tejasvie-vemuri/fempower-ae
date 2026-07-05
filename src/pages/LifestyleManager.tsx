@@ -620,24 +620,10 @@ const LifestyleManager = () => {
               </div>
               <div className="rounded-xl border border-border bg-card p-4 min-h-[260px] max-h-[55dvh] sm:min-h-[320px] sm:max-h-[480px] overflow-y-auto flex flex-col gap-3">
                 {chatMessages.length === 0 ? (
-                  <div className="py-10 text-center space-y-5">
-                    <p className="text-muted-foreground font-body">
-                      Tell {displayAssistantName} anything, she'll take it from there. Not sure where to start?
-                      Try one of these.
-                    </p>
-                    <div className="flex flex-col items-center gap-2">
-                      {EXAMPLE_PROMPTS.map((example) => (
-                        <button
-                          key={example}
-                          onClick={() => sendChatMessage(example)}
-                          disabled={chatSending}
-                          className="font-body text-sm px-4 py-2 rounded-full border border-lifestyle-terracotta/40 text-lifestyle-espresso hover:bg-lifestyle-terracotta-light transition-colors"
-                        >
-                          {example}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  <p className="text-center text-muted-foreground font-body py-16">
+                    Tell {displayAssistantName} anything, she'll take it from there. Not sure where to start?
+                    Try one of the quick-adds below.
+                  </p>
                 ) : (
                   chatMessages.map((m) => (
                     <div
@@ -657,6 +643,20 @@ const LifestyleManager = () => {
                     <Loader2 size={14} className="animate-spin" /> Thinking
                   </div>
                 )}
+              </div>
+
+              {/* Quick-add shortcuts, always visible, not just on a blank conversation */}
+              <div className="flex flex-wrap gap-2">
+                {EXAMPLE_PROMPTS.map((example) => (
+                  <button
+                    key={example}
+                    onClick={() => sendChatMessage(example)}
+                    disabled={chatSending}
+                    className="font-body text-xs px-3 py-1.5 rounded-full border border-lifestyle-terracotta/40 text-lifestyle-espresso hover:bg-lifestyle-terracotta-light transition-colors disabled:opacity-50"
+                  >
+                    {example}
+                  </button>
+                ))}
               </div>
             </TabsContent>
 
