@@ -1008,6 +1008,13 @@ export type Database = {
             foreignKeyName: "meetup_reports_meetup_id_fkey"
             columns: ["meetup_id"]
             isOneToOne: false
+            referencedRelation: "meetup_hosts_public"
+            referencedColumns: ["meetup_id"]
+          },
+          {
+            foreignKeyName: "meetup_reports_meetup_id_fkey"
+            columns: ["meetup_id"]
+            isOneToOne: false
             referencedRelation: "meetups"
             referencedColumns: ["id"]
           },
@@ -1033,6 +1040,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "meetup_rsvps_meetup_id_fkey"
+            columns: ["meetup_id"]
+            isOneToOne: false
+            referencedRelation: "meetup_hosts_public"
+            referencedColumns: ["meetup_id"]
+          },
           {
             foreignKeyName: "meetup_rsvps_meetup_id_fkey"
             columns: ["meetup_id"]
@@ -1677,6 +1691,15 @@ export type Database = {
           status: string | null
           topic_tag: string | null
           user_id: string | null
+        }
+        Relationships: []
+      }
+      meetup_hosts_public: {
+        Row: {
+          display_name: string | null
+          host_id: string | null
+          meetup_id: string | null
+          photo_url: string | null
         }
         Relationships: []
       }
