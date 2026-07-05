@@ -93,6 +93,15 @@ const JoinPage = () => {
               </li>
             ))}
           </ul>
+          <div className="mt-6 rounded-xl bg-blush-light/50 border border-border p-4 text-sm font-body text-foreground flex items-start gap-3">
+            <Zap size={18} className="text-blush-dark flex-shrink-0 mt-0.5" />
+            <p>
+              <span className="font-medium">Approved within 24 hours.</span>{" "}
+              <span className="text-muted-foreground">
+                Every application is personally reviewed by the Fempower team.
+              </span>
+            </p>
+          </div>
           <div className="mt-8 flex flex-col sm:flex-row gap-3">
             <Button
               className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs h-11 px-6"
