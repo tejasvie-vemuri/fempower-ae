@@ -141,6 +141,10 @@ const LifestyleManager = () => {
       setProfile(lmProfile);
       setAssistantNameDraft(lmProfile?.assistant_name ?? "Zoya");
       setPreferredNameDraft(lmProfile?.preferred_name ?? "");
+      setNotifPrefsDraft({
+        ...DEFAULT_NOTIFICATION_PREFS,
+        ...(lmProfile?.notification_prefs ?? {}),
+      });
 
       const { data: config } = await (supabase as any)
         .from("plan_config")
