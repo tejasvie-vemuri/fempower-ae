@@ -36,9 +36,10 @@ const MeetupsStrip = () => {
           <Coffee size={16} className="text-blush-dark" />
           <p className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark">Pop-up Meetups</p>
         </div>
-        <Link to="/meetups" className="text-xs font-body uppercase tracking-widest text-foreground hover:text-blush-dark inline-flex items-center gap-1">
-          {user ? "Post or browse" : "Sign in to join"} <ArrowRight size={12} />
+        <Link to={user ? "/meetups" : "/join"} className="text-xs font-body uppercase tracking-widest text-foreground hover:text-blush-dark inline-flex items-center gap-1">
+          {user ? "Post or browse" : "Join to RSVP"} <ArrowRight size={12} />
         </Link>
+
       </div>
 
       {!user || !approved ? (
