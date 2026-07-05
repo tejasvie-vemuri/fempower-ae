@@ -1,10 +1,13 @@
 import { Link } from "react-router-dom";
-import { Loader2, CheckCircle, Clock, Instagram, ArrowRight } from "lucide-react";
+import { Helmet } from "react-helmet-async";
+import { Loader2, CheckCircle, Clock, Instagram, ArrowRight, Zap } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useMemberProfile } from "@/hooks/useMemberProfile";
+import NextEventCard from "@/components/NextEventCard";
+
 
 const INSTAGRAM_URL = "https://www.instagram.com/fempower.ae?igsh=cDB1OXNxcmhxanY5&utm_source=qr";
 
