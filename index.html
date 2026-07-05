@@ -101,7 +101,82 @@
 
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!--
+        Static SEO fallback: crawlers that do not execute JavaScript see this
+        content. React (createRoot) replaces these children on mount, so
+        real users never see it. Keep the facts here in sync with SeoSummary
+        and the homepage sections above the fold.
+      -->
+      <noscript>
+        <p>You need to enable JavaScript to use the full Fempower experience.</p>
+      </noscript>
+      <main style="position:absolute;left:-99999px;top:0;width:1px;height:1px;overflow:hidden;">
+        <header>
+          <h1>Fempower — Women's Community in Dubai &amp; the UAE</h1>
+          <p>Rooted Together, Rising Together.</p>
+          <nav>
+            <a href="/">Home</a> ·
+            <a href="/join">Join</a> ·
+            <a href="/meetups">Pop-up Meetups</a> ·
+            <a href="/privacy">Privacy</a> ·
+            <a href="/terms">Terms</a>
+          </nav>
+        </header>
+
+        <section>
+          <h2>About Fempower</h2>
+          <p>
+            Fempower is a women-only community based in Dubai, United Arab Emirates,
+            connecting 300+ women across 15+ nationalities. We host mentor walks,
+            peer-to-peer coaching circles, a daily WhatsApp community and in-person
+            events every 15 days across the UAE — from Dubai Marina to Abu Dhabi.
+          </p>
+        </section>
+
+        <section>
+          <h2>What we offer</h2>
+          <ul>
+            <li><strong>WhatsApp Community</strong> — daily prompts, book club, honest conversations.</li>
+            <li><strong>Mentor Walks</strong> — quarterly walking-and-talking cohorts of 10 mentor–mentee pairs.</li>
+            <li><strong>Coaching Circles</strong> — peer coaching on negotiation, leadership, personal brand.</li>
+            <li><strong>Events every 15 days</strong> — meetups across the UAE, Iftar nights, annual review sessions.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Join Fempower</h2>
+          <p>
+            Apply to become a Fempower member. Each application is personally
+            reviewed by our team and approved within 24 hours. Once approved you
+            unlock the private member directory, the Circle, mentor walks and
+            pop-up meetups.
+          </p>
+          <p><a href="/join">Apply to join</a></p>
+        </section>
+
+        <section>
+          <h2>Pop-up Meetups</h2>
+          <p>
+            Casual coffee, walks and study sessions hosted by Fempower members
+            across the UAE. Post a spontaneous meetup or RSVP to one nearby.
+          </p>
+          <p><a href="/meetups">See meetups</a></p>
+        </section>
+
+        <section>
+          <h2>Privacy &amp; Terms</h2>
+          <p>
+            Read the <a href="/privacy">Fempower Privacy Policy</a> and the
+            <a href="/terms">Terms of Service</a>.
+          </p>
+        </section>
+
+        <footer>
+          <p>Fempower · Dubai, UAE · hello@fempowerae.com</p>
+        </footer>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
