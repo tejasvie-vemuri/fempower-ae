@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
-import { Clock, Instagram, LogOut, Mail } from "lucide-react";
+import { Clock, Instagram, LogOut, Mail, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useMemberProfile } from "@/hooks/useMemberProfile";
+import NextEventCard from "@/components/NextEventCard";
 import fempowerLogo from "@/assets/fempower-logo.png";
+
 
 const INSTAGRAM_URL =
   "https://www.instagram.com/fempower.ae?igsh=cDB1OXNxcmhxanY5&utm_source=qr";
