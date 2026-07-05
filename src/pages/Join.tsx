@@ -18,8 +18,28 @@ const bullets = [
   "Private member directory once approved",
 ];
 
-const Shell = ({ children }: { children: React.ReactNode }) => (
+const Shell = ({ children, title, description }: { children: React.ReactNode; title?: string; description?: string }) => (
   <>
+    <Helmet>
+      <title>{title ?? "Join Fempower — Women's Community in Dubai & UAE"}</title>
+      <meta
+        name="description"
+        content={
+          description ??
+          "Apply to join Fempower, the women-only community in the UAE. Personally reviewed applications approved within 24 hours."
+        }
+      />
+      <link rel="canonical" href="https://fempowerae.com/join" />
+      <meta property="og:title" content={title ?? "Join Fempower — Women's Community in Dubai & UAE"} />
+      <meta property="og:url" content="https://fempowerae.com/join" />
+      <meta
+        property="og:description"
+        content={
+          description ??
+          "Apply to join Fempower, the women-only community in the UAE. Personally reviewed applications approved within 24 hours."
+        }
+      />
+    </Helmet>
     <Header />
     <main className="pt-24 md:pt-28 pb-16 min-h-screen bg-background">
       <div className="container max-w-3xl">{children}</div>
@@ -27,6 +47,7 @@ const Shell = ({ children }: { children: React.ReactNode }) => (
     <Footer />
   </>
 );
+
 
 const Card = ({ children }: { children: React.ReactNode }) => (
   <div className="bg-card border border-border rounded-2xl shadow-sm p-6 sm:p-8 md:p-12">
