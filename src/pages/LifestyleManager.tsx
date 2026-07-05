@@ -265,7 +265,7 @@ const LifestyleManager = () => {
   const [profileSaveStatus, setProfileSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [profileSaveError, setProfileSaveError] = useState<string | null>(null);
 
-  const persistProfile = async (patch: Partial<Pick<LmProfile, "assistant_name" | "preferred_name" | "notification_prefs">>) => {
+  const persistProfile = async (patch: Partial<Pick<LmProfile, "assistant_name" | "preferred_name" | "notification_prefs" | "city">>) => {
     if (!user) return;
     setProfileSaveStatus("saving");
     setProfileSaveError(null);
