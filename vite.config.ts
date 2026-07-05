@@ -39,19 +39,36 @@ function prerenderPlugin(): Plugin {
           root: __dirname,
           logLevel: "warn",
           resolve: {
-            alias: [
-              {
-                find: /^@\/integrations\/supabase\/client$/,
-                replacement: path.resolve(
-                  __dirname,
-                  "./src/integrations/supabase/client.ssr.ts",
-                ),
-              },
-              { find: "@", replacement: path.resolve(__dirname, "./src") },
-            ],
+            alias: { "@": path.resolve(__dirname, "./src") },
           },
-
-          plugins: [react()],
+          plugins: [
+            react(),
+            // Rewrite any import that resolves to the real supabase client
+            // (matches both `@/integrations/supabase/client` and the
+            // relative `../supabase/client` used by the auto-generated
+            // lovable integration) to the SSR-safe stub.
+            {
+              name: "fempower-ssr-supabase-stub",
+              enforce: "pre",
+              async resolveId(source, importer) {
+                if (!/\/supabase\/client(?:\.ts)?$/.test(source) &&
+                    source !== "@/integrations/supabase/client") {
+                  return null;
+                }
+                const resolved = await this.resolve(source, importer, {
+                  skipSelf: true,
+                });
+                if (!resolved) return null;
+                if (resolved.id.endsWith("/src/integrations/supabase/client.ts")) {
+                  return path.resolve(
+                    __dirname,
+                    "./src/integrations/supabase/client.ssr.ts",
+                  );
+                }
+                return null;
+              },
+            },
+          ],
           build: {
             ssr: path.resolve(__dirname, "src/entry-server.tsx"),
             outDir: ssrOutDir,
