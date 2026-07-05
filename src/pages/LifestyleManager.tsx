@@ -317,6 +317,18 @@ const LifestyleManager = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notifPrefsDraft, profile?.notification_prefs, user]);
 
+  // Debounced auto-save for city
+  useEffect(() => {
+    if (!profile || !user) return;
+    const nextCity = cityDraft.trim() || null;
+    if ((profile.city ?? null) === nextCity) return;
+    const t = setTimeout(() => {
+      persistProfile({ city: nextCity });
+    }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cityDraft, profile?.city, user]);
+
   // Fade "saved" indicator after a moment
   useEffect(() => {
     if (profileSaveStatus !== "saved") return;
