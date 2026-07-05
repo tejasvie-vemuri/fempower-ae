@@ -106,19 +106,45 @@ function prerenderPlugin(): Plugin {
           continue;
         }
 
-        // Strip the placeholder <title> and <meta name="description"> so
-        // Helmet's per-route tags don't collide with the sitewide static
-        // ones. Keep everything else (charset, viewport, canonical, sitewide
-        // og:*, JSON-LD) as a social-crawler fallback.
-        let head = template
-          .replace(/<title>[\s\S]*?<\/title>/, "")
-          .replace(/<meta\s+name="description"[^>]*>/, "");
+        // Only strip a static tag when Helmet supplied a replacement, so
+        // routes without their own Helmet fall back to the sitewide static
+        // <title>, <meta name="description"> and <link rel="canonical">.
+        const helmetTitleMatch = /<title[^>]*>([\s\S]*?)<\/title>/.exec(
+          rendered.headTags,
+        );
+        const hasHelmetTitle =
+          !!helmetTitleMatch && helmetTitleMatch[1].trim().length > 0;
+        const hasHelmetDesc =
+          /<meta[^>]*name="description"/.test(rendered.headTags);
+        const hasHelmetCanonical =
+          /<link[^>]*rel="canonical"/.test(rendered.headTags);
 
-        // Insert Helmet tags before </head>
+        // Drop the empty title placeholder Helmet emits when no <Helmet>
+        // set a title on this route — otherwise it blanks the static one.
+        let headTagsToInject = rendered.headTags;
+        if (!hasHelmetTitle) {
+          headTagsToInject = headTagsToInject.replace(
+            /<title[^>]*>\s*<\/title>/,
+            "",
+          );
+        }
+
+        let head = template;
+        if (hasHelmetTitle) {
+          head = head.replace(/<title>[\s\S]*?<\/title>/, "");
+        }
+        if (hasHelmetDesc) {
+          head = head.replace(/<meta\s+name="description"[^>]*>/, "");
+        }
+        if (hasHelmetCanonical) {
+          head = head.replace(/<link\s+rel="canonical"[^>]*>/, "");
+        }
+
         head = head.replace(
           "</head>",
-          `    ${rendered.headTags}\n  </head>`,
+          `    ${headTagsToInject}\n  </head>`,
         );
+
 
         // Replace <div id="root"></div> with rendered markup (no hydrate —
         // client createRoot replaces children).
