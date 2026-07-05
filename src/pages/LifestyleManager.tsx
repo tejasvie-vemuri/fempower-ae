@@ -148,6 +148,7 @@ const LifestyleManager = () => {
         ...DEFAULT_NOTIFICATION_PREFS,
         ...(lmProfile?.notification_prefs ?? {}),
       });
+      setCityDraft(lmProfile?.city ?? "");
 
       const { data: config } = await (supabase as any)
         .from("plan_config")
