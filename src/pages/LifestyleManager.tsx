@@ -237,21 +237,51 @@ const LifestyleManager = () => {
     ? trialDays - Math.floor((Date.now() - new Date(profile.trial_started_at).getTime()) / (1000 * 60 * 60 * 24))
     : null;
 
-  const saveAssistantIdentity = async () => {
+  const [profileSaveStatus, setProfileSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [profileSaveError, setProfileSaveError] = useState<string | null>(null);
+
+  const persistProfile = async (assistantName: string, preferredName: string) => {
     if (!user) return;
-    setSavingAssistantName(true);
+    setProfileSaveStatus("saving");
+    setProfileSaveError(null);
+    const nextAssistant = assistantName.trim() || "Zoya";
+    const nextPreferred = preferredName.trim() || null;
     const { error } = await (supabase as any)
       .from("lm_profile")
-      .update({ assistant_name: assistantNameDraft || "Zoya", preferred_name: preferredNameDraft || null })
+      .update({ assistant_name: nextAssistant, preferred_name: nextPreferred })
       .eq("user_id", user.id);
-    setSavingAssistantName(false);
     if (error) {
-      toast({ title: "Couldn't save that", description: error.message, variant: "destructive" });
+      setProfileSaveStatus("error");
+      setProfileSaveError(error.message);
       return;
     }
-    setProfile((p) => (p ? { ...p, assistant_name: assistantNameDraft, preferred_name: preferredNameDraft || null } : p));
-    toast({ title: "Saved" });
+    setProfile((p) => (p ? { ...p, assistant_name: nextAssistant, preferred_name: nextPreferred } : p));
+    setProfileSaveStatus("saved");
   };
+
+  // Debounced auto-save for profile identity fields
+  useEffect(() => {
+    if (!profile || !user) return;
+    const currentAssistant = profile.assistant_name ?? "Zoya";
+    const currentPreferred = profile.preferred_name ?? "";
+    const draftAssistant = (assistantNameDraft.trim() || "Zoya");
+    const draftPreferred = preferredNameDraft.trim();
+    if (draftAssistant === currentAssistant && draftPreferred === (currentPreferred ?? "")) {
+      return;
+    }
+    const t = setTimeout(() => {
+      persistProfile(assistantNameDraft, preferredNameDraft);
+    }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assistantNameDraft, preferredNameDraft, profile?.assistant_name, profile?.preferred_name, user]);
+
+  // Fade "saved" indicator after a moment
+  useEffect(() => {
+    if (profileSaveStatus !== "saved") return;
+    const t = setTimeout(() => setProfileSaveStatus("idle"), 2000);
+    return () => clearTimeout(t);
+  }, [profileSaveStatus]);
 
   const addPerson = async () => {
     if (!user || !newPersonName.trim()) return;
