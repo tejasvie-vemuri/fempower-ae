@@ -461,6 +461,14 @@ const LifestyleManager = () => {
   };
 
   const sendGroceriesToApp = async (appUrl: string) => {
+    // Open the tab synchronously, in the same tick as the click, so browsers
+    // (Safari in particular) still treat it as user-initiated once the
+    // awaits below resolve. `noopener` would make window.open return null,
+    // so we null out `.opener` ourselves to get the same tabnabbing
+    // protection while keeping a handle to navigate later.
+    const newWin = window.open("", "_blank", "noreferrer");
+    if (newWin) newWin.opener = null;
+
     const text = activeGroceries.map((g) => g.item_name).join(", ");
     if (text) {
       try {
@@ -475,7 +483,11 @@ const LifestyleManager = () => {
       .update({ status: "ordered" })
       .in("id", activeGroceries.map((g) => g.id));
     setGroceries((gs) => gs.map((g) => (g.status === "active" ? { ...g, status: "ordered" } : g)));
-    window.open(appUrl, "_blank", "noopener,noreferrer");
+    if (newWin) {
+      newWin.location.href = appUrl;
+    } else {
+      window.open(appUrl, "_blank", "noreferrer");
+    }
   };
 
   if (authLoading || loading) {
