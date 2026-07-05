@@ -1,0 +1,1 @@
+SELECT vault.create_secret('e566fc53998e0432f1beca985bd6310b61e2d4293ff05d2b', 'digest_cron_secret');
