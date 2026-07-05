@@ -100,12 +100,42 @@ const EXAMPLE_PROMPTS = [
   "My sister's birthday is March 3rd",
 ];
 
+// A second, unmistakable confirmation beyond Zoya's reply, so it's never in
+// doubt whether something actually saved.
+const TOOL_CONFIRMATION: Record<string, string> = {
+  add_person: "Saved to People",
+  add_important_date: "Saved to People",
+  add_reminder: "Saved to Today",
+  mark_reminder_done: "Updated in Today",
+  add_grocery_item: "Added to Groceries",
+};
+
 const daysUntil = (dateStr: string) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const target = new Date(dateStr);
   target.setHours(0, 0, 0, 0);
   return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+};
+
+// Yearly events (birthdays, anniversaries) count toward their next
+// occurrence, not the raw stored date, otherwise a birthday added
+// mid-year would wrongly read as "overdue" once it's passed this year.
+const daysUntilNextOccurrence = (dateStr: string, recurrence: string) => {
+  if (recurrence !== "yearly") return daysUntil(dateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(dateStr);
+  const next = new Date(today.getFullYear(), target.getMonth(), target.getDate());
+  if (next.getTime() < today.getTime()) next.setFullYear(next.getFullYear() + 1);
+  return Math.round((next.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+};
+
+const dueLabel = (days: number) => {
+  if (days < 0) return days === -1 ? "Overdue by 1 day" : `Overdue by ${Math.abs(days)} days`;
+  if (days === 0) return "Today";
+  if (days === 1) return "Tomorrow";
+  return `In ${days} days`;
 };
 
 const LifestyleManager = () => {
@@ -257,6 +287,14 @@ const LifestyleManager = () => {
 
     if (data.toolsUsed?.length > 0) {
       await refetchLifestyleData();
+      const seen = new Set<string>();
+      for (const toolName of data.toolsUsed as string[]) {
+        const label = TOOL_CONFIRMATION[toolName];
+        if (label && !seen.has(label)) {
+          seen.add(label);
+          toast({ title: label });
+        }
+      }
     }
   };
 
@@ -266,14 +304,14 @@ const LifestyleManager = () => {
     const dateItems = dates.map((d) => ({
       id: `date-${d.id}`,
       title: `${peopleById.get(d.person_id)?.name ?? "Someone"}'s ${d.label}`,
-      due_date: d.date,
+      days: daysUntilNextOccurrence(d.date, d.recurrence),
     }));
     const reminderItems = reminders
       .filter((r) => r.status === "pending" && r.due_date)
-      .map((r) => ({ id: r.id, title: r.title, due_date: r.due_date as string }));
-    return [...dateItems, ...reminderItems]
-      .filter((i) => daysUntil(i.due_date) >= 0 && daysUntil(i.due_date) <= 14)
-      .sort((a, b) => daysUntil(a.due_date) - daysUntil(b.due_date));
+      .map((r) => ({ id: r.id, title: r.title, days: daysUntil(r.due_date as string) }));
+    // Every pending reminder and date shows here, no matter how far out or
+    // overdue, so nothing added through chat ever looks like it vanished.
+    return [...dateItems, ...reminderItems].sort((a, b) => a.days - b.days);
   }, [dates, reminders, peopleById]);
 
   const pastReminders = reminders.filter((r) => r.status === "done");
@@ -647,7 +685,7 @@ const LifestyleManager = () => {
 
               {upcoming.length === 0 ? (
                 <p className="text-center text-muted-foreground font-body py-10">
-                  Nothing needs you in the next two weeks. Nothing to do here, that's a good thing.
+                  Nothing on your list right now. Nothing to do here, that's a good thing.
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -658,8 +696,8 @@ const LifestyleManager = () => {
                     >
                       <div>
                         <p className="font-body text-lifestyle-espresso">{item.title}</p>
-                        <p className="text-xs text-muted-foreground font-body">
-                          {daysUntil(item.due_date) === 0 ? "Today" : `In ${daysUntil(item.due_date)} days`}
+                        <p className={`text-xs font-body ${item.days < 0 ? "text-destructive" : "text-muted-foreground"}`}>
+                          {dueLabel(item.days)}
                         </p>
                       </div>
                       {!item.id.startsWith("date-") && (
