@@ -50,9 +50,8 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <ScrollToHash />
+      <AuthProvider>
+        <ScrollToHash />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthPage />} />
