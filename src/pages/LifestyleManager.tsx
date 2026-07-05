@@ -651,13 +651,24 @@ const LifestyleManager = () => {
                     className="font-body"
                   />
                 </div>
-                <Button
-                  onClick={saveAssistantIdentity}
-                  disabled={savingAssistantName}
-                  className="bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90"
-                >
-                  {savingAssistantName ? <Loader2 size={16} className="animate-spin" /> : "Save"}
-                </Button>
+                <div className="min-h-[20px] text-xs font-body text-muted-foreground flex items-center gap-2" aria-live="polite">
+                  {profileSaveStatus === "saving" && (
+                    <><Loader2 size={12} className="animate-spin" /> Saving…</>
+                  )}
+                  {profileSaveStatus === "saved" && <span className="text-lifestyle-terracotta">Saved ✓</span>}
+                  {profileSaveStatus === "error" && (
+                    <span className="text-destructive">
+                      Couldn't save{profileSaveError ? `: ${profileSaveError}` : ""}.{" "}
+                      <button
+                        type="button"
+                        className="underline"
+                        onClick={() => persistProfile(assistantNameDraft, preferredNameDraft)}
+                      >
+                        Retry
+                      </button>
+                    </span>
+                  )}
+                </div>
               </Card>
             </TabsContent>
           </Tabs>
