@@ -38,16 +38,16 @@ const Index = () => {
         <ProgramsSection />
         {isAuthed && <SpotlightCard />}
         {isAuthed && <CelebrationsStrip />}
-        <CircleTeaser />
-        <MeetupsSection />
+        {isAuthed && <CircleTeaser />}
+        {isAuthed && <MeetupsSection />}
         <EventsCalendarSection />
         <BecomingSpaceSection />
         <GallerySection />
         <SubstackFeedSection />
         {isAdmin && <ResourcesSection />}
-        <JoinSection />
-        <TestimonialsSection />
-        <FAQSection />
+        {isAuthed && <JoinSection />}
+        {isAuthed && <TestimonialsSection />}
+        {isAuthed && <FAQSection />}
       </main>
       <Footer />
       <FempowerCoach />
