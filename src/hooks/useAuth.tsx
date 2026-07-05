@@ -119,9 +119,13 @@ const AuthContext = createContext<AuthContextValue>({
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const isBrowser = typeof window !== "undefined";
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Default to non-loading on the server so prerendered pages render their
+  // logged-out content instead of a loading spinner.
+  const [loading, setLoading] = useState(isBrowser);
+
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {

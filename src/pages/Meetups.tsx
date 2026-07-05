@@ -25,9 +25,27 @@ type EnrichedMeetup = Meetup & {
   i_rsvped: boolean;
 };
 
+const MeetupsHead = () => (
+  <Helmet>
+    <title>Pop-up Meetups — Fempower UAE</title>
+    <meta
+      name="description"
+      content="Casual coffee, walks and study sessions hosted by Fempower members across the UAE. Post a spontaneous meetup or RSVP to one nearby."
+    />
+    <link rel="canonical" href="https://fempowerae.com/meetups" />
+    <meta property="og:title" content="Pop-up Meetups — Fempower UAE" />
+    <meta property="og:url" content="https://fempowerae.com/meetups" />
+    <meta
+      property="og:description"
+      content="Casual coffee, walks and study sessions hosted by Fempower members across the UAE."
+    />
+  </Helmet>
+);
+
 const Meetups = () => {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
+
   const [memberStatus, setMemberStatus] = useState<string | null>(null);
   const [memberName, setMemberName] = useState("");
   const [meetups, setMeetups] = useState<EnrichedMeetup[]>([]);
@@ -196,17 +214,23 @@ const Meetups = () => {
   };
 
   if (authLoading) {
-    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
+    return (
+      <>
+        <MeetupsHead />
+        <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>
+      </>
+    );
   }
   if (!user) {
     const redirect = encodeURIComponent("/meetups");
     return (
       <>
+        <MeetupsHead />
         <Header />
         <main className="pt-28 pb-20 min-h-screen container max-w-2xl text-center">
           <Coffee className="mx-auto text-blush-dark mb-4" />
           <h1 className="font-heading text-4xl mb-3 text-foreground">Pop-up Meetups</h1>
-          <p className="text-muted-foreground font-body mb-6">Casual hangouts hosted by Fempower members. Sign in to see what's on.</p>
+          <p className="text-muted-foreground font-body mb-6">Casual coffee, walks and study sessions hosted by Fempower members across the UAE. Sign in to see what's on and RSVP.</p>
           <Button asChild className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs h-11 px-6">
             <Link to={`/auth?redirect=${redirect}`}>Sign in</Link>
           </Button>
@@ -218,6 +242,7 @@ const Meetups = () => {
   if (memberStatus && memberStatus !== "approved" && memberStatus !== "hidden") {
     return (
       <>
+        <MeetupsHead />
         <Header />
         <main className="pt-28 pb-20 min-h-screen container max-w-2xl text-center">
           <Coffee className="mx-auto text-blush-dark mb-4" />
@@ -234,21 +259,9 @@ const Meetups = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Pop-up Meetups — Fempower UAE</title>
-        <meta
-          name="description"
-          content="Casual coffee, walks and study sessions hosted by Fempower members across the UAE. Post a spontaneous meetup or RSVP to one nearby."
-        />
-        <link rel="canonical" href="https://fempowerae.com/meetups" />
-        <meta property="og:title" content="Pop-up Meetups — Fempower UAE" />
-        <meta property="og:url" content="https://fempowerae.com/meetups" />
-        <meta
-          property="og:description"
-          content="Casual coffee, walks and study sessions hosted by Fempower members across the UAE."
-        />
-      </Helmet>
+      <MeetupsHead />
       <Header />
+
       <main className="pt-24 pb-20 min-h-screen bg-background">
         <div className="container max-w-3xl">
           <div className="mb-6">
