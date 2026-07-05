@@ -575,13 +575,13 @@ const LifestyleManager = () => {
           </motion.div>
 
           <Tabs defaultValue="chat" className="mt-8">
-            <TabsList className="mb-6 flex-wrap h-auto">
-              <TabsTrigger value="chat">Chat</TabsTrigger>
-              <TabsTrigger value="today">Today</TabsTrigger>
-              <TabsTrigger value="people">People</TabsTrigger>
-              <TabsTrigger value="groceries">Groceries</TabsTrigger>
-              <TabsTrigger value="history">History</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsList className="mb-6 w-full justify-start overflow-x-auto flex-nowrap">
+              <TabsTrigger value="chat" className="shrink-0">Chat</TabsTrigger>
+              <TabsTrigger value="today" className="shrink-0">Today</TabsTrigger>
+              <TabsTrigger value="people" className="shrink-0">People</TabsTrigger>
+              <TabsTrigger value="groceries" className="shrink-0">Groceries</TabsTrigger>
+              <TabsTrigger value="history" className="shrink-0">History</TabsTrigger>
+              <TabsTrigger value="settings" className="shrink-0">Settings</TabsTrigger>
             </TabsList>
 
             {/* ── Chat ── */}
@@ -701,8 +701,13 @@ const LifestyleManager = () => {
                         </p>
                       </div>
                       {!item.id.startsWith("date-") && (
-                        <Button size="sm" variant="ghost" onClick={() => markReminderDone(item.id)}>
-                          <Check size={16} />
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          aria-label={`Mark "${item.title}" done`}
+                          onClick={() => markReminderDone(item.id)}
+                        >
+                          <Check size={18} />
                         </Button>
                       )}
                     </div>
