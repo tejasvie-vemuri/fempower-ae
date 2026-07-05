@@ -440,7 +440,7 @@ const LifestyleManager = () => {
                   <Send size={16} />
                 </Button>
               </div>
-              <div className="rounded-xl border border-border bg-card p-4 min-h-[260px] max-h-[55vh] sm:min-h-[320px] sm:max-h-[480px] overflow-y-auto flex flex-col gap-3">
+              <div className="rounded-xl border border-border bg-card p-4 min-h-[260px] max-h-[55dvh] sm:min-h-[320px] sm:max-h-[480px] overflow-y-auto flex flex-col gap-3">
                 {chatMessages.length === 0 ? (
                   <p className="text-center text-muted-foreground font-body py-16">
                     Tell {displayAssistantName} anything, "remind me to get Mum a card Friday", "add milk to my
