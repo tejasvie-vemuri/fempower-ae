@@ -261,22 +261,20 @@ const LifestyleManager = () => {
   const [profileSaveStatus, setProfileSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [profileSaveError, setProfileSaveError] = useState<string | null>(null);
 
-  const persistProfile = async (assistantName: string, preferredName: string) => {
+  const persistProfile = async (patch: Partial<Pick<LmProfile, "assistant_name" | "preferred_name" | "notification_prefs">>) => {
     if (!user) return;
     setProfileSaveStatus("saving");
     setProfileSaveError(null);
-    const nextAssistant = assistantName.trim() || "Zoya";
-    const nextPreferred = preferredName.trim() || null;
     const { error } = await (supabase as any)
       .from("lm_profile")
-      .update({ assistant_name: nextAssistant, preferred_name: nextPreferred })
+      .update(patch)
       .eq("user_id", user.id);
     if (error) {
       setProfileSaveStatus("error");
       setProfileSaveError(error.message);
       return;
     }
-    setProfile((p) => (p ? { ...p, assistant_name: nextAssistant, preferred_name: nextPreferred } : p));
+    setProfile((p) => (p ? { ...p, ...patch } as LmProfile : p));
     setProfileSaveStatus("saved");
   };
 
@@ -285,17 +283,35 @@ const LifestyleManager = () => {
     if (!profile || !user) return;
     const currentAssistant = profile.assistant_name ?? "Zoya";
     const currentPreferred = profile.preferred_name ?? "";
-    const draftAssistant = (assistantNameDraft.trim() || "Zoya");
-    const draftPreferred = preferredNameDraft.trim();
-    if (draftAssistant === currentAssistant && draftPreferred === (currentPreferred ?? "")) {
+    const nextAssistant = assistantNameDraft.trim() || "Zoya";
+    const nextPreferred = preferredNameDraft.trim() || null;
+    if (nextAssistant === currentAssistant && (nextPreferred ?? "") === (currentPreferred ?? "")) {
       return;
     }
     const t = setTimeout(() => {
-      persistProfile(assistantNameDraft, preferredNameDraft);
+      persistProfile({ assistant_name: nextAssistant, preferred_name: nextPreferred });
     }, 800);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assistantNameDraft, preferredNameDraft, profile?.assistant_name, profile?.preferred_name, user]);
+
+  // Debounced auto-save for notification preferences
+  useEffect(() => {
+    if (!profile || !user) return;
+    const current = { ...DEFAULT_NOTIFICATION_PREFS, ...(profile.notification_prefs ?? {}) };
+    if (
+      current.whatsapp === notifPrefsDraft.whatsapp &&
+      current.email === notifPrefsDraft.email &&
+      current.digest_time === notifPrefsDraft.digest_time
+    ) {
+      return;
+    }
+    const t = setTimeout(() => {
+      persistProfile({ notification_prefs: notifPrefsDraft });
+    }, 500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notifPrefsDraft, profile?.notification_prefs, user]);
 
   // Fade "saved" indicator after a moment
   useEffect(() => {
