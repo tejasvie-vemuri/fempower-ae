@@ -39,14 +39,18 @@ function prerenderPlugin(): Plugin {
           root: __dirname,
           logLevel: "warn",
           resolve: {
-            alias: {
-              "@": path.resolve(__dirname, "./src"),
-              "@/integrations/supabase/client": path.resolve(
-                __dirname,
-                "./src/integrations/supabase/client.ssr.ts",
-              ),
-            },
+            alias: [
+              {
+                find: /^@\/integrations\/supabase\/client$/,
+                replacement: path.resolve(
+                  __dirname,
+                  "./src/integrations/supabase/client.ssr.ts",
+                ),
+              },
+              { find: "@", replacement: path.resolve(__dirname, "./src") },
+            ],
           },
+
           plugins: [react()],
           build: {
             ssr: path.resolve(__dirname, "src/entry-server.tsx"),
