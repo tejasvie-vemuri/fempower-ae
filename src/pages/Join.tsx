@@ -190,7 +190,26 @@ const JoinPage = () => {
               (profile?.name?.split(" ")[0] || "friend") +
               ". Our team reviews each application personally. You'll get access to the member directory, Circle, and meetups as soon as you're approved."}
         </p>
-        <div className="mt-6 rounded-xl bg-blush-light/50 border border-border p-4 text-sm font-body text-foreground">
+        {status !== "rejected" && (
+          <div className="mt-6 rounded-xl bg-blush-light/50 border border-border p-4 text-sm font-body text-foreground flex items-start gap-3">
+            <Zap size={18} className="text-blush-dark flex-shrink-0 mt-0.5" />
+            <p>
+              <span className="font-medium">Approved within 24 hours.</span>{" "}
+              <span className="text-muted-foreground">
+                Every application is personally reviewed by the Fempower team.
+              </span>
+            </p>
+          </div>
+        )}
+        {status !== "rejected" && (
+          <div className="mt-6">
+            <NextEventCard />
+            <p className="mt-2 text-xs text-muted-foreground font-body">
+              You can register for upcoming events even before your directory approval comes through.
+            </p>
+          </div>
+        )}
+        <div className="mt-6 rounded-xl bg-card border border-border p-4 text-sm font-body text-foreground">
           <p className="font-medium mb-1">Speed things up</p>
           <p className="text-muted-foreground">
             Complete your member profile so we can get to know you faster.
