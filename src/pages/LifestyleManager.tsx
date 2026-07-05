@@ -408,7 +408,10 @@ const LifestyleManager = () => {
 
             {/* ── Chat ── */}
             <TabsContent value="chat" className="space-y-3 sm:space-y-4">
-              <div className="flex items-center gap-2">
+              <div
+                className="flex items-center gap-2 sticky top-2 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70 py-2 -mx-1 px-1 rounded-lg"
+                style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+              >
                 <Input
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
@@ -418,9 +421,16 @@ const LifestyleManager = () => {
                       sendChatMessage();
                     }
                   }}
+                  onFocus={(e) => {
+                    // Ensure the input stays visible above the iOS keyboard
+                    setTimeout(() => {
+                      e.target.scrollIntoView({ block: "center", behavior: "smooth" });
+                    }, 300);
+                  }}
                   placeholder={`Tell ${displayAssistantName} anything...`}
                   className="font-body"
                   disabled={chatSending}
+                  enterKeyHint="send"
                 />
                 <Button
                   onClick={sendChatMessage}
