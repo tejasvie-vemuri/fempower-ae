@@ -65,12 +65,34 @@ const PendingApproval = () => {
           </p>
         )}
 
+        {status === "pending" && (
+          <div className="mb-6 rounded-xl bg-blush-light/50 border border-border p-4 text-sm font-body text-foreground flex items-start gap-3 text-left">
+            <Zap size={18} className="text-blush-dark flex-shrink-0 mt-0.5" />
+            <p>
+              <span className="font-medium">Approved within 24 hours.</span>{" "}
+              <span className="text-muted-foreground">
+                Every application is personally reviewed by the Fempower team.
+              </span>
+            </p>
+          </div>
+        )}
+
+        {status === "pending" && (
+          <div className="mb-6 text-left">
+            <NextEventCard />
+            <p className="mt-2 text-xs text-muted-foreground font-body">
+              Pending members can register for upcoming events — no need to wait for directory approval.
+            </p>
+          </div>
+        )}
+
         <div className="bg-card border border-border rounded-2xl p-6 space-y-3 text-left">
           {status === "missing" && (
             <Button asChild className="w-full font-body uppercase tracking-widest text-xs">
               <Link to="/account/profile">Complete my profile</Link>
             </Button>
           )}
+
 
           <Button
             variant="outline"
