@@ -709,7 +709,11 @@ const LifestyleManager = () => {
                       <button
                         type="button"
                         className="underline"
-                        onClick={() => persistProfile(assistantNameDraft, preferredNameDraft)}
+                        onClick={() => persistProfile({
+                          assistant_name: assistantNameDraft.trim() || "Zoya",
+                          preferred_name: preferredNameDraft.trim() || null,
+                          notification_prefs: notifPrefsDraft,
+                        })}
                       >
                         Retry
                       </button>
