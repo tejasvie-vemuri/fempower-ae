@@ -25,9 +25,27 @@ type EnrichedMeetup = Meetup & {
   i_rsvped: boolean;
 };
 
+const MeetupsHead = () => (
+  <Helmet>
+    <title>Pop-up Meetups — Fempower UAE</title>
+    <meta
+      name="description"
+      content="Casual coffee, walks and study sessions hosted by Fempower members across the UAE. Post a spontaneous meetup or RSVP to one nearby."
+    />
+    <link rel="canonical" href="https://fempowerae.com/meetups" />
+    <meta property="og:title" content="Pop-up Meetups — Fempower UAE" />
+    <meta property="og:url" content="https://fempowerae.com/meetups" />
+    <meta
+      property="og:description"
+      content="Casual coffee, walks and study sessions hosted by Fempower members across the UAE."
+    />
+  </Helmet>
+);
+
 const Meetups = () => {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
+
   const [memberStatus, setMemberStatus] = useState<string | null>(null);
   const [memberName, setMemberName] = useState("");
   const [meetups, setMeetups] = useState<EnrichedMeetup[]>([]);
