@@ -12,6 +12,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Loader2, ArrowLeft, Plus, Check, ShoppingBag, Sparkles, Send } from "lucide-react";
 
 interface LmProfile {
@@ -67,6 +75,12 @@ const GROCERY_APPS = [
   { label: "Kibsons", url: "https://www.kibsons.com" },
 ];
 
+const EXAMPLE_PROMPTS = [
+  "Remind me to renew my visa next month",
+  "Add milk and eggs to my grocery list",
+  "My sister's birthday is March 3rd",
+];
+
 const daysUntil = (dateStr: string) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -101,6 +115,11 @@ const LifestyleManager = () => {
   const [chatInput, setChatInput] = useState("");
   const [chatSending, setChatSending] = useState(false);
 
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingName, setOnboardingName] = useState("");
+  const [onboardingAssistantName, setOnboardingAssistantName] = useState("Zoya");
+  const [savingOnboarding, setSavingOnboarding] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     (async () => {
@@ -124,6 +143,8 @@ const LifestyleManager = () => {
       setProfile(lmProfile);
       setAssistantNameDraft(lmProfile?.assistant_name ?? "Zoya");
       setPreferredNameDraft(lmProfile?.preferred_name ?? "");
+      setOnboardingAssistantName(lmProfile?.assistant_name ?? "Zoya");
+      if (!lmProfile?.preferred_name) setShowOnboarding(true);
 
       const { data: config } = await (supabase as any)
         .from("plan_config")
@@ -168,8 +189,8 @@ const LifestyleManager = () => {
     setGroceries(groceriesRes.data ?? []);
   };
 
-  const sendChatMessage = async () => {
-    const text = chatInput.trim();
+  const sendChatMessage = async (overrideText?: string) => {
+    const text = (overrideText ?? chatInput).trim();
     if (!text || !user || chatSending) return;
 
     const userMsg: ChatMessage = { id: `local-${Date.now()}`, role: "user", content: text };
@@ -251,6 +272,26 @@ const LifestyleManager = () => {
     }
     setProfile((p) => (p ? { ...p, assistant_name: assistantNameDraft, preferred_name: preferredNameDraft || null } : p));
     toast({ title: "Saved" });
+  };
+
+  const completeOnboarding = async (skip: boolean) => {
+    if (!user) return;
+    setSavingOnboarding(true);
+    const finalAssistantName = onboardingAssistantName.trim() || "Zoya";
+    const finalPreferredName = skip ? "there" : onboardingName.trim() || "there";
+    const { error } = await (supabase as any)
+      .from("lm_profile")
+      .update({ assistant_name: finalAssistantName, preferred_name: finalPreferredName })
+      .eq("user_id", user.id);
+    setSavingOnboarding(false);
+    if (error) {
+      toast({ title: "Couldn't save that", description: error.message, variant: "destructive" });
+      return;
+    }
+    setProfile((p) => (p ? { ...p, assistant_name: finalAssistantName, preferred_name: finalPreferredName } : p));
+    setAssistantNameDraft(finalAssistantName);
+    setPreferredNameDraft(finalPreferredName);
+    setShowOnboarding(false);
   };
 
   const addPerson = async () => {
@@ -337,6 +378,60 @@ const LifestyleManager = () => {
   return (
     <>
       <Header />
+
+      <Dialog open={showOnboarding} onOpenChange={(open) => !open && completeOnboarding(true)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-2xl text-lifestyle-espresso">
+              Let's make her yours.
+            </DialogTitle>
+            <DialogDescription className="font-body">
+              Two quick things, then she's ready.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <p className="text-xs font-body uppercase tracking-widest text-muted-foreground mb-1.5">
+                What should she call you?
+              </p>
+              <Input
+                autoFocus
+                value={onboardingName}
+                onChange={(e) => setOnboardingName(e.target.value)}
+                placeholder="Your name, or whatever you like"
+                className="font-body"
+              />
+            </div>
+            <div>
+              <p className="text-xs font-body uppercase tracking-widest text-muted-foreground mb-1.5">
+                What do you want to call her?
+              </p>
+              <Input
+                value={onboardingAssistantName}
+                onChange={(e) => setOnboardingAssistantName(e.target.value)}
+                placeholder="Zoya"
+                className="font-body"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex-col sm:flex-col gap-2">
+            <Button
+              onClick={() => completeOnboarding(false)}
+              disabled={savingOnboarding}
+              className="w-full bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90"
+            >
+              {savingOnboarding ? <Loader2 size={16} className="animate-spin" /> : "Let's go"}
+            </Button>
+            <button
+              onClick={() => completeOnboarding(true)}
+              className="text-xs text-muted-foreground hover:text-foreground font-body underline underline-offset-4"
+            >
+              Skip for now
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <main className="pt-24 pb-20 min-h-screen bg-lifestyle-ivory">
         <div className="container max-w-2xl">
           <Link
@@ -380,10 +475,24 @@ const LifestyleManager = () => {
             <TabsContent value="chat" className="space-y-4">
               <div className="rounded-xl border border-border bg-card p-4 min-h-[320px] max-h-[480px] overflow-y-auto flex flex-col gap-3">
                 {chatMessages.length === 0 ? (
-                  <p className="text-center text-muted-foreground font-body py-16">
-                    Tell {displayAssistantName} anything, "remind me to get Mum a card Friday", "add milk to my
-                    list", she'll take it from there.
-                  </p>
+                  <div className="py-10 text-center space-y-5">
+                    <p className="text-muted-foreground font-body">
+                      Tell {displayAssistantName} anything, she'll take it from there. Not sure where to start?
+                      Try one of these.
+                    </p>
+                    <div className="flex flex-col items-center gap-2">
+                      {EXAMPLE_PROMPTS.map((example) => (
+                        <button
+                          key={example}
+                          onClick={() => sendChatMessage(example)}
+                          disabled={chatSending}
+                          className="font-body text-sm px-4 py-2 rounded-full border border-lifestyle-terracotta/40 text-lifestyle-espresso hover:bg-lifestyle-terracotta-light transition-colors"
+                        >
+                          {example}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 ) : (
                   chatMessages.map((m) => (
                     <div
