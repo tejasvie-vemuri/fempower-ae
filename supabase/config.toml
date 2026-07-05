@@ -9,6 +9,8 @@ project_id = "uaiymunelgvvnznkxeik"
     verify_jwt = false
   [functions.fetch-gallery]
     verify_jwt = false
+  [functions.fetch-instagram]
+    verify_jwt = false
   [functions.fetch-resources]
     verify_jwt = false
   [functions.fetch-substacks]
