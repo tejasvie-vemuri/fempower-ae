@@ -112,6 +112,7 @@ const LifestyleManager = () => {
   const [savingAssistantName, setSavingAssistantName] = useState(false);
   const [assistantNameDraft, setAssistantNameDraft] = useState("");
   const [preferredNameDraft, setPreferredNameDraft] = useState("");
+  const [notifPrefsDraft, setNotifPrefsDraft] = useState<NotificationPrefs>(DEFAULT_NOTIFICATION_PREFS);
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
