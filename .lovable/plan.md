@@ -1,27 +1,27 @@
-## Goal
-Replace the header "Join Us" button for approved, signed-in members with a friendlier personalized affordance, while keeping it for guests and pending members.
+## Diagnosis
 
-## Behavior by auth state (header CTA slot, top-right)
+In `src/pages/LifestyleManager.tsx`, the Settings tab holds the profile fields ("What should I be called?" and "What should I call you?"). They're stored in local draft state (`assistantNameDraft`, `preferredNameDraft`) and only persist to `lm_profile` when the user clicks the **Save** button (`saveAssistantIdentity`, line 240). If the user types and navigates away or refreshes, the changes are lost — that's what users are reporting as "not auto-saving." Nothing is actually broken; there's just no auto-save wired up.
 
-- **Guest (signed out):** Show "Join Us" → `/join` (unchanged).
-- **Signed in, pending/rejected/hidden:** Keep "Join Us" → `/join` (it shows their approval status page). Unchanged.
-- **Signed in, approved member:** Hide "Join Us". Replace that slot with:
-  1. A compact **"Hi, {firstName}"** chip linking to `/account/profile` (uses avatar if present, initials fallback).
-  2. An **"Invite a sister"** button that opens a small share dialog (copy invite link to `/join`, plus WhatsApp + Instagram DM share buttons).
-  
-  Quick links (Circle, Learn, Directory, My Tickets) already exist in the main nav, so the replacement stays focused on identity + referral rather than duplicating nav.
+## Plan
 
-## Files to change
+Add debounced auto-save to the two profile inputs so users never need to click Save.
 
-- `src/components/Header.tsx` — branch the CTA slot on `useAuth` + `useMemberProfile().status`. Render `<JoinUsButton />` for guests/pending, otherwise render `<MemberHeaderActions />`.
-- `src/components/MemberHeaderActions.tsx` *(new)* — greeting chip + "Invite a sister" trigger. Uses existing `MemberAvatar` for the chip.
-- `src/components/InviteSisterDialog.tsx` *(new)* — shadcn `Dialog` with:
-  - Prefilled share text: "I'm part of Fempower — a UAE women's circle. Come join us 🤍 https://fempowerae.com/join"
-  - "Copy link" (uses `navigator.clipboard`, toast on success)
-  - "Share on WhatsApp" (`https://wa.me/?text=...`)
-  - "Share on Instagram" (opens `@fempower.ae` profile, since IG has no web share intent)
+1. **Add a debounced auto-save effect** in `LifestyleManager.tsx`:
+   - Watch `assistantNameDraft` and `preferredNameDraft`.
+   - Skip on the initial hydration (only run once the profile has loaded and drafts differ from the persisted values).
+   - After ~800ms of no typing, run the same update to `lm_profile` that `saveAssistantIdentity` does.
+   - Track a lightweight status: `idle | saving | saved | error`.
+
+2. **Update the Settings UI** (lines 602–631):
+   - Remove the manual Save button.
+   - Replace it with a subtle status indicator under the fields: "Saving…", "Saved ✓" (fades after a couple seconds), or an error message with a retry link if the update fails.
+   - Keep the existing input styling and layout.
+
+3. **Keep the underlying save logic reusable**: refactor `saveAssistantIdentity` into a `persistProfile(values)` helper used by the debounced effect, so behavior stays identical (same table, same fallback of `"Zoya"` when blank, same profile state update).
+
+4. **No schema, RLS, or edge-function changes needed** — the existing `lm_profile` update path already works and permissions are in place.
 
 ## Out of scope
-- Mobile nav drawer mirrors the same logic (one extra branch in the existing mobile menu block in `Header.tsx`).
-- No changes to the homepage `JoinSection` (already gated), Footer, or Hero CTA.
-- No schema / backend changes.
+
+- Auto-saving other tabs (people, dates, reminders, groceries) — those already persist on their own add/edit actions.
+- Any changes to the chat, trial logic, or backend.
