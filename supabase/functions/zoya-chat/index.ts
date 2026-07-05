@@ -242,11 +242,17 @@ Deno.serve(async (req) => {
     const toolCalls = choice?.tool_calls as Array<{ id: string; function: { name: string; arguments: string } }> | undefined;
 
     if (!toolCalls || toolCalls.length === 0) {
+      console.log(
+        "zoya-chat: no tool_calls returned",
+        JSON.stringify({ finish_reason: firstJson.choices?.[0]?.finish_reason, content: choice?.content, lastUserMessage: messages?.[messages.length - 1] }),
+      );
       const reply = choice?.content ?? "Sorry, I didn't quite catch that, can you try again?";
       return new Response(JSON.stringify({ reply, toolsUsed: [] }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    console.log("zoya-chat: tool_calls returned", JSON.stringify(toolCalls.map((c) => ({ name: c.function.name, args: c.function.arguments }))));
 
     const toolResults: { tool_call_id: string; output: string }[] = [];
     const toolsUsed: string[] = [];
