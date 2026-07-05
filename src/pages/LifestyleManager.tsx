@@ -22,18 +22,21 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, ArrowLeft, Plus, Check, ShoppingBag, Sparkles, Send } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { enablePushNotifications, disablePushNotifications, isPushSupported } from "@/lib/webPush";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
 interface NotificationPrefs {
   whatsapp: boolean;
   email: boolean;
+  web_push: boolean;
   digest_time: string;
 }
 
 const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
   whatsapp: true,
   email: false,
+  web_push: false,
   digest_time: "08:00",
 };
 
@@ -336,6 +339,7 @@ const LifestyleManager = () => {
     if (
       current.whatsapp === notifPrefsDraft.whatsapp &&
       current.email === notifPrefsDraft.email &&
+      current.web_push === notifPrefsDraft.web_push &&
       current.digest_time === notifPrefsDraft.digest_time
     ) {
       return;
@@ -861,6 +865,38 @@ const LifestyleManager = () => {
                       id="notif-email"
                       checked={notifPrefsDraft.email}
                       onCheckedChange={(v) => setNotifPrefsDraft((p) => ({ ...p, email: v }))}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <Label htmlFor="notif-webpush" className="font-body text-sm text-lifestyle-espresso">
+                        Phone notifications
+                      </Label>
+                      <p className="text-xs text-muted-foreground font-body">
+                        A notification right on your phone, browser permission needed once.
+                      </p>
+                    </div>
+                    <Switch
+                      id="notif-webpush"
+                      checked={notifPrefsDraft.web_push}
+                      onCheckedChange={async (v) => {
+                        if (!user) return;
+                        if (v) {
+                          if (!isPushSupported()) {
+                            toast({ title: "Not supported on this browser", variant: "destructive" });
+                            return;
+                          }
+                          const result = await enablePushNotifications(user.id);
+                          if (!result.ok) {
+                            toast({ title: "Couldn't enable phone notifications", description: result.error, variant: "destructive" });
+                            return;
+                          }
+                        } else {
+                          await disablePushNotifications(user.id);
+                        }
+                        setNotifPrefsDraft((p) => ({ ...p, web_push: v }));
+                      }}
                     />
                   </div>
 

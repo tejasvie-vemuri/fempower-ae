@@ -7,6 +7,7 @@ import { template as circlePostPending } from './circle-post-pending.tsx'
 import { template as eventRegistrationConfirmation } from './event-registration-confirmation.tsx'
 import { template as welcome } from './welcome.tsx'
 import { template as profileCompletionReminder } from './profile-completion-reminder.tsx'
+import { template as lifestyleDigest } from './lifestyle-digest.tsx'
 
 export type SubjectFn = (data: Record<string, unknown>) => string
 
@@ -26,4 +27,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'event-registration-confirmation': eventRegistrationConfirmation,
   'welcome': welcome,
   'profile-completion-reminder': profileCompletionReminder,
+  'lifestyle-digest': lifestyleDigest,
 }
