@@ -408,7 +408,10 @@ const LifestyleManager = () => {
 
             {/* ── Chat ── */}
             <TabsContent value="chat" className="space-y-3 sm:space-y-4">
-              <div className="flex items-center gap-2">
+              <div
+                className="flex items-center gap-2 sticky top-2 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70 py-2 -mx-1 px-1 rounded-lg"
+                style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+              >
                 <Input
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
@@ -418,9 +421,16 @@ const LifestyleManager = () => {
                       sendChatMessage();
                     }
                   }}
+                  onFocus={(e) => {
+                    // Ensure the input stays visible above the iOS keyboard
+                    setTimeout(() => {
+                      e.target.scrollIntoView({ block: "center", behavior: "smooth" });
+                    }, 300);
+                  }}
                   placeholder={`Tell ${displayAssistantName} anything...`}
                   className="font-body"
                   disabled={chatSending}
+                  enterKeyHint="send"
                 />
                 <Button
                   onClick={sendChatMessage}
@@ -430,7 +440,7 @@ const LifestyleManager = () => {
                   <Send size={16} />
                 </Button>
               </div>
-              <div className="rounded-xl border border-border bg-card p-4 min-h-[260px] max-h-[55vh] sm:min-h-[320px] sm:max-h-[480px] overflow-y-auto flex flex-col gap-3">
+              <div className="rounded-xl border border-border bg-card p-4 min-h-[260px] max-h-[55dvh] sm:min-h-[320px] sm:max-h-[480px] overflow-y-auto flex flex-col gap-3">
                 {chatMessages.length === 0 ? (
                   <p className="text-center text-muted-foreground font-body py-16">
                     Tell {displayAssistantName} anything, "remind me to get Mum a card Friday", "add milk to my
