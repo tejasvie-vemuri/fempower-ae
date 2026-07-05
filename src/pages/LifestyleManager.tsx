@@ -113,6 +113,9 @@ const LifestyleManager = () => {
   const [assistantNameDraft, setAssistantNameDraft] = useState("");
   const [preferredNameDraft, setPreferredNameDraft] = useState("");
   const [notifPrefsDraft, setNotifPrefsDraft] = useState<NotificationPrefs>(DEFAULT_NOTIFICATION_PREFS);
+  const [cityDraft, setCityDraft] = useState("");
+
+  const UAE_CITIES = ["Abu Dhabi", "Dubai", "Sharjah", "Ajman", "Umm Al Quwain", "Ras Al Khaimah", "Fujairah", "Al Ain"];
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
