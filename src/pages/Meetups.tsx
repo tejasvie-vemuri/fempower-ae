@@ -234,6 +234,20 @@ const Meetups = () => {
 
   return (
     <>
+      <Helmet>
+        <title>Pop-up Meetups — Fempower UAE</title>
+        <meta
+          name="description"
+          content="Casual coffee, walks and study sessions hosted by Fempower members across the UAE. Post a spontaneous meetup or RSVP to one nearby."
+        />
+        <link rel="canonical" href="https://fempowerae.com/meetups" />
+        <meta property="og:title" content="Pop-up Meetups — Fempower UAE" />
+        <meta property="og:url" content="https://fempowerae.com/meetups" />
+        <meta
+          property="og:description"
+          content="Casual coffee, walks and study sessions hosted by Fempower members across the UAE."
+        />
+      </Helmet>
       <Header />
       <main className="pt-24 pb-20 min-h-screen bg-background">
         <div className="container max-w-3xl">
