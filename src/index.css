@@ -86,6 +86,13 @@
   .font-body {
     font-family: var(--font-body);
   }
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Smooth scrolling + mobile overflow guard */

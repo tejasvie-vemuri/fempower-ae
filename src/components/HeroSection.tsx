@@ -8,6 +8,7 @@ const heroImg = heroAsset.url;
 import { DuneWave } from "./GulfDecoratives";
 import { useSiteImages } from "@/hooks/useSiteImages";
 import { responsiveImage } from "@/lib/responsiveImage";
+import EventsStripBanner from "./EventsStripBanner";
 
 const HERO_SIZES = "100vw";
 
@@ -17,7 +18,7 @@ const HeroSection = () => {
   const sourceUrl = bg?.url ?? heroImg;
   const responsive = responsiveImage(sourceUrl, { sizes: HERO_SIZES });
   return (
-  <section className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden" aria-label="Fempower hero">
+  <section className="relative min-h-[90vh] flex flex-col pt-20 overflow-hidden" aria-label="Fempower hero">
     <div className="absolute inset-0">
       <img
         src={responsive.src}
@@ -31,6 +32,9 @@ const HeroSection = () => {
       <div className="absolute inset-0 bg-background/80" />
     </div>
 
+    <EventsStripBanner />
+
+    <div className="flex-1 flex items-center">
     <div className="container relative z-10 py-10 md:py-16">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -101,6 +105,7 @@ const HeroSection = () => {
           </span>
         </motion.button>
       </motion.div>
+    </div>
     </div>
     <DuneWave className="absolute bottom-0 left-0 z-10" />
   </section>
