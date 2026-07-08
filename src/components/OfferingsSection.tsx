@@ -180,7 +180,7 @@ const OfferingsSection = () => {
       {/* What We Do offerings */}
       <div className="py-7 md:py-10 bg-secondary">
         <div className="container">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <div>
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
@@ -235,7 +235,7 @@ const OfferingsSection = () => {
               </div>
             </div>
 
-            <div className="hidden lg:block relative aspect-[4/5] xl:aspect-square w-full">
+            <div className="relative aspect-[4/5] xl:aspect-square w-full order-first lg:order-last">
               <AnimatePresence mode="wait">
                 <motion.img
                   key={active.image}

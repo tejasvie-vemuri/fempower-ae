@@ -1,7 +1,7 @@
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import OfferingsSection from "@/components/OfferingsSection";
-import ProgramsSection from "@/components/ProgramsSection";
+
 import EventsCalendarSection from "@/components/EventsCalendarSection";
 import BecomingSpaceSection from "@/components/BecomingSpaceSection";
 import GallerySection from "@/components/GallerySection";
@@ -35,7 +35,6 @@ const Index = () => {
         <SeoSummary />
         <HeroSection />
         <OfferingsSection />
-        <ProgramsSection />
         {isAuthed && <SpotlightCard />}
         {isAuthed && <CelebrationsStrip />}
         {isAuthed && <CircleTeaser />}
