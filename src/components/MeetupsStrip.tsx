@@ -19,7 +19,7 @@ const MeetupsStrip = () => {
       setApproved(true);
       const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
       const { data } = await (supabase as any)
-        .from("meetups")
+        .from("meetups_public")
         .select("*")
         .eq("status", "published")
         .gte("starts_at", cutoff)

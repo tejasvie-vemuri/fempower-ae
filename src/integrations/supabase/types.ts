@@ -1021,6 +1021,13 @@ export type Database = {
             referencedRelation: "meetups"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "meetup_reports_meetup_id_fkey"
+            columns: ["meetup_id"]
+            isOneToOne: false
+            referencedRelation: "meetups_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       meetup_rsvps: {
@@ -1055,6 +1062,13 @@ export type Database = {
             columns: ["meetup_id"]
             isOneToOne: false
             referencedRelation: "meetups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetup_rsvps_meetup_id_fkey"
+            columns: ["meetup_id"]
+            isOneToOne: false
+            referencedRelation: "meetups_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1730,6 +1744,51 @@ export type Database = {
           host_id: string | null
           meetup_id: string | null
           photo_url: string | null
+        }
+        Relationships: []
+      }
+      meetups_public: {
+        Row: {
+          capacity: number | null
+          created_at: string | null
+          emirate: string | null
+          host_id: string | null
+          host_visibility: string | null
+          id: string | null
+          note: string | null
+          place: string | null
+          starts_at: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string | null
+          emirate?: string | null
+          host_id?: never
+          host_visibility?: string | null
+          id?: string | null
+          note?: string | null
+          place?: string | null
+          starts_at?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string | null
+          emirate?: string | null
+          host_id?: never
+          host_visibility?: string | null
+          id?: string | null
+          note?: string | null
+          place?: string | null
+          starts_at?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
