@@ -89,7 +89,7 @@ const Meetups = () => {
     // Hide meetups whose start time was more than 2 hours ago
     const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
     let q = (supabase as any)
-      .from("meetups")
+      .from("meetups_public")
       .select("*")
       .eq("status", "published")
       .gte("starts_at", cutoff)
