@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { X } from "lucide-react";
 import {
   MessageCircle,
   Footprints,
@@ -77,6 +79,7 @@ const offerings = [
 
 const OfferingsSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const active = offerings[activeIndex];
   const { data: team } = useSiteImages("team");
 
@@ -235,25 +238,32 @@ const OfferingsSection = () => {
               </div>
             </div>
 
-            <div className="relative aspect-[4/5] xl:aspect-square w-full order-first lg:order-last">
+            <div className="relative w-full order-first lg:order-last aspect-[4/3] sm:aspect-[16/10] lg:aspect-[4/5] xl:aspect-square">
               <AnimatePresence mode="wait">
-                <motion.img
+                <motion.button
+                  type="button"
                   key={active.image}
-                  src={active.image}
-                  alt={active.imageAlt}
-                  loading="lazy"
-                  decoding="async"
-                  sizes="(min-width: 1024px) 50vw, 100vw"
-                  width={1200}
-                  height={1200}
+                  onClick={() => setLightboxOpen(true)}
+                  aria-label={`View larger image: ${active.imageAlt}`}
                   initial={{ opacity: 0, scale: 0.97 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.97 }}
                   transition={{ duration: 0.35 }}
-                  className="absolute inset-0 rounded-2xl shadow-lg object-cover object-[center_60%] xl:object-center w-full h-full"
-                />
+                  className="absolute inset-0 rounded-2xl shadow-lg overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-blush-dark"
+                >
+                  <img
+                    src={active.image}
+                    alt={active.imageAlt}
+                    loading="lazy"
+                    decoding="async"
+                    sizes="(min-width: 1024px) 50vw, 100vw"
+                    width={1200}
+                    height={1200}
+                    className="w-full h-full object-cover object-[center_60%] lg:object-center"
+                  />
+                </motion.button>
               </AnimatePresence>
-              {/* Preload non-active images at low priority so transitions are instant */}
+              {/* Preload non-active images */}
               <div className="hidden" aria-hidden="true">
                 {offerings.map((o) =>
                   o.image === active.image ? null : (
@@ -265,6 +275,26 @@ const OfferingsSection = () => {
           </div>
         </div>
       </div>
+
+      {/* Lightbox */}
+      <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+        <DialogContent className="max-w-4xl w-[95vw] p-0 bg-transparent border-0 shadow-none">
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(false)}
+            aria-label="Close image"
+            className="absolute -top-10 right-0 sm:top-2 sm:right-2 z-10 w-9 h-9 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80"
+          >
+            <X size={18} />
+          </button>
+          <img
+            src={active.image}
+            alt={active.imageAlt}
+            className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+          />
+          <p className="mt-3 text-center text-sm text-white/90 font-body px-4">{active.title}</p>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
