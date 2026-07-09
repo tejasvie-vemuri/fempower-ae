@@ -171,6 +171,7 @@ const LifestyleManager = () => {
   const [preferredNameDraft, setPreferredNameDraft] = useState("");
   const [notifPrefsDraft, setNotifPrefsDraft] = useState<NotificationPrefs>(DEFAULT_NOTIFICATION_PREFS);
   const [cityDraft, setCityDraft] = useState("");
+  const [whatsappNumberDraft, setWhatsappNumberDraft] = useState("");
 
   const UAE_CITIES = ["Abu Dhabi", "Dubai", "Sharjah", "Ajman", "Umm Al Quwain", "Ras Al Khaimah", "Fujairah", "Al Ain"];
 
@@ -214,6 +215,7 @@ const LifestyleManager = () => {
         ...(lmProfile?.notification_prefs ?? {}),
       });
       setCityDraft(lmProfile?.city ?? "");
+      setWhatsappNumberDraft(lmProfile?.whatsapp_number ?? "");
 
       const { data: config } = await (supabase as any)
         .from("plan_config")
@@ -395,7 +397,7 @@ const LifestyleManager = () => {
   const [profileSaveStatus, setProfileSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [profileSaveError, setProfileSaveError] = useState<string | null>(null);
 
-  const persistProfile = async (patch: Partial<Pick<LmProfile, "assistant_name" | "preferred_name" | "notification_prefs" | "city">>) => {
+  const persistProfile = async (patch: Partial<Pick<LmProfile, "assistant_name" | "preferred_name" | "notification_prefs" | "city" | "whatsapp_number">>) => {
     if (!user) return;
     setProfileSaveStatus("saving");
     setProfileSaveError(null);
@@ -470,6 +472,19 @@ const LifestyleManager = () => {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cityDraft, profile?.city, user]);
+
+  // Debounced auto-save for WhatsApp number, this is how Zoya on WhatsApp
+  // knows which account an incoming message belongs to.
+  useEffect(() => {
+    if (!profile || !user) return;
+    const nextNumber = whatsappNumberDraft.trim() || null;
+    if ((profile.whatsapp_number ?? null) === nextNumber) return;
+    const t = setTimeout(() => {
+      persistProfile({ whatsapp_number: nextNumber });
+    }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [whatsappNumberDraft, profile?.whatsapp_number, user]);
 
   // Fade "saved" indicator after a moment
   useEffect(() => {
@@ -1049,6 +1064,20 @@ const LifestyleManager = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div>
+                  <p className="text-xs font-body uppercase tracking-widest text-muted-foreground mb-1.5">
+                    Your WhatsApp number
+                  </p>
+                  <Input
+                    value={whatsappNumberDraft}
+                    onChange={(e) => setWhatsappNumberDraft(e.target.value)}
+                    placeholder="+971 50 123 4567"
+                    className="font-body"
+                  />
+                  <p className="text-xs text-muted-foreground font-body mt-1">
+                    So you can text {displayAssistantName} directly on WhatsApp, coming soon.
+                  </p>
                 </div>
 
                 <div className="pt-2 border-t border-border space-y-4">
