@@ -262,13 +262,6 @@ export type Database = {
             referencedRelation: "circle_posts"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "circle_replies_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "circle_posts_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       circle_reports: {
@@ -1011,21 +1004,7 @@ export type Database = {
             foreignKeyName: "meetup_reports_meetup_id_fkey"
             columns: ["meetup_id"]
             isOneToOne: false
-            referencedRelation: "meetup_hosts_public"
-            referencedColumns: ["meetup_id"]
-          },
-          {
-            foreignKeyName: "meetup_reports_meetup_id_fkey"
-            columns: ["meetup_id"]
-            isOneToOne: false
             referencedRelation: "meetups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "meetup_reports_meetup_id_fkey"
-            columns: ["meetup_id"]
-            isOneToOne: false
-            referencedRelation: "meetups_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1054,21 +1033,7 @@ export type Database = {
             foreignKeyName: "meetup_rsvps_meetup_id_fkey"
             columns: ["meetup_id"]
             isOneToOne: false
-            referencedRelation: "meetup_hosts_public"
-            referencedColumns: ["meetup_id"]
-          },
-          {
-            foreignKeyName: "meetup_rsvps_meetup_id_fkey"
-            columns: ["meetup_id"]
-            isOneToOne: false
             referencedRelation: "meetups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "meetup_rsvps_meetup_id_fkey"
-            columns: ["meetup_id"]
-            isOneToOne: false
-            referencedRelation: "meetups_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1155,13 +1120,6 @@ export type Database = {
             columns: ["circle_post_id"]
             isOneToOne: false
             referencedRelation: "circle_posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "member_milestones_circle_post_id_fkey"
-            columns: ["circle_post_id"]
-            isOneToOne: false
-            referencedRelation: "circle_posts_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1762,34 +1720,6 @@ export type Database = {
           title: string | null
           updated_at: string | null
         }
-        Insert: {
-          capacity?: number | null
-          created_at?: string | null
-          emirate?: string | null
-          host_id?: never
-          host_visibility?: string | null
-          id?: string | null
-          note?: string | null
-          place?: string | null
-          starts_at?: string | null
-          status?: string | null
-          title?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          capacity?: number | null
-          created_at?: string | null
-          emirate?: string | null
-          host_id?: never
-          host_visibility?: string | null
-          id?: string | null
-          note?: string | null
-          place?: string | null
-          starts_at?: string | null
-          status?: string | null
-          title?: string | null
-          updated_at?: string | null
-        }
         Relationships: []
       }
     }
@@ -1813,6 +1743,47 @@ export type Database = {
         Returns: number
       }
       event_confirmed_count: { Args: { _event_id: string }; Returns: number }
+      get_circle_posts_public: {
+        Args: never
+        Returns: {
+          author_name: string
+          author_photo_url: string
+          body: string
+          created_at: string
+          id: string
+          is_anonymous: boolean
+          published_at: string
+          status: string
+          topic_tag: string
+          user_id: string
+        }[]
+      }
+      get_meetup_hosts_public: {
+        Args: never
+        Returns: {
+          display_name: string
+          host_id: string
+          meetup_id: string
+          photo_url: string
+        }[]
+      }
+      get_meetups_public: {
+        Args: never
+        Returns: {
+          capacity: number
+          created_at: string
+          emirate: string
+          host_id: string
+          host_visibility: string
+          id: string
+          note: string
+          place: string
+          starts_at: string
+          status: string
+          title: string
+          updated_at: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
