@@ -7,7 +7,9 @@ import ModuleAccordion from "@/components/learn/ModuleAccordion";
 import CourseProgress from "@/components/learn/CourseProgress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, ArrowLeft, ExternalLink } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, ArrowLeft, ExternalLink, BookOpen, Link2 } from "lucide-react";
 import type { LearnCourse, LearnModule, LearnWing, LearnResource } from "@/lib/learn";
 
 const LearnCourse = () => {
@@ -132,46 +134,70 @@ const LearnCourse = () => {
       </section>
 
       <main className="bg-secondary pb-20">
-        <div className="container max-w-4xl pt-10">
-          {modules.length === 0 ? (
-            <p className="text-center text-muted-foreground font-body py-12">
-              Modules are being added. Check back soon!
-            </p>
-          ) : (
-            <ModuleAccordion
-              modules={modules}
-              wingsByModule={wingsByModule}
-              courseId={courseId!}
-              completedWingIds={completedWingIds}
-            />
-          )}
+        <div className="container max-w-4xl pt-8">
+          <Tabs defaultValue="modules">
+            <TabsList className="mb-8 bg-background border border-border">
+              <TabsTrigger value="modules" className="font-body text-sm gap-2">
+                <BookOpen size={14} /> Modules
+              </TabsTrigger>
+              <TabsTrigger value="resources" className="font-body text-sm gap-2">
+                <Link2 size={14} /> Resources
+                {resources.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 text-xs px-1.5 py-0 h-4">
+                    {resources.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
 
-          {resources.length > 0 && (
-            <section className="mt-12">
-              <h2 className="font-heading text-2xl mb-4">Resources</h2>
-              <div className="space-y-3">
-                {resources.map((r) => (
-                  <a
-                    key={r.id}
-                    href={r.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block border border-border rounded-xl p-4 bg-card hover:shadow-sm transition-shadow"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-body font-medium">{r.title}</p>
-                        {r.description && (
-                          <p className="text-sm text-muted-foreground mt-1">{r.description}</p>
-                        )}
+            <TabsContent value="modules">
+              {modules.length === 0 ? (
+                <p className="text-center text-muted-foreground font-body py-12">
+                  Modules are being added. Check back soon!
+                </p>
+              ) : (
+                <ModuleAccordion
+                  modules={modules}
+                  wingsByModule={wingsByModule}
+                  courseId={courseId!}
+                  completedWingIds={completedWingIds}
+                />
+              )}
+            </TabsContent>
+
+            <TabsContent value="resources">
+              {resources.length === 0 ? (
+                <div className="text-center py-16">
+                  <Link2 size={32} className="text-muted-foreground mx-auto mb-4" />
+                  <p className="font-body text-muted-foreground">
+                    Resources for this course will be added soon.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {resources.map((r) => (
+                    <a
+                      key={r.id}
+                      href={r.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block border border-border rounded-xl p-4 bg-card hover:shadow-sm transition-shadow"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-body font-medium">{r.title}</p>
+                          {r.description && (
+                            <p className="text-sm text-muted-foreground mt-1">{r.description}</p>
+                          )}
+                        </div>
+                        <ExternalLink size={16} className="text-muted-foreground flex-shrink-0 mt-1" />
                       </div>
-                      <ExternalLink size={16} className="text-muted-foreground flex-shrink-0 mt-1" />
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </section>
-          )}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
 
