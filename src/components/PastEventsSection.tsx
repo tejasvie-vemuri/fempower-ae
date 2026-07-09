@@ -178,7 +178,7 @@ const PastEventsSection = () => {
                   <motion.img
                     key={activeEvent.photos[activePhotoIdx].id}
                     src={publicUrl(activeEvent.photos[activePhotoIdx].storage_path)}
-                    alt={activeEvent.photos[activePhotoIdx].caption ?? activeEvent.title}
+                    alt={activeEvent.photos[activePhotoIdx].alt_text ?? activeEvent.photos[activePhotoIdx].caption ?? `Photo from ${activeEvent.title}`}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
