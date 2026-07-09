@@ -133,7 +133,7 @@ const PastEventsSection = () => {
                 <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                   <img
                     src={publicUrl(cover.storage_path)}
-                    alt={cover.caption ?? ev.title}
+                    alt={cover.alt_text ?? cover.caption ?? `Photos from ${ev.title}`}
                     loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
