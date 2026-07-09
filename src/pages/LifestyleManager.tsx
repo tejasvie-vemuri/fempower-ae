@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,7 +21,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2, ArrowLeft, Plus, Check, ShoppingBag, Sparkles, Send } from "lucide-react";
+import { Loader2, ArrowLeft, Plus, Check, ShoppingBag, Sparkles, Send, Trash2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { enablePushNotifications, disablePushNotifications, isPushSupported } from "@/lib/webPush";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -156,6 +157,9 @@ const LifestyleManager = () => {
   const [newReminderTitle, setNewReminderTitle] = useState("");
   const [newReminderDate, setNewReminderDate] = useState("");
   const [newGroceryItem, setNewGroceryItem] = useState("");
+  const [addingPerson, setAddingPerson] = useState(false);
+  const [addingReminder, setAddingReminder] = useState(false);
+  const [addingGrocery, setAddingGrocery] = useState(false);
   const [assistantNameDraft, setAssistantNameDraft] = useState("");
   const [preferredNameDraft, setPreferredNameDraft] = useState("");
   const [notifPrefsDraft, setNotifPrefsDraft] = useState<NotificationPrefs>(DEFAULT_NOTIFICATION_PREFS);
@@ -270,7 +274,19 @@ const LifestyleManager = () => {
     setChatSending(false);
 
     if (error || !data?.reply) {
-      toast({ title: "Couldn't reach Zoya", description: error?.message ?? "Try again in a moment.", variant: "destructive" });
+      // Her message did save to history, but restore it to the input too so
+      // she never has to remember and retype her own wording to try again.
+      setChatInput(text);
+      toast({
+        title: "Couldn't reach Zoya",
+        description: error?.message ?? "Try again in a moment.",
+        variant: "destructive",
+        action: (
+          <ToastAction altText="Retry" onClick={() => sendChatMessage(text)}>
+            Retry
+          </ToastAction>
+        ),
+      });
       return;
     }
 
@@ -409,12 +425,14 @@ const LifestyleManager = () => {
   }, [profileSaveStatus]);
 
   const addPerson = async () => {
-    if (!user || !newPersonName.trim()) return;
+    if (!user || !newPersonName.trim() || addingPerson) return;
+    setAddingPerson(true);
     const { data, error } = await (supabase as any)
       .from("people")
       .insert({ user_id: user.id, name: newPersonName.trim(), relationship: newPersonRelationship.trim() || null })
       .select("*")
       .single();
+    setAddingPerson(false);
     if (error) {
       toast({ title: "Couldn't add them", description: error.message, variant: "destructive" });
       return;
@@ -425,12 +443,14 @@ const LifestyleManager = () => {
   };
 
   const addReminder = async () => {
-    if (!user || !newReminderTitle.trim()) return;
+    if (!user || !newReminderTitle.trim() || addingReminder) return;
+    setAddingReminder(true);
     const { data, error } = await (supabase as any)
       .from("reminders")
       .insert({ user_id: user.id, title: newReminderTitle.trim(), due_date: newReminderDate || null })
       .select("*")
       .single();
+    setAddingReminder(false);
     if (error) {
       toast({ title: "Couldn't add that", description: error.message, variant: "destructive" });
       return;
@@ -445,13 +465,39 @@ const LifestyleManager = () => {
     setReminders((rs) => rs.map((r) => (r.id === id ? { ...r, status: "done" } : r)));
   };
 
+  // Undoing a mistake, whether it's something she added by hand or
+  // something Zoya got slightly wrong, should always be one tap away.
+  const deleteUpcomingItem = async (itemId: string) => {
+    if (itemId.startsWith("date-")) {
+      const dateId = itemId.slice(5);
+      await (supabase as any).from("important_dates").delete().eq("id", dateId);
+      setDates((ds) => ds.filter((d) => d.id !== dateId));
+    } else {
+      await (supabase as any).from("reminders").delete().eq("id", itemId);
+      setReminders((rs) => rs.filter((r) => r.id !== itemId));
+    }
+  };
+
+  const deletePerson = async (id: string) => {
+    await (supabase as any).from("people").delete().eq("id", id);
+    setPeople((ps) => ps.filter((p) => p.id !== id));
+    setDates((ds) => ds.filter((d) => d.person_id !== id));
+  };
+
+  const deleteGroceryItem = async (id: string) => {
+    await (supabase as any).from("grocery_items").delete().eq("id", id);
+    setGroceries((gs) => gs.filter((g) => g.id !== id));
+  };
+
   const addGrocery = async () => {
-    if (!user || !newGroceryItem.trim()) return;
+    if (!user || !newGroceryItem.trim() || addingGrocery) return;
+    setAddingGrocery(true);
     const { data, error } = await (supabase as any)
       .from("grocery_items")
       .insert({ user_id: user.id, item_name: newGroceryItem.trim() })
       .select("*")
       .single();
+    setAddingGrocery(false);
     if (error) {
       toast({ title: "Couldn't add that", description: error.message, variant: "destructive" });
       return;
@@ -689,8 +735,12 @@ const LifestyleManager = () => {
                     onChange={(e) => setNewReminderDate(e.target.value)}
                     className="font-body sm:w-40"
                   />
-                  <Button onClick={addReminder} className="bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90">
-                    <Plus size={16} className="mr-1" /> Add
+                  <Button
+                    onClick={addReminder}
+                    disabled={addingReminder || !newReminderTitle.trim()}
+                    className="bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90"
+                  >
+                    {addingReminder ? <Loader2 size={16} className="animate-spin" /> : <><Plus size={16} className="mr-1" /> Add</>}
                   </Button>
                 </div>
               </Card>
@@ -712,16 +762,26 @@ const LifestyleManager = () => {
                           {dueLabel(item.days)}
                         </p>
                       </div>
-                      {!item.id.startsWith("date-") && (
+                      <div className="flex items-center gap-1 shrink-0">
+                        {!item.id.startsWith("date-") && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            aria-label={`Mark "${item.title}" done`}
+                            onClick={() => markReminderDone(item.id)}
+                          >
+                            <Check size={18} />
+                          </Button>
+                        )}
                         <Button
                           size="icon"
                           variant="ghost"
-                          aria-label={`Mark "${item.title}" done`}
-                          onClick={() => markReminderDone(item.id)}
+                          aria-label={`Delete "${item.title}"`}
+                          onClick={() => deleteUpcomingItem(item.id)}
                         >
-                          <Check size={18} />
+                          <Trash2 size={16} className="text-muted-foreground" />
                         </Button>
-                      )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -745,8 +805,12 @@ const LifestyleManager = () => {
                     onChange={(e) => setNewPersonRelationship(e.target.value)}
                     className="font-body"
                   />
-                  <Button onClick={addPerson} className="bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90">
-                    <Plus size={16} className="mr-1" /> Add
+                  <Button
+                    onClick={addPerson}
+                    disabled={addingPerson || !newPersonName.trim()}
+                    className="bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90"
+                  >
+                    {addingPerson ? <Loader2 size={16} className="animate-spin" /> : <><Plus size={16} className="mr-1" /> Add</>}
                   </Button>
                 </div>
               </Card>
@@ -758,11 +822,21 @@ const LifestyleManager = () => {
               ) : (
                 <div className="space-y-3">
                   {people.map((p) => (
-                    <div key={p.id} className="rounded-xl border border-border bg-card p-4">
-                      <p className="font-body font-medium text-lifestyle-espresso">{p.name}</p>
-                      {p.relationship && (
-                        <p className="text-xs text-muted-foreground font-body">{p.relationship}</p>
-                      )}
+                    <div key={p.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-4">
+                      <div>
+                        <p className="font-body font-medium text-lifestyle-espresso">{p.name}</p>
+                        {p.relationship && (
+                          <p className="text-xs text-muted-foreground font-body">{p.relationship}</p>
+                        )}
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        aria-label={`Remove ${p.name}`}
+                        onClick={() => deletePerson(p.id)}
+                      >
+                        <Trash2 size={16} className="text-muted-foreground" />
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -780,8 +854,12 @@ const LifestyleManager = () => {
                     onChange={(e) => setNewGroceryItem(e.target.value)}
                     className="font-body"
                   />
-                  <Button onClick={addGrocery} className="bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90">
-                    <Plus size={16} className="mr-1" /> Add
+                  <Button
+                    onClick={addGrocery}
+                    disabled={addingGrocery || !newGroceryItem.trim()}
+                    className="bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90"
+                  >
+                    {addingGrocery ? <Loader2 size={16} className="animate-spin" /> : <><Plus size={16} className="mr-1" /> Add</>}
                   </Button>
                 </div>
               </Card>
@@ -791,8 +869,16 @@ const LifestyleManager = () => {
               ) : (
                 <div className="space-y-2">
                   {activeGroceries.map((g) => (
-                    <div key={g.id} className="rounded-lg border border-border bg-card px-4 py-2.5 font-body text-lifestyle-espresso">
+                    <div key={g.id} className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-2.5 font-body text-lifestyle-espresso">
                       {g.item_name}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        aria-label={`Remove ${g.item_name}`}
+                        onClick={() => deleteGroceryItem(g.id)}
+                      >
+                        <Trash2 size={16} className="text-muted-foreground" />
+                      </Button>
                     </div>
                   ))}
                 </div>
