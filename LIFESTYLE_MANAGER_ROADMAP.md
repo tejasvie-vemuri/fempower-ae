@@ -29,11 +29,17 @@
 - [x] Dedupe via `lm_profile.last_digest_sent_date` — never sends the same digest twice in a day
 - [ ] **You still need to do these manual steps before this actually works, see below**
 
+### Frictionless-UX pass (July 9)
+- [x] Chat: a failed send restores her exact wording to the input, plus a one-tap Retry action on the error toast
+- [x] Today/People/Groceries Add buttons show a spinner and disable while saving, no more duplicate-tap risk
+- [x] Every reminder, date, person, and grocery item can be deleted, undoing a mistake is always one tap away
+- [x] Real voice input: `transcribe-audio` edge function (Whisper via the Lovable AI gateway), tap-to-record mic in Chat, and The Pause's voice buttons now actually work instead of showing "coming soon". Transcribed text lands in the input box, never auto-sent, audio itself is never stored
+- [ ] **New edge function needs deploying, see manual steps below**
+
 ---
 
 ## Parked — designed but not built yet
 
-- [ ] **Voice input for The Pause** — currently shows "coming soon," real version needs audio recording + server-side transcription, discard the audio after
 - [ ] **The Pause's adaptive nudge** — `journal_nudge_settings` table exists, but nothing sends the actual nudge yet (the one that backs off automatically after two misses, no guilt, no streaks)
 - [ ] **Restaurant/event discovery** — Google Places search + enrichment, not connected
 - [ ] **Google Calendar sync** — check her calendar before suggesting a time, write confirmed bookings back, not connected
@@ -60,3 +66,9 @@ Raised July 5, worth coming back to, none of these have a data model or a plan y
 - [ ] **Ramadan-aware behavior** — Zoya shifts tone and digest timing during Ramadan, suhoor/iftar aware, same spirit as Zara's existing UAE-specific system prompt
 - [ ] **Trusted service-provider directory** — peer-recommended plumber/AC repair/driving instructor type listings, probably a Circle/community feature more than a Zoya one
 - [ ] **School logistics for working mums** — a distinct memory category for term dates, school runs, PTA reminders
+
+---
+
+## Manual steps outstanding right now
+
+- [ ] Ask Lovable's agent to deploy the new `transcribe-audio` edge function (same pattern as `zoya-chat` and `send-lifestyle-digest` before it), voice input won't work until this is live
