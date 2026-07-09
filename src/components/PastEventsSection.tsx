@@ -9,6 +9,7 @@ interface Photo {
   id: string;
   storage_path: string;
   caption: string | null;
+  alt_text: string | null;
   sort_order: number;
 }
 
