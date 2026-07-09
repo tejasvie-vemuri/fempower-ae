@@ -41,6 +41,7 @@ const Index = () => {
         {isAuthed && <CircleTeaser />}
         {isAuthed && <MeetupsSection />}
         <EventsCalendarSection />
+        <PastEventsSection />
         <BecomingSpaceSection />
         <GallerySection />
         <SubstackFeedSection />
