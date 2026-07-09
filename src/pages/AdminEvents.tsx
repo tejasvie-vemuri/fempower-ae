@@ -29,7 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, Pencil, Plus, Trash2, ArrowLeft, Users } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2, ArrowLeft, Users, Images } from "lucide-react";
 import {
   AttendeeQuestion,
   parseQuestions,
