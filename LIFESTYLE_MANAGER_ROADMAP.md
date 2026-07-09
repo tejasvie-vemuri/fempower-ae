@@ -34,7 +34,7 @@
 - [x] Today/People/Groceries Add buttons show a spinner and disable while saving, no more duplicate-tap risk
 - [x] Every reminder, date, person, and grocery item can be deleted, undoing a mistake is always one tap away
 - [x] Real voice input: `transcribe-audio` edge function (Whisper via the Lovable AI gateway), tap-to-record mic in Chat, and The Pause's voice buttons now actually work instead of showing "coming soon". Transcribed text lands in the input box, never auto-sent, audio itself is never stored
-- [ ] **New edge function needs deploying, see manual steps below**
+- [x] `transcribe-audio` deployed and confirmed working (July 9)
 
 ---
 
@@ -71,4 +71,4 @@ Raised July 5, worth coming back to, none of these have a data model or a plan y
 
 ## Manual steps outstanding right now
 
-- [ ] Ask Lovable's agent to deploy the new `transcribe-audio` edge function (same pattern as `zoya-chat` and `send-lifestyle-digest` before it), voice input won't work until this is live
+Nothing outstanding as of July 9. The Web Push/email digest setup (Vault secret, edge function secrets, migration, deploy) and the `transcribe-audio` deploy are both done and confirmed working.
