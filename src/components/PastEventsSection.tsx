@@ -47,7 +47,7 @@ const PastEventsSection = () => {
       const ids = evs.map((e) => e.id);
       const { data: ph } = await (supabase as any)
         .from("event_photos")
-        .select("id, event_id, storage_path, caption, sort_order")
+        .select("id, event_id, storage_path, caption, alt_text, sort_order")
         .in("event_id", ids)
         .order("sort_order", { ascending: true });
       const byEvent = new Map<string, Photo[]>();
