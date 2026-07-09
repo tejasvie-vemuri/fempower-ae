@@ -3,6 +3,7 @@ import HeroSection from "@/components/HeroSection";
 import OfferingsSection from "@/components/OfferingsSection";
 
 import EventsCalendarSection from "@/components/EventsCalendarSection";
+import PastEventsSection from "@/components/PastEventsSection";
 import BecomingSpaceSection from "@/components/BecomingSpaceSection";
 import GallerySection from "@/components/GallerySection";
 import ResourcesSection from "@/components/ResourcesSection";
@@ -40,6 +41,7 @@ const Index = () => {
         {isAuthed && <CircleTeaser />}
         {isAuthed && <MeetupsSection />}
         <EventsCalendarSection />
+        <PastEventsSection />
         <BecomingSpaceSection />
         <GallerySection />
         <SubstackFeedSection />

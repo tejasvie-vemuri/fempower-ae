@@ -29,7 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, Pencil, Plus, Trash2, ArrowLeft, Users } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2, ArrowLeft, Users, Images } from "lucide-react";
 import {
   AttendeeQuestion,
   parseQuestions,
@@ -470,6 +470,11 @@ const AdminEvents = () => {
                       <Button variant="ghost" size="icon" asChild title="Registrations">
                         <Link to={`/admin/events/${e.id}/registrations`}>
                           <Users className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button variant="ghost" size="icon" asChild title="Photos">
+                        <Link to={`/admin/events/${e.id}/photos`}>
+                          <Images className="h-4 w-4" />
                         </Link>
                       </Button>
                       <Button variant="ghost" size="icon" onClick={() => openEdit(e)}>
