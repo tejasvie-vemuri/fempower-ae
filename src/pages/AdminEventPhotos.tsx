@@ -5,6 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2, Trash2, Upload, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  TouchSensor,
+  KeyboardSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface EventRow {
   id: string;
@@ -26,12 +44,81 @@ const BUCKET = "event-photos";
 const publicUrl = (path: string) =>
   supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
 
+interface PhotoCardProps {
+  photo: PhotoRow;
+  onDelete: (p: PhotoRow) => void;
+  onCaption: (p: PhotoRow, caption: string) => void;
+}
+
+const PhotoCard = ({ photo, onDelete, onCaption }: PhotoCardProps) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: photo.id });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 10 : "auto",
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="rounded-xl overflow-hidden bg-card border border-border shadow-sm"
+    >
+      <div className="relative aspect-[4/3] bg-muted">
+        <img
+          src={publicUrl(photo.storage_path)}
+          alt={photo.caption ?? "Event photo"}
+          className="w-full h-full object-cover"
+          loading="lazy"
+          draggable={false}
+        />
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          className="absolute top-2 left-2 bg-black/60 hover:bg-black text-white rounded-md p-1.5 cursor-grab active:cursor-grabbing touch-none"
+          aria-label="Drag to reorder"
+          title="Drag to reorder"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+      </div>
+      <div className="p-3 space-y-2">
+        <Input
+          defaultValue={photo.caption ?? ""}
+          placeholder="Caption (optional)"
+          onBlur={(e) => onCaption(photo, e.target.value.trim())}
+        />
+        <div className="flex items-center justify-end">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDelete(photo)}
+            title="Delete"
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AdminEventPhotos = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const [event, setEvent] = useState<EventRow | null>(null);
   const [photos, setPhotos] = useState<PhotoRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   const load = async () => {
     if (!eventId) return;
@@ -103,6 +190,7 @@ const AdminEventPhotos = () => {
   };
 
   const handleCaption = async (photo: PhotoRow, caption: string) => {
+    if ((photo.caption ?? "") === caption) return;
     const { error } = await (supabase as any)
       .from("event_photos")
       .update({ caption: caption || null })
@@ -110,20 +198,36 @@ const AdminEventPhotos = () => {
     if (error) toast.error(error.message);
   };
 
-  const move = async (index: number, direction: -1 | 1) => {
-    const target = index + direction;
-    if (target < 0 || target >= photos.length) return;
-    const a = photos[index];
-    const b = photos[target];
-    const { error } = await (supabase as any).from("event_photos").upsert([
-      { id: a.id, sort_order: b.sort_order },
-      { id: b.id, sort_order: a.sort_order },
-    ]);
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = photos.findIndex((p) => p.id === active.id);
+    const newIndex = photos.findIndex((p) => p.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+
+    // Optimistic update
+    const previous = photos;
+    const reordered = arrayMove(photos, oldIndex, newIndex).map((p, i) => ({
+      ...p,
+      sort_order: i,
+    }));
+    setPhotos(reordered);
+
+    // Persist all rows with their new sort_order (upsert on id)
+    const payload = reordered.map((p) => ({
+      id: p.id,
+      event_id: p.event_id,
+      storage_path: p.storage_path,
+      sort_order: p.sort_order,
+    }));
+    const { error } = await (supabase as any)
+      .from("event_photos")
+      .upsert(payload, { onConflict: "id" });
     if (error) {
-      toast.error(error.message);
-      return;
+      toast.error(`Reorder failed: ${error.message}`);
+      setPhotos(previous);
     }
-    load();
   };
 
   return (
@@ -144,7 +248,7 @@ const AdminEventPhotos = () => {
           <div>
             <p className="font-medium">Upload photos</p>
             <p className="text-xs text-muted-foreground">
-              JPG or PNG. 3–4 photos per event recommended.
+              JPG or PNG. Drag the handle on any photo to reorder.
             </p>
           </div>
           <label>
@@ -177,57 +281,27 @@ const AdminEventPhotos = () => {
             No photos yet.
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {photos.map((p, i) => (
-              <div key={p.id} className="rounded-xl overflow-hidden bg-card border border-border">
-                <div className="aspect-[4/3] bg-muted">
-                  <img
-                    src={publicUrl(p.storage_path)}
-                    alt={p.caption ?? "Event photo"}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={photos.map((p) => p.id)}
+              strategy={rectSortingStrategy}
+            >
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {photos.map((p) => (
+                  <PhotoCard
+                    key={p.id}
+                    photo={p}
+                    onDelete={handleDelete}
+                    onCaption={handleCaption}
                   />
-                </div>
-                <div className="p-3 space-y-2">
-                  <Input
-                    defaultValue={p.caption ?? ""}
-                    placeholder="Caption (optional)"
-                    onBlur={(e) => handleCaption(p, e.target.value.trim())}
-                  />
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title="Move up"
-                        onClick={() => move(i, -1)}
-                        disabled={i === 0}
-                      >
-                        <GripVertical className="h-4 w-4 rotate-180" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title="Move down"
-                        onClick={() => move(i, 1)}
-                        disabled={i === photos.length - 1}
-                      >
-                        <GripVertical className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(p)}
-                      title="Delete"
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
         )}
       </div>
     </div>
