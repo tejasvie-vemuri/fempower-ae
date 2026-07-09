@@ -9,6 +9,7 @@ interface Photo {
   id: string;
   storage_path: string;
   caption: string | null;
+  alt_text: string | null;
   sort_order: number;
 }
 
@@ -46,7 +47,7 @@ const PastEventsSection = () => {
       const ids = evs.map((e) => e.id);
       const { data: ph } = await (supabase as any)
         .from("event_photos")
-        .select("id, event_id, storage_path, caption, sort_order")
+        .select("id, event_id, storage_path, caption, alt_text, sort_order")
         .in("event_id", ids)
         .order("sort_order", { ascending: true });
       const byEvent = new Map<string, Photo[]>();
@@ -132,7 +133,7 @@ const PastEventsSection = () => {
                 <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                   <img
                     src={publicUrl(cover.storage_path)}
-                    alt={cover.caption ?? ev.title}
+                    alt={cover.alt_text ?? cover.caption ?? `Photos from ${ev.title}`}
                     loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -177,7 +178,7 @@ const PastEventsSection = () => {
                   <motion.img
                     key={activeEvent.photos[activePhotoIdx].id}
                     src={publicUrl(activeEvent.photos[activePhotoIdx].storage_path)}
-                    alt={activeEvent.photos[activePhotoIdx].caption ?? activeEvent.title}
+                    alt={activeEvent.photos[activePhotoIdx].alt_text ?? activeEvent.photos[activePhotoIdx].caption ?? `Photo from ${activeEvent.title}`}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}

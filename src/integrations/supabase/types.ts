@@ -481,9 +481,11 @@ export type Database = {
       }
       event_photos: {
         Row: {
+          alt_text: string | null
           caption: string | null
           created_at: string
           event_id: string
+          file_hash: string | null
           id: string
           sort_order: number
           storage_path: string
@@ -491,9 +493,11 @@ export type Database = {
           uploaded_by: string | null
         }
         Insert: {
+          alt_text?: string | null
           caption?: string | null
           created_at?: string
           event_id: string
+          file_hash?: string | null
           id?: string
           sort_order?: number
           storage_path: string
@@ -501,9 +505,11 @@ export type Database = {
           uploaded_by?: string | null
         }
         Update: {
+          alt_text?: string | null
           caption?: string | null
           created_at?: string
           event_id?: string
+          file_hash?: string | null
           id?: string
           sort_order?: number
           storage_path?: string
