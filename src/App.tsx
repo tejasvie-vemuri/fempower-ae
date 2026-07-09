@@ -89,6 +89,14 @@ const App = () => (
               }
             />
             <Route
+              path="/admin/events/:eventId/photos"
+              element={
+                <AdminRoute>
+                  <AdminEventPhotos />
+                </AdminRoute>
+              }
+            />
+            <Route
               path="/admin/registrations"
               element={
                 <AdminRoute>
