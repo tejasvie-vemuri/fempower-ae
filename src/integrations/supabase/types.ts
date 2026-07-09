@@ -479,6 +479,53 @@ export type Database = {
         }
         Relationships: []
       }
+      event_photos: {
+        Row: {
+          alt_text: string | null
+          caption: string | null
+          created_at: string
+          event_id: string
+          file_hash: string | null
+          id: string
+          sort_order: number
+          storage_path: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          alt_text?: string | null
+          caption?: string | null
+          created_at?: string
+          event_id: string
+          file_hash?: string | null
+          id?: string
+          sort_order?: number
+          storage_path: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          alt_text?: string | null
+          caption?: string | null
+          created_at?: string
+          event_id?: string
+          file_hash?: string | null
+          id?: string
+          sort_order?: number
+          storage_path?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_photos_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           attendee_questions: Json

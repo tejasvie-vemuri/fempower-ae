@@ -11,6 +11,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Join from "./pages/Join";
 import AdminEvents from "./pages/AdminEvents";
+import AdminEventPhotos from "./pages/AdminEventPhotos";
 import AdminRegistrations from "./pages/AdminRegistrations";
 import AdminAllRegistrations from "./pages/AdminAllRegistrations";
 
@@ -84,6 +85,14 @@ const App = () => (
               element={
                 <AdminRoute>
                   <AdminRegistrations />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/events/:eventId/photos"
+              element={
+                <AdminRoute>
+                  <AdminEventPhotos />
                 </AdminRoute>
               }
             />
