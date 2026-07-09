@@ -9,7 +9,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Loader2, ArrowLeft, Mic, Feather } from "lucide-react";
+import { Loader2, ArrowLeft, Mic, Square, Feather } from "lucide-react";
+import {
+  isVoiceRecordingSupported,
+  startVoiceRecording,
+  stopVoiceRecording,
+  transcribeAudio,
+} from "@/lib/voiceRecording";
 
 interface JournalEntry {
   id: string;
@@ -20,21 +26,58 @@ interface JournalEntry {
   created_at: string;
 }
 
-const VoiceButton = () => {
+const VoiceButton = ({ onTranscribed }: { onTranscribed: (text: string) => void }) => {
   const { toast } = useToast();
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+
+  const handleClick = async () => {
+    if (!isVoiceRecordingSupported()) {
+      toast({ title: "Voice input isn't supported on this browser", variant: "destructive" });
+      return;
+    }
+    if (isRecording) {
+      setIsRecording(false);
+      setTranscribing(true);
+      try {
+        const blob = await stopVoiceRecording();
+        const text = await transcribeAudio(blob);
+        if (text) onTranscribed(text);
+        else toast({ title: "Didn't catch that, try again" });
+      } catch (e) {
+        toast({
+          title: "Couldn't transcribe that",
+          description: e instanceof Error ? e.message : "Try again in a moment.",
+          variant: "destructive",
+        });
+      } finally {
+        setTranscribing(false);
+      }
+    } else {
+      try {
+        await startVoiceRecording();
+        setIsRecording(true);
+      } catch {
+        toast({ title: "Couldn't access your microphone", description: "Check your browser's permission settings.", variant: "destructive" });
+      }
+    }
+  };
+
   return (
     <button
       type="button"
-      aria-label="Record voice note"
-      onClick={() =>
-        toast({
-          title: "Voice input is coming soon",
-          description: "For now, type it in, I'll have ears for this shortly.",
-        })
-      }
-      className="text-muted-foreground hover:text-lifestyle-terracotta transition-colors"
+      aria-label={isRecording ? "Stop recording" : "Record voice note"}
+      onClick={handleClick}
+      disabled={transcribing}
+      className={isRecording ? "text-destructive" : "text-muted-foreground hover:text-lifestyle-terracotta transition-colors"}
     >
-      <Mic size={16} />
+      {transcribing ? (
+        <Loader2 size={16} className="animate-spin" />
+      ) : isRecording ? (
+        <Square size={16} />
+      ) : (
+        <Mic size={16} />
+      )}
     </button>
   );
 };
@@ -141,7 +184,7 @@ const ThePause = () => {
                 <p className="text-xs font-body uppercase tracking-widest text-muted-foreground">
                   What are you grateful for?
                 </p>
-                <VoiceButton />
+                <VoiceButton onTranscribed={(text) => setGratitude((prev) => (prev ? `${prev} ${text}` : text))} />
               </div>
               <Textarea
                 value={gratitude}
@@ -156,7 +199,7 @@ const ThePause = () => {
                 <p className="text-xs font-body uppercase tracking-widest text-muted-foreground">
                   What's one thing you learned today?
                 </p>
-                <VoiceButton />
+                <VoiceButton onTranscribed={(text) => setLearning((prev) => (prev ? `${prev} ${text}` : text))} />
               </div>
               <Textarea
                 value={learning}
@@ -171,7 +214,7 @@ const ThePause = () => {
                 <p className="text-xs font-body uppercase tracking-widest text-muted-foreground">
                   Anything else on your mind?
                 </p>
-                <VoiceButton />
+                <VoiceButton onTranscribed={(text) => setFreeText((prev) => (prev ? `${prev} ${text}` : text))} />
               </div>
               <Textarea
                 value={freeText}

@@ -21,7 +21,14 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Loader2, ArrowLeft, Plus, Check, ShoppingBag, Sparkles, Send, Trash2 } from "lucide-react";
+import { Loader2, ArrowLeft, Plus, Check, ShoppingBag, Sparkles, Send, Trash2, Mic, Square } from "lucide-react";
+import {
+  isVoiceRecordingSupported,
+  startVoiceRecording,
+  stopVoiceRecording,
+  cancelVoiceRecording,
+  transcribeAudio,
+} from "@/lib/voiceRecording";
 import { Switch } from "@/components/ui/switch";
 import { enablePushNotifications, disablePushNotifications, isPushSupported } from "@/lib/webPush";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -170,6 +177,8 @@ const LifestyleManager = () => {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [chatSending, setChatSending] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
 
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingName, setOnboardingName] = useState("");
@@ -313,6 +322,51 @@ const LifestyleManager = () => {
       }
     }
   };
+
+  // Tap to start, tap again to stop. The transcribed text lands in the
+  // input box for her to glance at and send, it isn't sent automatically,
+  // since a misheard word should be easy to catch before it reaches Zoya.
+  const handleMicClick = async () => {
+    if (!isVoiceRecordingSupported()) {
+      toast({ title: "Voice input isn't supported on this browser", variant: "destructive" });
+      return;
+    }
+    if (isRecording) {
+      setIsRecording(false);
+      setTranscribing(true);
+      try {
+        const blob = await stopVoiceRecording();
+        const text = await transcribeAudio(blob);
+        if (text) {
+          setChatInput((prev) => (prev ? `${prev} ${text}` : text));
+        } else {
+          toast({ title: "Didn't catch that, try again" });
+        }
+      } catch (e) {
+        toast({
+          title: "Couldn't transcribe that",
+          description: e instanceof Error ? e.message : "Try again in a moment.",
+          variant: "destructive",
+        });
+      } finally {
+        setTranscribing(false);
+      }
+    } else {
+      try {
+        await startVoiceRecording();
+        setIsRecording(true);
+      } catch {
+        toast({ title: "Couldn't access your microphone", description: "Check your browser's permission settings.", variant: "destructive" });
+      }
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (isRecording) cancelVoiceRecording();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const peopleById = useMemo(() => new Map(people.map((p) => [p.id, p])), [people]);
 
@@ -663,14 +717,35 @@ const LifestyleManager = () => {
                       e.target.scrollIntoView({ block: "center", behavior: "smooth" });
                     }, 300);
                   }}
-                  placeholder={`Tell ${displayAssistantName} anything...`}
+                  placeholder={
+                    isRecording
+                      ? "Listening..."
+                      : transcribing
+                        ? "Working out what you said..."
+                        : `Tell ${displayAssistantName} anything...`
+                  }
                   className="font-body"
-                  disabled={chatSending}
+                  disabled={chatSending || isRecording || transcribing}
                   enterKeyHint="send"
                 />
                 <Button
+                  onClick={handleMicClick}
+                  disabled={chatSending || transcribing}
+                  variant={isRecording ? "destructive" : "outline"}
+                  aria-label={isRecording ? "Stop recording" : "Record a voice note"}
+                  className="shrink-0"
+                >
+                  {transcribing ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : isRecording ? (
+                    <Square size={16} />
+                  ) : (
+                    <Mic size={16} />
+                  )}
+                </Button>
+                <Button
                   onClick={() => sendChatMessage()}
-                  disabled={chatSending || !chatInput.trim()}
+                  disabled={chatSending || !chatInput.trim() || isRecording || transcribing}
                   className="shrink-0 bg-lifestyle-terracotta hover:bg-lifestyle-terracotta/90"
                 >
                   <Send size={16} />
