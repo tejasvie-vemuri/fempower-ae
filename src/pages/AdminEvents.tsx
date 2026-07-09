@@ -472,6 +472,11 @@ const AdminEvents = () => {
                           <Users className="h-4 w-4" />
                         </Link>
                       </Button>
+                      <Button variant="ghost" size="icon" asChild title="Photos">
+                        <Link to={`/admin/events/${e.id}/photos`}>
+                          <Images className="h-4 w-4" />
+                        </Link>
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => openEdit(e)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
