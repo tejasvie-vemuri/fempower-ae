@@ -1706,6 +1706,42 @@ export type Database = {
         }
         Relationships: []
       }
+      testimonial_invites: {
+        Row: {
+          created_at: string
+          id: string
+          invited_at: string
+          invited_by: string | null
+          last_note: string | null
+          last_sent_at: string
+          send_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          last_note?: string | null
+          last_sent_at?: string
+          send_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          last_note?: string | null
+          last_sent_at?: string
+          send_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
