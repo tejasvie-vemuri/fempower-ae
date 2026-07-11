@@ -269,12 +269,39 @@ const AdminTestimonials = () => {
     return c;
   }, [rows]);
 
+  const scopeCounts = useMemo(() => ({
+    awaiting: members.filter((m) => m.invite && !m.hasTestimonial).length,
+    invited: members.filter((m) => m.invite).length,
+    never: members.filter((m) => !m.invite && !m.hasTestimonial).length,
+    all: members.length,
+  }), [members]);
+
   const filteredMembers = useMemo(() => {
     const q = memberFilter.trim().toLowerCase();
     return members
+      .filter((m) => {
+        if (memberScope === "awaiting") return m.invite && !m.hasTestimonial;
+        if (memberScope === "invited") return !!m.invite;
+        if (memberScope === "never") return !m.invite && !m.hasTestimonial;
+        return true;
+      })
       .filter((m) => !q || (m.name ?? "").toLowerCase().includes(q) || (m.email ?? "").toLowerCase().includes(q))
-      .slice(0, 50);
-  }, [members, memberFilter]);
+      .sort((a, b) => {
+        const at = a.invite?.last_sent_at ?? "";
+        const bt = b.invite?.last_sent_at ?? "";
+        return bt.localeCompare(at);
+      })
+      .slice(0, 100);
+  }, [members, memberFilter, memberScope]);
+
+  const fmtDate = (iso?: string | null) => iso ? new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "";
+  const daysSince = (iso?: string | null) => {
+    if (!iso) return null;
+    const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+    if (d <= 0) return "today";
+    if (d === 1) return "1 day ago";
+    return `${d} days ago`;
+  };
 
   return (
     <>
