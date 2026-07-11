@@ -71,7 +71,7 @@ const AdminTestimonials = () => {
 
   const load = async () => {
     setLoading(true);
-    const [{ data: t, error: tErr }, { data: mp }, { data: profs }] = await Promise.all([
+    const [{ data: t, error: tErr }, { data: mp }, { data: profs }, { data: invites }] = await Promise.all([
       supabase
         .from("member_testimonials")
         .select("id, user_id, quote, status, feedback_note, created_at")
@@ -81,6 +81,7 @@ const AdminTestimonials = () => {
         .select("user_id, name, photo_url, status")
         .in("status", ["approved", "hidden"]),
       supabase.from("profiles").select("user_id, email"),
+      supabase.from("testimonial_invites").select("user_id, invited_at, last_sent_at, send_count"),
     ]);
     if (tErr) {
       toast({ title: "Failed to load", description: tErr.message, variant: "destructive" });
@@ -89,6 +90,9 @@ const AdminTestimonials = () => {
     }
     const emailMap = new Map((profs ?? []).map((p: any) => [p.user_id, p.email]));
     const profMap = new Map((mp ?? []).map((p: any) => [p.user_id, p]));
+    const inviteMap = new Map((invites ?? []).map((i: any) => [i.user_id, {
+      invited_at: i.invited_at, last_sent_at: i.last_sent_at, send_count: i.send_count,
+    } as InviteRecord]));
 
     const list = ((t ?? []) as Row[]).map((r) => {
       const p: any = profMap.get(r.user_id);
@@ -103,6 +107,7 @@ const AdminTestimonials = () => {
       photo_url: p.photo_url,
       email: emailMap.get(p.user_id) ?? null,
       hasTestimonial: withTestimonial.has(p.user_id),
+      invite: inviteMap.get(p.user_id) ?? null,
     }));
 
     setRows(list);
