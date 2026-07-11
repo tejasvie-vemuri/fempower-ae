@@ -501,9 +501,13 @@ const AdminTestimonials = () => {
       <Dialog open={requestOpen} onOpenChange={setRequestOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-heading">Invite {requestMember?.name || "member"} to share</DialogTitle>
+            <DialogTitle className="font-heading">
+              {requestMember?.invite ? "Resend reminder to" : "Invite"} {requestMember?.name || "member"}{requestMember?.invite ? "" : " to share"}
+            </DialogTitle>
             <DialogDescription>
-              Sends a warm email with a one-click link to share a testimonial. Add an optional personal note.
+              {requestMember?.invite
+                ? `Originally invited ${fmtDate(requestMember.invite.invited_at)} · sent ${requestMember.invite.send_count}× so far. A gentle nudge with an optional personal note.`
+                : "Sends a warm email with a one-click link to share a testimonial. Add an optional personal note."}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
