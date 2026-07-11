@@ -19,23 +19,24 @@ interface Props {
   name?: string
   personalNote?: string
   siteUrl?: string
+  isReminder?: boolean
 }
 
-const Email = ({ name, personalNote, siteUrl }: Props) => {
+const Email = ({ name, personalNote, siteUrl, isReminder }: Props) => {
   const url = siteUrl || 'https://fempowerae.com'
   return (
     <Html lang="en" dir="ltr">
       <Head />
-      <Preview>Would you share your Fempower story?</Preview>
+      <Preview>{isReminder ? 'A gentle nudge — share your Fempower story' : 'Would you share your Fempower story?'}</Preview>
       <Body style={s.main}>
         <Container style={s.container}>
           <BrandHeader />
-          <Heading style={s.h1}>We'd love to hear your story</Heading>
+          <Heading style={s.h1}>{isReminder ? 'A gentle nudge from us' : "We'd love to hear your story"}</Heading>
           <Text style={s.text}>
-            {name ? `Dear ${name},` : 'Hi sister,'} your voice matters to this community.
-            We'd be honoured if you'd share a short testimonial about what
-            Fempower has meant to you — it helps other women see themselves in
-            this circle.
+            {name ? `Dear ${name},` : 'Hi sister,'}{' '}
+            {isReminder
+              ? "we reached out a little while ago and know life gets busy — no pressure at all. Your voice would mean so much to the sisters walking in behind you."
+              : "your voice matters to this community. We'd be honoured if you'd share a short testimonial about what Fempower has meant to you — it helps other women see themselves in this circle."}
           </Text>
           {personalNote ? (
             <Section style={{ ...s.buttonWrap, padding: '12px 16px', backgroundColor: '#FDF8F3', borderRadius: 8, marginTop: 12, marginBottom: 12 }}>
@@ -50,7 +51,7 @@ const Email = ({ name, personalNote, siteUrl }: Props) => {
           </Text>
           <Section style={s.buttonWrap}>
             <Button style={s.button} href={`${url}/account/profile#testimonial`}>
-              Share my testimonial
+              {isReminder ? 'Share now' : 'Share my testimonial'}
             </Button>
           </Section>
           <Text style={s.signature}>
@@ -65,7 +66,10 @@ const Email = ({ name, personalNote, siteUrl }: Props) => {
 
 export const template = {
   component: Email,
-  subject: 'Would you share your Fempower story?',
+  subject: (data: Record<string, unknown>) =>
+    (data as Props).isReminder
+      ? 'A gentle nudge — share your Fempower story'
+      : 'Would you share your Fempower story?',
   displayName: 'Testimonial request',
   previewData: { name: 'Layla', personalNote: 'Your energy at the last walk was contagious!', siteUrl: 'https://fempowerae.com' },
 } satisfies TemplateEntry

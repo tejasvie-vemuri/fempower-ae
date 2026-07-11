@@ -10,7 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
-import { Check, X, Trash2, Loader2, Quote, MessageSquareWarning, Mail, Send } from "lucide-react";
+import { Check, X, Trash2, Loader2, Quote, MessageSquareWarning, Mail, Send, RotateCcw, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 type Status = "pending" | "approved" | "rejected" | "changes_requested";
@@ -25,12 +25,19 @@ type Row = {
   author?: { name: string | null; photo_url: string | null; email: string | null } | null;
 };
 
+type InviteRecord = {
+  invited_at: string;
+  last_sent_at: string;
+  send_count: number;
+};
+
 type MemberLite = {
   user_id: string;
   name: string | null;
   photo_url: string | null;
   email: string | null;
   hasTestimonial: boolean;
+  invite: InviteRecord | null;
 };
 
 const TABS: Array<Status | "all"> = ["pending", "changes_requested", "approved", "rejected"];
@@ -61,10 +68,11 @@ const AdminTestimonials = () => {
   const [requestNote, setRequestNote] = useState("");
   const [requestSending, setRequestSending] = useState(false);
   const [memberFilter, setMemberFilter] = useState("");
+  const [memberScope, setMemberScope] = useState<"awaiting" | "invited" | "never" | "all">("awaiting");
 
   const load = async () => {
     setLoading(true);
-    const [{ data: t, error: tErr }, { data: mp }, { data: profs }] = await Promise.all([
+    const [{ data: t, error: tErr }, { data: mp }, { data: profs }, { data: invites }] = await Promise.all([
       supabase
         .from("member_testimonials")
         .select("id, user_id, quote, status, feedback_note, created_at")
@@ -74,6 +82,7 @@ const AdminTestimonials = () => {
         .select("user_id, name, photo_url, status")
         .in("status", ["approved", "hidden"]),
       supabase.from("profiles").select("user_id, email"),
+      supabase.from("testimonial_invites").select("user_id, invited_at, last_sent_at, send_count"),
     ]);
     if (tErr) {
       toast({ title: "Failed to load", description: tErr.message, variant: "destructive" });
@@ -82,6 +91,9 @@ const AdminTestimonials = () => {
     }
     const emailMap = new Map((profs ?? []).map((p: any) => [p.user_id, p.email]));
     const profMap = new Map((mp ?? []).map((p: any) => [p.user_id, p]));
+    const inviteMap = new Map((invites ?? []).map((i: any) => [i.user_id, {
+      invited_at: i.invited_at, last_sent_at: i.last_sent_at, send_count: i.send_count,
+    } as InviteRecord]));
 
     const list = ((t ?? []) as Row[]).map((r) => {
       const p: any = profMap.get(r.user_id);
@@ -96,6 +108,7 @@ const AdminTestimonials = () => {
       photo_url: p.photo_url,
       email: emailMap.get(p.user_id) ?? null,
       hasTestimonial: withTestimonial.has(p.user_id),
+      invite: inviteMap.get(p.user_id) ?? null,
     }));
 
     setRows(list);
@@ -188,31 +201,65 @@ const AdminTestimonials = () => {
     setRequestOpen(true);
   };
 
-  const sendRequest = async () => {
-    if (!requestMember) return;
-    if (!requestMember.email) {
-      return toast({ title: "No email on file", description: "This member has no email address.", variant: "destructive" });
+  const sendInviteEmail = async (member: MemberLite, note: string, isResend: boolean) => {
+    if (!member.email) {
+      toast({ title: "No email on file", description: "This member has no email address.", variant: "destructive" });
+      return false;
     }
-    setRequestSending(true);
+    const stamp = new Date().toISOString();
     const { error } = await supabase.functions.invoke("send-transactional-email", {
       body: {
         templateName: "testimonial-request",
-        recipientEmail: requestMember.email,
-        idempotencyKey: `testimonial-request-${requestMember.user_id}-${new Date().toISOString().slice(0,10)}`,
+        recipientEmail: member.email,
+        idempotencyKey: `testimonial-request-${member.user_id}-${stamp}`,
         templateData: {
-          name: requestMember.name ?? "",
-          personalNote: requestNote.trim() || undefined,
+          name: member.name ?? "",
+          personalNote: note.trim() || undefined,
           siteUrl: window.location.origin,
+          isReminder: isResend,
         },
       },
     });
-    setRequestSending(false);
     if (error) {
-      return toast({ title: "Couldn't send", description: error.message, variant: "destructive" });
+      toast({ title: "Couldn't send", description: error.message, variant: "destructive" });
+      return false;
     }
-    toast({ title: "Invitation sent 💌" });
+    const prev = member.invite;
+    const { error: upsertErr } = await supabase
+      .from("testimonial_invites")
+      .upsert({
+        user_id: member.user_id,
+        invited_by: user?.id ?? null,
+        invited_at: prev?.invited_at ?? stamp,
+        last_sent_at: stamp,
+        send_count: (prev?.send_count ?? 0) + 1,
+        last_note: note.trim() || null,
+      }, { onConflict: "user_id" });
+    if (upsertErr) {
+      toast({ title: "Sent, but couldn't log invite", description: upsertErr.message, variant: "destructive" });
+    }
+    return true;
+  };
+
+  const sendRequest = async () => {
+    if (!requestMember) return;
+    setRequestSending(true);
+    const ok = await sendInviteEmail(requestMember, requestNote, !!requestMember.invite);
+    setRequestSending(false);
+    if (!ok) return;
+    toast({ title: requestMember.invite ? "Reminder sent 💌" : "Invitation sent 💌" });
     setRequestOpen(false);
     setRequestMember(null);
+    load();
+  };
+
+  const quickResend = async (m: MemberLite) => {
+    if (!confirm(`Resend testimonial request to ${m.name || "this member"}?`)) return;
+    const ok = await sendInviteEmail(m, "", true);
+    if (ok) {
+      toast({ title: "Reminder sent 💌" });
+      load();
+    }
   };
 
   const visible = rows.filter((r) => r.status === tab);
@@ -222,12 +269,39 @@ const AdminTestimonials = () => {
     return c;
   }, [rows]);
 
+  const scopeCounts = useMemo(() => ({
+    awaiting: members.filter((m) => m.invite && !m.hasTestimonial).length,
+    invited: members.filter((m) => m.invite).length,
+    never: members.filter((m) => !m.invite && !m.hasTestimonial).length,
+    all: members.length,
+  }), [members]);
+
   const filteredMembers = useMemo(() => {
     const q = memberFilter.trim().toLowerCase();
     return members
+      .filter((m) => {
+        if (memberScope === "awaiting") return m.invite && !m.hasTestimonial;
+        if (memberScope === "invited") return !!m.invite;
+        if (memberScope === "never") return !m.invite && !m.hasTestimonial;
+        return true;
+      })
       .filter((m) => !q || (m.name ?? "").toLowerCase().includes(q) || (m.email ?? "").toLowerCase().includes(q))
-      .slice(0, 50);
-  }, [members, memberFilter]);
+      .sort((a, b) => {
+        const at = a.invite?.last_sent_at ?? "";
+        const bt = b.invite?.last_sent_at ?? "";
+        return bt.localeCompare(at);
+      })
+      .slice(0, 100);
+  }, [members, memberFilter, memberScope]);
+
+  const fmtDate = (iso?: string | null) => iso ? new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "";
+  const daysSince = (iso?: string | null) => {
+    if (!iso) return null;
+    const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+    if (d <= 0) return "today";
+    if (d === 1) return "1 day ago";
+    return `${d} days ago`;
+  };
 
   return (
     <>
@@ -308,7 +382,26 @@ const AdminTestimonials = () => {
             <Mail size={18} className="text-accent" />
             <h2 className="font-heading text-2xl font-semibold">Ask members for a testimonial</h2>
           </div>
-          <p className="text-sm text-muted-foreground mb-4">Send a warm invitation email. Members who already submitted are marked so you can focus on new voices.</p>
+          <p className="text-sm text-muted-foreground mb-4">Track when each member was invited and resend a warm reminder if they haven't shared yet.</p>
+
+          <div className="flex flex-wrap gap-2 mb-3">
+            {([
+              ["awaiting", "Awaiting response"],
+              ["never", "Never invited"],
+              ["invited", "All invited"],
+              ["all", "All members"],
+            ] as const).map(([key, label]) => (
+              <Button
+                key={key}
+                size="sm"
+                variant={memberScope === key ? "default" : "outline"}
+                onClick={() => setMemberScope(key)}
+              >
+                {label} <span className="ml-1 text-xs opacity-70">({scopeCounts[key]})</span>
+              </Button>
+            ))}
+          </div>
+
           <Input
             placeholder="Search by name or email…"
             value={memberFilter}
@@ -316,28 +409,54 @@ const AdminTestimonials = () => {
             className="mb-4 max-w-sm"
           />
           <div className="grid sm:grid-cols-2 gap-3">
-            {filteredMembers.map((m) => (
-              <div key={m.user_id} className="flex items-center gap-3 border border-border rounded-lg p-3 bg-card">
-                {m.photo_url ? (
-                  <img src={m.photo_url} alt="" className="w-9 h-9 rounded-full object-cover" />
-                ) : (
-                  <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-xs">{(m.name || "?").slice(0,1)}</div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{m.name || "Unnamed member"}</p>
-                  <p className="text-xs text-muted-foreground truncate">{m.email || "no email on file"}</p>
+            {filteredMembers.map((m) => {
+              const inv = m.invite;
+              return (
+                <div key={m.user_id} className="flex items-start gap-3 border border-border rounded-lg p-3 bg-card">
+                  {m.photo_url ? (
+                    <img src={m.photo_url} alt="" className="w-9 h-9 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-xs">{(m.name || "?").slice(0,1)}</div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{m.name || "Unnamed member"}</p>
+                    <p className="text-xs text-muted-foreground truncate">{m.email || "no email on file"}</p>
+                    {inv && (
+                      <p className="mt-1 text-[11px] text-muted-foreground flex items-center gap-1 flex-wrap">
+                        <Clock size={11} />
+                        Invited {fmtDate(inv.invited_at)}
+                        {inv.send_count > 1 && <> · last sent {daysSince(inv.last_sent_at)} ({inv.send_count}×)</>}
+                        {inv.send_count === 1 && inv.last_sent_at !== inv.invited_at && <> · last sent {daysSince(inv.last_sent_at)}</>}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    {m.hasTestimonial ? (
+                      <span className="text-xs text-muted-foreground">Submitted</span>
+                    ) : inv ? (
+                      <>
+                        <Button size="sm" variant="outline" disabled={!m.email} onClick={() => quickResend(m)} title="Send reminder now">
+                          <RotateCcw size={14} className="mr-1" /> Resend
+                        </Button>
+                        <button
+                          type="button"
+                          className="text-[11px] text-muted-foreground underline"
+                          onClick={() => openRequest(m)}
+                        >
+                          with note
+                        </button>
+                      </>
+                    ) : (
+                      <Button size="sm" variant="outline" disabled={!m.email} onClick={() => openRequest(m)}>
+                        <Send size={14} className="mr-1" /> Invite
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                {m.hasTestimonial ? (
-                  <span className="text-xs text-muted-foreground">Submitted</span>
-                ) : (
-                  <Button size="sm" variant="outline" disabled={!m.email} onClick={() => openRequest(m)}>
-                    <Send size={14} className="mr-1" /> Invite
-                  </Button>
-                )}
-              </div>
-            ))}
+              );
+            })}
             {filteredMembers.length === 0 && (
-              <p className="text-sm text-muted-foreground col-span-full py-6 text-center">No members match that search.</p>
+              <p className="text-sm text-muted-foreground col-span-full py-6 text-center">No members match that filter.</p>
             )}
           </div>
         </section>
@@ -382,9 +501,13 @@ const AdminTestimonials = () => {
       <Dialog open={requestOpen} onOpenChange={setRequestOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-heading">Invite {requestMember?.name || "member"} to share</DialogTitle>
+            <DialogTitle className="font-heading">
+              {requestMember?.invite ? "Resend reminder to" : "Invite"} {requestMember?.name || "member"}{requestMember?.invite ? "" : " to share"}
+            </DialogTitle>
             <DialogDescription>
-              Sends a warm email with a one-click link to share a testimonial. Add an optional personal note.
+              {requestMember?.invite
+                ? `Originally invited ${fmtDate(requestMember.invite.invited_at)} · sent ${requestMember.invite.send_count}× so far. A gentle nudge with an optional personal note.`
+                : "Sends a warm email with a one-click link to share a testimonial. Add an optional personal note."}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -402,7 +525,7 @@ const AdminTestimonials = () => {
             <Button variant="ghost" onClick={() => setRequestOpen(false)} disabled={requestSending}>Cancel</Button>
             <Button onClick={sendRequest} disabled={requestSending || !requestMember?.email}>
               {requestSending && <Loader2 className="animate-spin mr-2" size={14} />}
-              <Send size={14} className="mr-1" /> Send invitation
+              <Send size={14} className="mr-1" /> {requestMember?.invite ? "Send reminder" : "Send invitation"}
             </Button>
           </DialogFooter>
         </DialogContent>
