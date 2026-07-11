@@ -8,6 +8,8 @@ import { template as eventRegistrationConfirmation } from './event-registration-
 import { template as welcome } from './welcome.tsx'
 import { template as profileCompletionReminder } from './profile-completion-reminder.tsx'
 import { template as lifestyleDigest } from './lifestyle-digest.tsx'
+import { template as testimonialRequest } from './testimonial-request.tsx'
+import { template as testimonialFeedback } from './testimonial-feedback.tsx'
 
 export type SubjectFn = (data: Record<string, unknown>) => string
 
@@ -28,4 +30,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'welcome': welcome,
   'profile-completion-reminder': profileCompletionReminder,
   'lifestyle-digest': lifestyleDigest,
+  'testimonial-request': testimonialRequest,
+  'testimonial-feedback': testimonialFeedback,
 }

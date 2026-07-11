@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 
-type Existing = { id: string; quote: string; status: "pending" | "approved" | "rejected" };
+type Existing = { id: string; quote: string; status: "pending" | "approved" | "rejected" | "changes_requested"; feedback_note: string | null };
 
 interface Props {
   trigger: React.ReactNode;
@@ -30,7 +30,7 @@ const TestimonialSubmitDialog = ({ trigger, onSubmitted }: Props) => {
     setLoading(true);
     supabase
       .from("member_testimonials")
-      .select("id, quote, status")
+      .select("id, quote, status, feedback_note")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -56,13 +56,14 @@ const TestimonialSubmitDialog = ({ trigger, onSubmitted }: Props) => {
     }
     setSaving(true);
     try {
-      if (existing && existing.status === "pending") {
+      const canEdit = existing && (existing.status === "pending" || existing.status === "changes_requested");
+      if (canEdit) {
         const { error } = await supabase
           .from("member_testimonials")
           .update({ quote: trimmed })
-          .eq("id", existing.id);
+          .eq("id", existing!.id);
         if (error) throw error;
-        toast({ title: "Testimonial updated", description: "Still awaiting review." });
+        toast({ title: "Testimonial updated", description: "It's back in the review queue." });
       } else {
         const { error } = await supabase
           .from("member_testimonials")
@@ -81,6 +82,8 @@ const TestimonialSubmitDialog = ({ trigger, onSubmitted }: Props) => {
 
   const remaining = MAX - quote.length;
   const isApproved = existing?.status === "approved";
+  const needsChanges = existing?.status === "changes_requested";
+  const wasRejected = existing?.status === "rejected";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -107,6 +110,19 @@ const TestimonialSubmitDialog = ({ trigger, onSubmitted }: Props) => {
             {existing?.status === "pending" && (
               <p className="text-xs bg-muted rounded-md px-3 py-2 text-muted-foreground">Pending review — you can still edit below.</p>
             )}
+            {needsChanges && (
+              <div className="text-xs bg-amber-50 border border-amber-200 text-amber-900 rounded-md px-3 py-2 space-y-1">
+                <div className="flex items-center gap-1 font-medium"><AlertCircle size={14} /> Changes requested</div>
+                {existing?.feedback_note && <p>{existing.feedback_note}</p>}
+              </div>
+            )}
+            {wasRejected && (
+              <div className="text-xs bg-muted rounded-md px-3 py-2 space-y-1">
+                <p className="font-medium">Your previous submission wasn't published.</p>
+                {existing?.feedback_note && <p className="text-muted-foreground">Team note: {existing.feedback_note}</p>}
+                <p className="text-muted-foreground">You can share a fresh testimonial below.</p>
+              </div>
+            )}
             <Textarea
               value={quote}
               onChange={(e) => setQuote(e.target.value.slice(0, MAX))}
@@ -122,7 +138,7 @@ const TestimonialSubmitDialog = ({ trigger, onSubmitted }: Props) => {
               <Button variant="ghost" onClick={() => setOpen(false)} disabled={saving}>Cancel</Button>
               <Button onClick={submit} disabled={saving || quote.trim().length < MIN}>
                 {saving && <Loader2 className="animate-spin mr-2" size={14} />}
-                {existing && existing.status !== "rejected" ? "Update" : "Submit"}
+                {existing && !wasRejected ? "Update" : "Submit"}
               </Button>
             </div>
           </div>
