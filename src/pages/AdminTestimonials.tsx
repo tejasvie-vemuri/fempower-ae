@@ -525,7 +525,7 @@ const AdminTestimonials = () => {
             <Button variant="ghost" onClick={() => setRequestOpen(false)} disabled={requestSending}>Cancel</Button>
             <Button onClick={sendRequest} disabled={requestSending || !requestMember?.email}>
               {requestSending && <Loader2 className="animate-spin mr-2" size={14} />}
-              <Send size={14} className="mr-1" /> Send invitation
+              <Send size={14} className="mr-1" /> {requestMember?.invite ? "Send reminder" : "Send invitation"}
             </Button>
           </DialogFooter>
         </DialogContent>
