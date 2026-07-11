@@ -14,6 +14,7 @@ import AdminEvents from "./pages/AdminEvents";
 import AdminEventPhotos from "./pages/AdminEventPhotos";
 import AdminRegistrations from "./pages/AdminRegistrations";
 import AdminAllRegistrations from "./pages/AdminAllRegistrations";
+import AdminTestimonials from "./pages/AdminTestimonials";
 
 import EventDetail from "./pages/EventDetail";
 import MyTickets from "./pages/MyTickets";
@@ -101,6 +102,14 @@ const App = () => (
               element={
                 <AdminRoute>
                   <AdminAllRegistrations />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/testimonials"
+              element={
+                <AdminRoute>
+                  <AdminTestimonials />
                 </AdminRoute>
               }
             />
