@@ -200,31 +200,65 @@ const AdminTestimonials = () => {
     setRequestOpen(true);
   };
 
-  const sendRequest = async () => {
-    if (!requestMember) return;
-    if (!requestMember.email) {
-      return toast({ title: "No email on file", description: "This member has no email address.", variant: "destructive" });
+  const sendInviteEmail = async (member: MemberLite, note: string, isResend: boolean) => {
+    if (!member.email) {
+      toast({ title: "No email on file", description: "This member has no email address.", variant: "destructive" });
+      return false;
     }
-    setRequestSending(true);
+    const stamp = new Date().toISOString();
     const { error } = await supabase.functions.invoke("send-transactional-email", {
       body: {
         templateName: "testimonial-request",
-        recipientEmail: requestMember.email,
-        idempotencyKey: `testimonial-request-${requestMember.user_id}-${new Date().toISOString().slice(0,10)}`,
+        recipientEmail: member.email,
+        idempotencyKey: `testimonial-request-${member.user_id}-${stamp}`,
         templateData: {
-          name: requestMember.name ?? "",
-          personalNote: requestNote.trim() || undefined,
+          name: member.name ?? "",
+          personalNote: note.trim() || undefined,
           siteUrl: window.location.origin,
+          isReminder: isResend,
         },
       },
     });
-    setRequestSending(false);
     if (error) {
-      return toast({ title: "Couldn't send", description: error.message, variant: "destructive" });
+      toast({ title: "Couldn't send", description: error.message, variant: "destructive" });
+      return false;
     }
-    toast({ title: "Invitation sent 💌" });
+    const prev = member.invite;
+    const { error: upsertErr } = await supabase
+      .from("testimonial_invites")
+      .upsert({
+        user_id: member.user_id,
+        invited_by: user?.id ?? null,
+        invited_at: prev?.invited_at ?? stamp,
+        last_sent_at: stamp,
+        send_count: (prev?.send_count ?? 0) + 1,
+        last_note: note.trim() || null,
+      }, { onConflict: "user_id" });
+    if (upsertErr) {
+      toast({ title: "Sent, but couldn't log invite", description: upsertErr.message, variant: "destructive" });
+    }
+    return true;
+  };
+
+  const sendRequest = async () => {
+    if (!requestMember) return;
+    setRequestSending(true);
+    const ok = await sendInviteEmail(requestMember, requestNote, !!requestMember.invite);
+    setRequestSending(false);
+    if (!ok) return;
+    toast({ title: requestMember.invite ? "Reminder sent 💌" : "Invitation sent 💌" });
     setRequestOpen(false);
     setRequestMember(null);
+    load();
+  };
+
+  const quickResend = async (m: MemberLite) => {
+    if (!confirm(`Resend testimonial request to ${m.name || "this member"}?`)) return;
+    const ok = await sendInviteEmail(m, "", true);
+    if (ok) {
+      toast({ title: "Reminder sent 💌" });
+      load();
+    }
   };
 
   const visible = rows.filter((r) => r.status === tab);
