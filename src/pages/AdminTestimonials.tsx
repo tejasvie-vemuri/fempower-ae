@@ -68,6 +68,7 @@ const AdminTestimonials = () => {
   const [requestNote, setRequestNote] = useState("");
   const [requestSending, setRequestSending] = useState(false);
   const [memberFilter, setMemberFilter] = useState("");
+  const [memberScope, setMemberScope] = useState<"awaiting" | "invited" | "never" | "all">("awaiting");
 
   const load = async () => {
     setLoading(true);
