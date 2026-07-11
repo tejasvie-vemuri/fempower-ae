@@ -1279,6 +1279,39 @@ export type Database = {
         }
         Relationships: []
       }
+      member_testimonials: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          id: string
+          quote: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          quote: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          quote?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       occasion_calendar: {
         Row: {
           created_at: string
@@ -1829,6 +1862,15 @@ export type Database = {
           status: string
           title: string
           updated_at: string
+        }[]
+      }
+      get_testimonials_public: {
+        Args: never
+        Returns: {
+          approved_at: string
+          first_name: string
+          id: string
+          quote: string
         }[]
       }
       has_role: {
