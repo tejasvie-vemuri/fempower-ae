@@ -382,7 +382,26 @@ const AdminTestimonials = () => {
             <Mail size={18} className="text-accent" />
             <h2 className="font-heading text-2xl font-semibold">Ask members for a testimonial</h2>
           </div>
-          <p className="text-sm text-muted-foreground mb-4">Send a warm invitation email. Members who already submitted are marked so you can focus on new voices.</p>
+          <p className="text-sm text-muted-foreground mb-4">Track when each member was invited and resend a warm reminder if they haven't shared yet.</p>
+
+          <div className="flex flex-wrap gap-2 mb-3">
+            {([
+              ["awaiting", "Awaiting response"],
+              ["never", "Never invited"],
+              ["invited", "All invited"],
+              ["all", "All members"],
+            ] as const).map(([key, label]) => (
+              <Button
+                key={key}
+                size="sm"
+                variant={memberScope === key ? "default" : "outline"}
+                onClick={() => setMemberScope(key)}
+              >
+                {label} <span className="ml-1 text-xs opacity-70">({scopeCounts[key]})</span>
+              </Button>
+            ))}
+          </div>
+
           <Input
             placeholder="Search by name or email…"
             value={memberFilter}
@@ -390,28 +409,54 @@ const AdminTestimonials = () => {
             className="mb-4 max-w-sm"
           />
           <div className="grid sm:grid-cols-2 gap-3">
-            {filteredMembers.map((m) => (
-              <div key={m.user_id} className="flex items-center gap-3 border border-border rounded-lg p-3 bg-card">
-                {m.photo_url ? (
-                  <img src={m.photo_url} alt="" className="w-9 h-9 rounded-full object-cover" />
-                ) : (
-                  <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-xs">{(m.name || "?").slice(0,1)}</div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{m.name || "Unnamed member"}</p>
-                  <p className="text-xs text-muted-foreground truncate">{m.email || "no email on file"}</p>
+            {filteredMembers.map((m) => {
+              const inv = m.invite;
+              return (
+                <div key={m.user_id} className="flex items-start gap-3 border border-border rounded-lg p-3 bg-card">
+                  {m.photo_url ? (
+                    <img src={m.photo_url} alt="" className="w-9 h-9 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-xs">{(m.name || "?").slice(0,1)}</div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{m.name || "Unnamed member"}</p>
+                    <p className="text-xs text-muted-foreground truncate">{m.email || "no email on file"}</p>
+                    {inv && (
+                      <p className="mt-1 text-[11px] text-muted-foreground flex items-center gap-1 flex-wrap">
+                        <Clock size={11} />
+                        Invited {fmtDate(inv.invited_at)}
+                        {inv.send_count > 1 && <> · last sent {daysSince(inv.last_sent_at)} ({inv.send_count}×)</>}
+                        {inv.send_count === 1 && inv.last_sent_at !== inv.invited_at && <> · last sent {daysSince(inv.last_sent_at)}</>}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    {m.hasTestimonial ? (
+                      <span className="text-xs text-muted-foreground">Submitted</span>
+                    ) : inv ? (
+                      <>
+                        <Button size="sm" variant="outline" disabled={!m.email} onClick={() => quickResend(m)} title="Send reminder now">
+                          <RotateCcw size={14} className="mr-1" /> Resend
+                        </Button>
+                        <button
+                          type="button"
+                          className="text-[11px] text-muted-foreground underline"
+                          onClick={() => openRequest(m)}
+                        >
+                          with note
+                        </button>
+                      </>
+                    ) : (
+                      <Button size="sm" variant="outline" disabled={!m.email} onClick={() => openRequest(m)}>
+                        <Send size={14} className="mr-1" /> Invite
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                {m.hasTestimonial ? (
-                  <span className="text-xs text-muted-foreground">Submitted</span>
-                ) : (
-                  <Button size="sm" variant="outline" disabled={!m.email} onClick={() => openRequest(m)}>
-                    <Send size={14} className="mr-1" /> Invite
-                  </Button>
-                )}
-              </div>
-            ))}
+              );
+            })}
             {filteredMembers.length === 0 && (
-              <p className="text-sm text-muted-foreground col-span-full py-6 text-center">No members match that search.</p>
+              <p className="text-sm text-muted-foreground col-span-full py-6 text-center">No members match that filter.</p>
             )}
           </div>
         </section>
