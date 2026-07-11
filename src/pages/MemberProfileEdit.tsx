@@ -21,6 +21,7 @@ import {
   memberProfileSchema, INDUSTRIES, LOOKING_FOR_OPTIONS, STATUS_LABELS,
 } from "@/lib/memberProfile";
 import { cn } from "@/lib/utils";
+import TestimonialSubmitDialog from "@/components/TestimonialSubmitDialog";
 
 const TagInput = ({ value, onChange, placeholder, max = 15 }: {
   value: string[]; onChange: (v: string[]) => void; placeholder?: string; max?: number;
@@ -416,6 +417,16 @@ const MemberProfileEdit = () => {
                   <FieldError msg={form.website_url ? fieldIssues.website_url : null} />
                 </div>
               </div>
+            </SectionCard>
+
+            <SectionCard icon={Sparkles} title="Share your story" subtitle="A short testimonial for the Voices section — first name only, reviewed before it goes live.">
+              <TestimonialSubmitDialog
+                trigger={
+                  <Button type="button" variant="outline" className="gap-2">
+                    <Sparkles size={16} /> Write or edit my testimonial
+                  </Button>
+                }
+              />
             </SectionCard>
 
             <div className="flex items-center justify-between gap-3 pt-2">
