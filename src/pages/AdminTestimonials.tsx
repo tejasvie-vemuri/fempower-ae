@@ -25,12 +25,19 @@ type Row = {
   author?: { name: string | null; photo_url: string | null; email: string | null } | null;
 };
 
+type InviteRecord = {
+  invited_at: string;
+  last_sent_at: string;
+  send_count: number;
+};
+
 type MemberLite = {
   user_id: string;
   name: string | null;
   photo_url: string | null;
   email: string | null;
   hasTestimonial: boolean;
+  invite: InviteRecord | null;
 };
 
 const TABS: Array<Status | "all"> = ["pending", "changes_requested", "approved", "rejected"];
