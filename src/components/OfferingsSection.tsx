@@ -116,7 +116,7 @@ const OfferingsSection = () => {
 
           <PalmDivider className="mt-5 mb-5" />
 
-          <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="mt-8 md:mt-12 grid grid-cols-3 gap-3 sm:gap-6">
             {pillars.map((p, i) => (
               <motion.div
                 key={p.label}
@@ -125,13 +125,14 @@ const OfferingsSection = () => {
                 whileInView="visible"
                 viewport={{ once: true }}
                 variants={fadeIn}
-                className="flex flex-col items-center gap-3"
+                className="flex flex-col items-center gap-2 sm:gap-3 text-center"
               >
-                <div className="w-14 h-14 rounded-full bg-blush-light flex items-center justify-center">
-                  <p.icon size={24} className="text-blush-dark" />
+                <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-blush-light flex items-center justify-center">
+                  <p.icon size={20} className="text-blush-dark sm:hidden" />
+                  <p.icon size={24} className="text-blush-dark hidden sm:block" />
                 </div>
-                <h3 className="font-heading text-xl font-semibold text-foreground">{p.label}</h3>
-                <p className="text-sm text-muted-foreground font-body">{p.desc}</p>
+                <h3 className="font-heading text-sm sm:text-xl font-semibold text-foreground">{p.label}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground font-body leading-snug">{p.desc}</p>
               </motion.div>
             ))}
           </div>
