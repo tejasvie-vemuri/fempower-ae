@@ -35,7 +35,7 @@ const HeroSection = () => {
     <EventsStripBanner />
 
     <div className="flex-1 flex items-center">
-    <div className="container relative z-10 py-10 md:py-16">
+    <div className="container relative z-10 py-6 md:py-16">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
