@@ -418,7 +418,7 @@ const AdminTestimonials = () => {
           </div>
           <p className="text-sm text-muted-foreground mb-4">Track when each member was invited and resend a warm reminder if they haven't shared yet.</p>
 
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="flex flex-wrap items-center gap-2 mb-3">
             {([
               ["awaiting", "Awaiting response"],
               ["never", "Never invited"],
@@ -434,6 +434,11 @@ const AdminTestimonials = () => {
                 {label} <span className="ml-1 text-xs opacity-70">({scopeCounts[key]})</span>
               </Button>
             ))}
+            {memberScope === "awaiting" && (
+              <Button size="sm" variant="outline" onClick={exportAwaitingCsv} className="ml-auto">
+                <Download size={14} className="mr-1" /> Export CSV
+              </Button>
+            )}
           </div>
 
           <Input
