@@ -115,7 +115,7 @@ const EventsCalendarSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="mt-10 grid md:grid-cols-2 gap-10 items-start"
+            className="mt-6 md:mt-10 grid md:grid-cols-2 gap-6 md:gap-10 items-start"
           >
             <div className="flex justify-center">
               <Calendar
