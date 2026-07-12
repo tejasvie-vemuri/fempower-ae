@@ -19,6 +19,7 @@ import SeoSummary from "@/components/SeoSummary";
 import HomeStructuredData from "@/components/HomeStructuredData";
 import CelebrationsStrip from "@/components/CelebrationsStrip";
 import SpotlightCard from "@/components/SpotlightCard";
+import StickyWhatsAppButton from "@/components/StickyWhatsAppButton";
 import { JoinGateProvider } from "@/components/JoinGate";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
