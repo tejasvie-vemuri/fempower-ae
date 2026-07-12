@@ -32,7 +32,7 @@ const Index = () => {
   return (
     <JoinGateProvider>
       <Header />
-      <main id="main">
+      <main id="main" className="pb-20 md:pb-0">
         <HomeStructuredData />
         <SeoSummary />
         <HeroSection />
@@ -52,6 +52,7 @@ const Index = () => {
         {isAuthed && <FAQSection />}
       </main>
       <Footer />
+      <StickyWhatsAppButton />
       <FempowerCoach />
     </JoinGateProvider>
   );
