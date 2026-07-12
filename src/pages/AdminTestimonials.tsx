@@ -10,7 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
-import { Check, X, Trash2, Loader2, Quote, MessageSquareWarning, Mail, Send, RotateCcw, Clock } from "lucide-react";
+import { Check, X, Trash2, Loader2, Quote, MessageSquareWarning, Mail, Send, RotateCcw, Clock, Download } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 type Status = "pending" | "approved" | "rejected" | "changes_requested";
