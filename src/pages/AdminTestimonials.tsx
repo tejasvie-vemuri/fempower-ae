@@ -10,7 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
-import { Check, X, Trash2, Loader2, Quote, MessageSquareWarning, Mail, Send, RotateCcw, Clock } from "lucide-react";
+import { Check, X, Trash2, Loader2, Quote, MessageSquareWarning, Mail, Send, RotateCcw, Clock, Download } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 type Status = "pending" | "approved" | "rejected" | "changes_requested";
@@ -262,6 +262,40 @@ const AdminTestimonials = () => {
     }
   };
 
+  const exportAwaitingCsv = () => {
+    const awaiting = members.filter((m) => m.invite && !m.hasTestimonial);
+    const headers = ["Name", "Email", "Invited at", "Last sent at", "Send count", "Days since last email"];
+    const rows = awaiting.map((m) => {
+      const inv = m.invite!;
+      const days = daysSince(inv.last_sent_at);
+      return [
+        m.name ?? "",
+        m.email ?? "",
+        new Date(inv.invited_at).toLocaleString(),
+        new Date(inv.last_sent_at).toLocaleString(),
+        String(inv.send_count),
+        days ?? "",
+      ];
+    });
+    const csv = [headers, ...rows]
+      .map((row) =>
+        row
+          .map((cell) => {
+            const s = String(cell ?? "").replace(/"/g, '""');
+            return /[",\n]/.test(s) ? `"${s}"` : s;
+          })
+          .join(","),
+      )
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `testimonial-awaiting-response-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const visible = rows.filter((r) => r.status === tab);
   const counts = useMemo(() => {
     const c: Record<Status, number> = { pending: 0, approved: 0, rejected: 0, changes_requested: 0 };
@@ -384,7 +418,7 @@ const AdminTestimonials = () => {
           </div>
           <p className="text-sm text-muted-foreground mb-4">Track when each member was invited and resend a warm reminder if they haven't shared yet.</p>
 
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="flex flex-wrap items-center gap-2 mb-3">
             {([
               ["awaiting", "Awaiting response"],
               ["never", "Never invited"],
@@ -400,6 +434,11 @@ const AdminTestimonials = () => {
                 {label} <span className="ml-1 text-xs opacity-70">({scopeCounts[key]})</span>
               </Button>
             ))}
+            {memberScope === "awaiting" && (
+              <Button size="sm" variant="outline" onClick={exportAwaitingCsv} className="ml-auto">
+                <Download size={14} className="mr-1" /> Export CSV
+              </Button>
+            )}
           </div>
 
           <Input
