@@ -115,7 +115,7 @@ const EventsCalendarSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="mt-10 grid md:grid-cols-2 gap-10 items-start"
+            className="mt-6 md:mt-10 grid md:grid-cols-2 gap-6 md:gap-10 items-start"
           >
             <div className="flex justify-center">
               <Calendar
@@ -130,7 +130,7 @@ const EventsCalendarSection = () => {
               />
             </div>
 
-            <div className="space-y-4 min-h-[280px]">
+            <div className="space-y-4 md:min-h-[280px]">
               {selectedDate && eventsForDate.length > 0 ? (
                 eventsForDate.map((event) => (
                   <Link

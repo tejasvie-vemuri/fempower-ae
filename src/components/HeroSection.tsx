@@ -18,7 +18,7 @@ const HeroSection = () => {
   const sourceUrl = bg?.url ?? heroImg;
   const responsive = responsiveImage(sourceUrl, { sizes: HERO_SIZES });
   return (
-  <section className="relative min-h-[90vh] flex flex-col pt-20 overflow-hidden" aria-label="Fempower hero">
+  <section className="relative min-h-[75vh] md:min-h-[90vh] flex flex-col pt-16 md:pt-20 overflow-hidden" aria-label="Fempower hero">
     <div className="absolute inset-0">
       <img
         src={responsive.src}
@@ -35,7 +35,7 @@ const HeroSection = () => {
     <EventsStripBanner />
 
     <div className="flex-1 flex items-center">
-    <div className="container relative z-10 py-10 md:py-16">
+    <div className="container relative z-10 py-6 md:py-16">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
