@@ -130,7 +130,7 @@ const EventsCalendarSection = () => {
               />
             </div>
 
-            <div className="space-y-4 min-h-[280px]">
+            <div className="space-y-4 md:min-h-[280px]">
               {selectedDate && eventsForDate.length > 0 ? (
                 eventsForDate.map((event) => (
                   <Link
