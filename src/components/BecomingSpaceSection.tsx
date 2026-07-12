@@ -34,16 +34,16 @@ const FrameworkItem = ({ fw, index }: { fw: Framework; index: number }) => (
     className="bg-card border border-border rounded-xl px-5 shadow-sm"
   >
     <AccordionTrigger className="hover:no-underline py-4">
-      <div className="flex items-center gap-3 text-left">
+      <div className="flex items-center gap-3 text-left min-w-0 flex-1">
         <span className="text-xl flex-shrink-0">
           {EMOJIS[index % EMOJIS.length]}
         </span>
-        <div>
-          <h4 className="font-heading text-sm md:text-base font-semibold text-foreground">
+        <div className="min-w-0 flex-1">
+          <h4 className="font-heading text-sm md:text-base font-semibold text-foreground break-words">
             {fw.name}
           </h4>
           {fw.inspiredBy && (
-            <p className="text-[11px] font-body text-muted-foreground mt-0.5">
+            <p className="text-[11px] font-body text-muted-foreground mt-0.5 break-words">
               Inspired by {fw.inspiredBy}
             </p>
           )}
