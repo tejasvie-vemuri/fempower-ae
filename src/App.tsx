@@ -37,6 +37,7 @@ import LearnWing from "./pages/LearnWing";
 import LearnJournal from "./pages/LearnJournal";
 import AdminLearn from "./pages/AdminLearn";
 import ShareWin from "./pages/ShareWin";
+import ShareMyStory from "./pages/ShareMyStory";
 import AdminMilestones from "./pages/AdminMilestones";
 import LifestyleManager from "./pages/LifestyleManager";
 import ThePause from "./pages/ThePause";
@@ -120,6 +121,7 @@ const App = () => (
             <Route path="/learn/:courseId/:moduleId" element={<ProtectedRoute><LearnModule /></ProtectedRoute>} />
             <Route path="/learn/:courseId/:moduleId/:wingId" element={<ProtectedRoute><LearnWing /></ProtectedRoute>} />
             <Route path="/share-win" element={<ProtectedRoute><ShareWin /></ProtectedRoute>} />
+            <Route path="/share-my-story" element={<ProtectedRoute><ShareMyStory /></ProtectedRoute>} />
             <Route path="/admin/learn" element={<AdminRoute><AdminLearn /></AdminRoute>} />
             <Route path="/admin/milestones" element={<AdminRoute><AdminMilestones /></AdminRoute>} />
             <Route path="/lifestyle-manager" element={<ProtectedRoute><LifestyleManager /></ProtectedRoute>} />

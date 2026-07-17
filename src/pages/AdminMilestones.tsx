@@ -23,8 +23,18 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowLeft, Check, Loader2, Plus, Star, Trash2, X } from "lucide-react";
+import { ArrowLeft, Check, Copy, Loader2, Plus, Send, Star, Trash2, X } from "lucide-react";
 import { getMilestoneDisplay, MILESTONE_CATEGORIES, type MemberMilestone, type MemberSpotlight } from "@/lib/milestones";
+import {
+  STORY_QUESTIONS,
+  emptyStoryAnswers,
+  composeStoryText,
+  composeLinkedInSnippet,
+  type StoryAnswers,
+  type SpotlightRequest,
+} from "@/lib/spotlightRequests";
+import SpotlightStory from "@/components/SpotlightStory";
+import { MemberAvatar } from "@/components/directory/MemberAvatar";
 
 // ── Milestones Tab ──────────────────────────────────────────
 
@@ -376,6 +386,451 @@ function SpotlightsTab() {
   );
 }
 
+// ── Story Requests Tab ──────────────────────────────────────
+
+type RequestRow = SpotlightRequest & { member_name?: string; member_photo?: string };
+
+const emptyRequestForm = { user_id: "", personal_note: "" };
+
+function StoryRequestsTab() {
+  const { user } = useAuth();
+  const [items, setItems] = useState<RequestRow[]>([]);
+  const [members, setMembers] = useState<{ user_id: string; name: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<"pending" | "submitted" | "published" | "declined" | "all">("submitted");
+
+  const [requestOpen, setRequestOpen] = useState(false);
+  const [requestForm, setRequestForm] = useState(emptyRequestForm);
+  const [sending, setSending] = useState(false);
+
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [editing, setEditing] = useState<RequestRow | null>(null);
+  const [editAnswers, setEditAnswers] = useState<StoryAnswers>(emptyStoryAnswers);
+  const [activeFrom, setActiveFrom] = useState("");
+  const [activeUntil, setActiveUntil] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+
+  const loadMembers = async () => {
+    const { data } = await supabase
+      .from("member_profiles")
+      .select("user_id, name")
+      .eq("status", "approved")
+      .order("name");
+    setMembers(data ?? []);
+  };
+
+  const load = async () => {
+    setLoading(true);
+    let q = (supabase as any)
+      .from("spotlight_requests")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (filter !== "all") q = q.eq("status", filter);
+    const { data } = await q;
+
+    if (data && data.length > 0) {
+      const userIds = [...new Set(data.map((r: any) => r.user_id))];
+      const { data: profiles } = await supabase
+        .from("member_profiles")
+        .select("user_id, name, photo_url")
+        .in("user_id", userIds as string[]);
+      const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
+      setItems(
+        data.map((r: any) => ({
+          ...r,
+          member_name: profileMap.get(r.user_id)?.name ?? "Unknown",
+          member_photo: profileMap.get(r.user_id)?.photo_url ?? null,
+        }))
+      );
+    } else {
+      setItems([]);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); loadMembers(); /* eslint-disable-next-line */ }, [filter]);
+
+  const alreadyInvited = new Set(
+    items.filter((r) => r.status === "pending" || r.status === "submitted").map((r) => r.user_id)
+  );
+
+  const sendRequest = async () => {
+    if (!requestForm.user_id || !user) return;
+    setSending(true);
+    const { data: row, error } = await (supabase as any)
+      .from("spotlight_requests")
+      .insert({
+        user_id: requestForm.user_id,
+        requested_by: user.id,
+        personal_note: requestForm.personal_note.trim() || null,
+      })
+      .select("id")
+      .single();
+
+    if (error) {
+      toast.error(error.message);
+      setSending(false);
+      return;
+    }
+
+    const member = members.find((m) => m.user_id === requestForm.user_id);
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("email")
+      .eq("user_id", requestForm.user_id)
+      .maybeSingle();
+
+    if (profile?.email) {
+      await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "spotlight-story-request",
+          recipientEmail: profile.email,
+          idempotencyKey: `spotlight-request-${row.id}`,
+          templateData: {
+            name: member?.name,
+            personalNote: requestForm.personal_note.trim() || null,
+            siteUrl: window.location.origin,
+          },
+        },
+      });
+    } else {
+      toast.warning("Request created, but no email on file to notify her");
+    }
+
+    setSending(false);
+    toast.success("Story request sent!");
+    setRequestOpen(false);
+    setRequestForm(emptyRequestForm);
+    load();
+  };
+
+  const resend = async (r: RequestRow) => {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("email")
+      .eq("user_id", r.user_id)
+      .maybeSingle();
+    if (!profile?.email) {
+      toast.error("No email on file for this member");
+      return;
+    }
+    await supabase.functions.invoke("send-transactional-email", {
+      body: {
+        templateName: "spotlight-story-request",
+        recipientEmail: profile.email,
+        idempotencyKey: `spotlight-request-${r.id}-resend-${Date.now()}`,
+        templateData: {
+          name: r.member_name,
+          personalNote: r.personal_note,
+          siteUrl: window.location.origin,
+        },
+      },
+    });
+    toast.success("Reminder sent");
+  };
+
+  const decline = async (id: string) => {
+    if (!confirm("Cancel this request?")) return;
+    const { error } = await (supabase as any).from("spotlight_requests").update({ status: "declined" }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Request cancelled");
+    load();
+  };
+
+  const openReview = (r: RequestRow) => {
+    setEditing(r);
+    setEditAnswers({
+      headline: r.headline ?? "",
+      the_before: r.the_before ?? "",
+      the_turning_point: r.the_turning_point ?? "",
+      the_now: r.the_now ?? "",
+      advice: r.advice ?? "",
+      shoutout: r.shoutout ?? "",
+    });
+    const now = new Date();
+    const monthLater = new Date(now);
+    monthLater.setMonth(monthLater.getMonth() + 1);
+    setActiveFrom(now.toISOString().slice(0, 16));
+    setActiveUntil(monthLater.toISOString().slice(0, 16));
+    setReviewOpen(true);
+  };
+
+  const saveEdits = async () => {
+    if (!editing) return;
+    setSaving(true);
+    const { error } = await (supabase as any)
+      .from("spotlight_requests")
+      .update(editAnswers)
+      .eq("id", editing.id);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Changes saved");
+    load();
+  };
+
+  const publish = async () => {
+    if (!editing) return;
+    setPublishing(true);
+    const storyText = composeStoryText(editAnswers);
+    const { data: spotlight, error: spotlightErr } = await (supabase as any)
+      .from("member_spotlights")
+      .insert({
+        user_id: editing.user_id,
+        story: storyText,
+        ...editAnswers,
+        photo_url: editing.photo_url,
+        consent_social: editing.consent_social,
+        active_from: new Date(activeFrom).toISOString(),
+        active_until: new Date(activeUntil).toISOString(),
+        request_id: editing.id,
+      })
+      .select("id")
+      .single();
+
+    if (spotlightErr) {
+      toast.error(spotlightErr.message);
+      setPublishing(false);
+      return;
+    }
+
+    const { error: updateErr } = await (supabase as any)
+      .from("spotlight_requests")
+      .update({
+        ...editAnswers,
+        status: "published",
+        published_at: new Date().toISOString(),
+        spotlight_id: spotlight.id,
+      })
+      .eq("id", editing.id);
+
+    setPublishing(false);
+    if (updateErr) { toast.error(updateErr.message); return; }
+    toast.success("Story published to the site!");
+    setReviewOpen(false);
+    load();
+  };
+
+  const copyLinkedIn = async (r: RequestRow) => {
+    const snippet = composeLinkedInSnippet(
+      {
+        headline: r.headline ?? "",
+        the_before: r.the_before ?? "",
+        the_turning_point: r.the_turning_point ?? "",
+        the_now: r.the_now ?? "",
+        advice: r.advice ?? "",
+        shoutout: r.shoutout ?? "",
+      },
+      r.member_name ?? ""
+    );
+    await navigator.clipboard.writeText(snippet);
+    toast.success("Copied — paste into LinkedIn");
+  };
+
+  return (
+    <>
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+        <h2 className="font-heading text-lg">Story Requests</h2>
+        <div className="flex items-center gap-2">
+          <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
+            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="submitted">Submitted</SelectItem>
+              <SelectItem value="published">Published</SelectItem>
+              <SelectItem value="declined">Declined</SelectItem>
+              <SelectItem value="all">All</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button size="sm" onClick={() => setRequestOpen(true)}>
+            <Send size={14} className="mr-1" /> Request a story
+          </Button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="animate-spin" /></div>
+      ) : items.length === 0 ? (
+        <p className="text-center text-muted-foreground font-body py-12">No requests here yet</p>
+      ) : (
+        <div className="space-y-3">
+          {items.map((r) => (
+            <div key={r.id} className="border border-border rounded-xl p-4 bg-card flex items-start gap-4">
+              {r.photo_url || r.member_photo ? (
+                <MemberAvatar
+                  path={r.photo_url ?? r.member_photo}
+                  alt=""
+                  className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                  fallback={
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium flex-shrink-0">
+                      {(r.member_name ?? "?").charAt(0)}
+                    </div>
+                  }
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium flex-shrink-0">
+                  {(r.member_name ?? "?").charAt(0)}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-body font-medium text-sm">{r.member_name}</p>
+                {r.headline ? (
+                  <p className="font-body text-sm mt-0.5 italic text-foreground/85">"{r.headline}"</p>
+                ) : r.personal_note ? (
+                  <p className="font-body text-sm mt-0.5 text-muted-foreground line-clamp-1">Note: "{r.personal_note}"</p>
+                ) : null}
+                <div className="flex items-center gap-2 mt-1.5">
+                  <Badge
+                    variant={r.status === "published" ? "default" : r.status === "declined" ? "destructive" : "outline"}
+                    className="text-xs"
+                  >
+                    {r.status}
+                  </Badge>
+                  {(r.status === "submitted" || r.status === "published") && (
+                    <Badge variant={r.consent_social ? "secondary" : "destructive"} className="text-xs">
+                      {r.consent_social ? "✓ Consented to share" : "No consent on file"}
+                    </Badge>
+                  )}
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(r.created_at).toLocaleDateString("en-AE", { dateStyle: "medium" })}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {r.status === "pending" && (
+                  <>
+                    <Button size="sm" variant="ghost" onClick={() => resend(r)}>Resend</Button>
+                    <Button size="icon" variant="ghost" title="Cancel" onClick={() => decline(r.id)}>
+                      <X size={14} className="text-red-500" />
+                    </Button>
+                  </>
+                )}
+                {r.status === "submitted" && (
+                  <Button size="sm" onClick={() => openReview(r)}>Review &amp; publish</Button>
+                )}
+                {r.status === "published" && r.consent_social && (
+                  <Button size="sm" variant="outline" onClick={() => copyLinkedIn(r)}>
+                    <Copy size={14} className="mr-1" /> Copy LinkedIn snippet
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Request a story */}
+      <Dialog open={requestOpen} onOpenChange={setRequestOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader><DialogTitle>Request a story</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Member</Label>
+              <Select value={requestForm.user_id} onValueChange={(v) => setRequestForm({ ...requestForm, user_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Select member" /></SelectTrigger>
+                <SelectContent>
+                  {members.map((m) => (
+                    <SelectItem key={m.user_id} value={m.user_id} disabled={alreadyInvited.has(m.user_id)}>
+                      {m.name}{alreadyInvited.has(m.user_id) ? " (already invited)" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Personal note</Label>
+              <Textarea
+                value={requestForm.personal_note}
+                onChange={(e) => setRequestForm({ ...requestForm, personal_note: e.target.value })}
+                rows={3}
+                placeholder="Tell her why you're asking — specific asks get better answers. e.g. 'Your career pivot this year would inspire so many of us.'"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Shown to her at the top of the form.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRequestOpen(false)}>Cancel</Button>
+            <Button onClick={sendRequest} disabled={sending || !requestForm.user_id}>
+              {sending && <Loader2 size={14} className="mr-2 animate-spin" />} Send request
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Review & publish */}
+      <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>{editing?.member_name}'s story</DialogTitle></DialogHeader>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              {STORY_QUESTIONS.map((q) => (
+                <div key={q.field}>
+                  <Label>{q.label}</Label>
+                  {q.multiline ? (
+                    <Textarea
+                      value={editAnswers[q.field]}
+                      onChange={(e) => setEditAnswers({ ...editAnswers, [q.field]: e.target.value.slice(0, q.maxLength) })}
+                      rows={3}
+                      maxLength={q.maxLength}
+                    />
+                  ) : (
+                    <Input
+                      value={editAnswers[q.field]}
+                      onChange={(e) => setEditAnswers({ ...editAnswers, [q.field]: e.target.value.slice(0, q.maxLength) })}
+                      maxLength={q.maxLength}
+                    />
+                  )}
+                </div>
+              ))}
+              <div className="grid grid-cols-2 gap-4">
+                <div><Label>Active from</Label><Input type="datetime-local" value={activeFrom} onChange={(e) => setActiveFrom(e.target.value)} /></div>
+                <div><Label>Active until</Label><Input type="datetime-local" value={activeUntil} onChange={(e) => setActiveUntil(e.target.value)} /></div>
+              </div>
+            </div>
+            <div>
+              <Label className="mb-2 block">Preview</Label>
+              <div className="bg-blush-light/50 border border-blush-dark/10 rounded-2xl p-5 sticky top-0">
+                <div className="flex items-center gap-3 mb-4">
+                  <MemberAvatar
+                    path={editing?.photo_url ?? editing?.member_photo}
+                    alt=""
+                    className="w-14 h-14 rounded-full object-cover border-2 border-blush-dark/20"
+                    fallback={
+                      <div className="w-14 h-14 rounded-full bg-blush-dark/10 flex items-center justify-center text-lg font-heading font-semibold text-blush-dark">
+                        {(editing?.member_name ?? "?").charAt(0)}
+                      </div>
+                    }
+                  />
+                  <div>
+                    <p className="font-heading font-semibold">{editing?.member_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {editing?.consent_social ? "✓ Consented to publish on site + social" : "⚠ No consent on file"}
+                    </p>
+                  </div>
+                </div>
+                <SpotlightStory story={composeStoryText(editAnswers)} {...editAnswers} />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReviewOpen(false)}>Close</Button>
+            <Button variant="outline" onClick={saveEdits} disabled={saving}>
+              {saving && <Loader2 size={14} className="mr-2 animate-spin" />} Save changes
+            </Button>
+            <Button
+              onClick={publish}
+              disabled={publishing || !editAnswers.headline.trim() || !editing?.consent_social}
+              title={!editing?.consent_social ? "Can't publish without her consent on file" : undefined}
+            >
+              {publishing && <Loader2 size={14} className="mr-2 animate-spin" />} Publish to site
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 // ── Main Page ────────────────────────────────────────────────
 
 const AdminMilestones = () => (
@@ -384,11 +839,13 @@ const AdminMilestones = () => (
       <ArrowLeft size={14} /> Back to site
     </Link>
     <h1 className="font-heading text-3xl mb-6">Milestones & Spotlights</h1>
-    <Tabs defaultValue="milestones">
+    <Tabs defaultValue="requests">
       <TabsList className="mb-6">
+        <TabsTrigger value="requests">Story Requests</TabsTrigger>
         <TabsTrigger value="milestones">Milestones</TabsTrigger>
         <TabsTrigger value="spotlights">Spotlights</TabsTrigger>
       </TabsList>
+      <TabsContent value="requests"><StoryRequestsTab /></TabsContent>
       <TabsContent value="milestones"><MilestonesTab /></TabsContent>
       <TabsContent value="spotlights"><SpotlightsTab /></TabsContent>
     </Tabs>
