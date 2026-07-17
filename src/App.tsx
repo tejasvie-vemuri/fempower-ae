@@ -41,6 +41,7 @@ import AdminMilestones from "./pages/AdminMilestones";
 import LifestyleManager from "./pages/LifestyleManager";
 import ThePause from "./pages/ThePause";
 import AdminLifestyleManager from "./pages/AdminLifestyleManager";
+import AdminNorthstar from "./pages/AdminNorthstar";
 import ScrollToHash from "@/components/ScrollToHash";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -124,6 +125,7 @@ const App = () => (
             <Route path="/lifestyle-manager" element={<ProtectedRoute><LifestyleManager /></ProtectedRoute>} />
             <Route path="/the-pause" element={<ProtectedRoute><ThePause /></ProtectedRoute>} />
             <Route path="/admin/lifestyle-manager" element={<AdminRoute><AdminLifestyleManager /></AdminRoute>} />
+            <Route path="/admin/northstar" element={<AdminRoute><AdminNorthstar /></AdminRoute>} />
             <Route path="/programs" element={<Navigate to="/#programs" replace />} />
             <Route path="/events" element={<Navigate to="/#events-calendar" replace />} />
             <Route path="/join" element={<Join />} />

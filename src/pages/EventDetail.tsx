@@ -60,6 +60,20 @@ const EventDetail = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
 
+  // Log weekly-digest attribution once when a member lands here via ?ref=digest
+  useEffect(() => {
+    if (searchParams.get("ref") !== "digest") return;
+    import("@/lib/engagement").then(({ logEngagement }) =>
+      logEngagement("digest_click", null, {
+        slot: searchParams.get("slot") ?? "event",
+        page: "event_detail",
+        slug,
+      }),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
 
   const [event, setEvent] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);

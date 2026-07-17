@@ -10,6 +10,8 @@ import { template as profileCompletionReminder } from './profile-completion-remi
 import { template as lifestyleDigest } from './lifestyle-digest.tsx'
 import { template as testimonialRequest } from './testimonial-request.tsx'
 import { template as testimonialFeedback } from './testimonial-feedback.tsx'
+import { template as weeklyDigest } from './weekly-digest.tsx'
+import { template as introNudge } from './intro-nudge.tsx'
 
 export type SubjectFn = (data: Record<string, unknown>) => string
 
@@ -32,4 +34,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'lifestyle-digest': lifestyleDigest,
   'testimonial-request': testimonialRequest,
   'testimonial-feedback': testimonialFeedback,
+  'weekly-digest': weeklyDigest,
+  'intro-nudge': introNudge,
 }
