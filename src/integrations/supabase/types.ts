@@ -1292,28 +1292,63 @@ export type Database = {
         Row: {
           active_from: string
           active_until: string
+          advice: string | null
+          consent_social: boolean
           created_at: string
+          headline: string | null
           id: string
+          photo_url: string | null
+          request_id: string | null
+          shoutout: string | null
           story: string
+          the_before: string | null
+          the_now: string | null
+          the_turning_point: string | null
           user_id: string
         }
         Insert: {
           active_from?: string
           active_until: string
+          advice?: string | null
+          consent_social?: boolean
           created_at?: string
+          headline?: string | null
           id?: string
+          photo_url?: string | null
+          request_id?: string | null
+          shoutout?: string | null
           story: string
+          the_before?: string | null
+          the_now?: string | null
+          the_turning_point?: string | null
           user_id: string
         }
         Update: {
           active_from?: string
           active_until?: string
+          advice?: string | null
+          consent_social?: boolean
           created_at?: string
+          headline?: string | null
           id?: string
+          photo_url?: string | null
+          request_id?: string | null
+          shoutout?: string | null
           story?: string
+          the_before?: string | null
+          the_now?: string | null
+          the_turning_point?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "member_spotlights_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "spotlight_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       member_testimonials: {
         Row: {
@@ -1717,6 +1752,74 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      spotlight_requests: {
+        Row: {
+          advice: string | null
+          consent_social: boolean
+          created_at: string
+          headline: string | null
+          id: string
+          personal_note: string | null
+          photo_url: string | null
+          published_at: string | null
+          requested_by: string
+          shoutout: string | null
+          spotlight_id: string | null
+          status: string
+          submitted_at: string | null
+          the_before: string | null
+          the_now: string | null
+          the_turning_point: string | null
+          user_id: string
+        }
+        Insert: {
+          advice?: string | null
+          consent_social?: boolean
+          created_at?: string
+          headline?: string | null
+          id?: string
+          personal_note?: string | null
+          photo_url?: string | null
+          published_at?: string | null
+          requested_by: string
+          shoutout?: string | null
+          spotlight_id?: string | null
+          status?: string
+          submitted_at?: string | null
+          the_before?: string | null
+          the_now?: string | null
+          the_turning_point?: string | null
+          user_id: string
+        }
+        Update: {
+          advice?: string | null
+          consent_social?: boolean
+          created_at?: string
+          headline?: string | null
+          id?: string
+          personal_note?: string | null
+          photo_url?: string | null
+          published_at?: string | null
+          requested_by?: string
+          shoutout?: string | null
+          spotlight_id?: string | null
+          status?: string
+          submitted_at?: string | null
+          the_before?: string | null
+          the_now?: string | null
+          the_turning_point?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spotlight_requests_spotlight_id_fkey"
+            columns: ["spotlight_id"]
+            isOneToOne: false
+            referencedRelation: "member_spotlights"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suppressed_emails: {
         Row: {
