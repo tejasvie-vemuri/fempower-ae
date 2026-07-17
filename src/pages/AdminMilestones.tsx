@@ -538,11 +538,12 @@ function StoryRequestsTab() {
       .maybeSingle();
 
     if (profile?.email) {
-      await supabase.functions.invoke("send-transactional-email", {
+      const idempotencyKey = `spotlight-request-${row.id}`;
+      const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
         body: {
           templateName: "spotlight-story-request",
           recipientEmail: profile.email,
-          idempotencyKey: `spotlight-request-${row.id}`,
+          idempotencyKey,
           templateData: {
             name: member?.name,
             personalNote: requestForm.personal_note.trim() || null,
@@ -550,12 +551,25 @@ function StoryRequestsTab() {
           },
         },
       });
+      if (emailErr) {
+        // Tagged so it's easy to grep in browser console; the edge function
+        // separately writes a row to email_send_log for the Supabase-side trail.
+        console.error("[spotlight-story-request] invoke failed", {
+          requestId: row.id,
+          recipient: profile.email,
+          idempotencyKey,
+          error: emailErr.message,
+        });
+        toast.error(`Request saved but email failed: ${emailErr.message}`);
+      } else {
+        console.log("[spotlight-story-request] invoke ok", { requestId: row.id, idempotencyKey });
+        toast.success("Story request sent!");
+      }
     } else {
       toast.warning("Request created, but no email on file to notify her");
     }
 
     setSending(false);
-    toast.success("Story request sent!");
     setRequestOpen(false);
     setRequestForm(emptyRequestForm);
     load();
@@ -571,11 +585,12 @@ function StoryRequestsTab() {
       toast.error("No email on file for this member");
       return;
     }
-    await supabase.functions.invoke("send-transactional-email", {
+    const idempotencyKey = `spotlight-request-${r.id}-resend-${Date.now()}`;
+    const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
       body: {
         templateName: "spotlight-story-request",
         recipientEmail: profile.email,
-        idempotencyKey: `spotlight-request-${r.id}-resend-${Date.now()}`,
+        idempotencyKey,
         templateData: {
           name: r.member_name,
           personalNote: r.personal_note,
@@ -583,7 +598,19 @@ function StoryRequestsTab() {
         },
       },
     });
+    if (emailErr) {
+      console.error("[spotlight-story-request] resend failed", {
+        requestId: r.id,
+        recipient: profile.email,
+        idempotencyKey,
+        error: emailErr.message,
+      });
+      toast.error(`Resend failed: ${emailErr.message}`);
+      return;
+    }
+    console.log("[spotlight-story-request] resend ok", { requestId: r.id, idempotencyKey });
     toast.success("Reminder sent");
+    load();
   };
 
   const decline = async (id: string) => {
