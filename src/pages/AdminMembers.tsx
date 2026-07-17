@@ -173,6 +173,49 @@ const AdminMembers = () => {
     load();
   };
 
+  const submitSpotlightInvite = async () => {
+    if (!spotlightTarget || !user) return;
+    const m = spotlightTarget;
+    setSpotlightSending(true);
+    const note = spotlightNote.trim() || null;
+    const { data: row, error } = await (supabase as any)
+      .from("spotlight_requests")
+      .insert({ user_id: m.user_id, requested_by: user.id, personal_note: note })
+      .select("id")
+      .single();
+    if (error) {
+      toast({ title: "Could not create request", description: error.message, variant: "destructive" });
+      setSpotlightSending(false);
+      return;
+    }
+
+    const recipient = emails[m.user_id];
+    if (recipient) {
+      const idempotencyKey = `spotlight-request-${row.id}`;
+      const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "spotlight-story-request",
+          recipientEmail: recipient,
+          idempotencyKey,
+          templateData: { name: m.name, personalNote: note, siteUrl: window.location.origin },
+        },
+      });
+      if (emailErr) {
+        console.error("[spotlight-story-request] invoke failed", { requestId: row.id, recipient, idempotencyKey, error: emailErr.message });
+        toast({ title: "Request saved, email failed", description: emailErr.message, variant: "destructive" });
+      } else {
+        console.log("[spotlight-story-request] invoke ok", { requestId: row.id, idempotencyKey });
+        toast({ title: "Story request sent", description: `${m.name} has been invited.` });
+      }
+    } else {
+      toast({ title: "Request created", description: "No email on file to notify her." });
+    }
+    setSpotlightSending(false);
+    setSpotlightTarget(null);
+    setSpotlightNote("");
+    load();
+  };
+
   return (
     <>
       <Header />
