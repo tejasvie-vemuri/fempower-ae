@@ -390,7 +390,32 @@ const AdminMembers = () => {
             </div>
           )}
         </div>
+        </div>
       </main>
+      <Dialog open={!!spotlightTarget} onOpenChange={(o) => { if (!o) { setSpotlightTarget(null); setSpotlightNote(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Invite {spotlightTarget?.name || "member"} to share her story</DialogTitle>
+            <DialogDescription>
+              Creates a spotlight request and emails her a link to the guided story form. Add an optional personal note.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={spotlightNote}
+            onChange={(e) => setSpotlightNote(e.target.value)}
+            placeholder="Optional personal note — why you'd love to feature her…"
+            rows={4}
+            maxLength={1000}
+          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setSpotlightTarget(null)} disabled={spotlightSending}>Cancel</Button>
+            <Button onClick={submitSpotlightInvite} disabled={spotlightSending}>
+              {spotlightSending ? <Loader2 className="animate-spin mr-1" size={14} /> : <Sparkles size={14} className="mr-1" />}
+              Send invite
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Footer />
     </>
   );
