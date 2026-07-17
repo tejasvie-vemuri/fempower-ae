@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +24,8 @@ import type { MemberProfile } from "@/lib/memberProfile";
 import { MemberAvatar } from "@/components/directory/MemberAvatar";
 
 const STATUSES: Array<MemberProfile["status"] | "all"> = ["pending", "approved", "hidden", "rejected", "all"];
+type IntroFilter = "all" | "posted" | "nudged" | "not-nudged";
+type SortBy = "created-desc" | "created-asc" | "nudge-desc" | "nudge-asc";
 
 const AdminMembers = () => {
   const { user } = useAuth();
@@ -31,9 +33,41 @@ const AdminMembers = () => {
   const [members, setMembers] = useState<MemberProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<MemberProfile["status"] | "all">("pending");
+  const [introFilter, setIntroFilter] = useState<IntroFilter>("all");
+  const [sortBy, setSortBy] = useState<SortBy>("created-desc");
   const [search, setSearch] = useState("");
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [emails, setEmails] = useState<Record<string, string>>({});
+
+  const introCategory = (m: MemberProfile): IntroFilter => {
+    if (m.status !== "approved") return "all";
+    if (m.intro_posted_at) return "posted";
+    if (m.intro_nudge_email_sent_at) return "nudged";
+    return "not-nudged";
+  };
+
+  const displayMembers = useMemo(() => {
+    let rows = [...members];
+    if (introFilter !== "all") {
+      rows = rows.filter((m) => m.status === "approved" && introCategory(m) === introFilter);
+    }
+    rows.sort((a, b) => {
+      switch (sortBy) {
+        case "created-asc":
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case "nudge-desc":
+          return (b.intro_nudge_email_sent_at ? new Date(b.intro_nudge_email_sent_at).getTime() : 0) -
+                 (a.intro_nudge_email_sent_at ? new Date(a.intro_nudge_email_sent_at).getTime() : 0);
+        case "nudge-asc":
+          return (a.intro_nudge_email_sent_at ? new Date(a.intro_nudge_email_sent_at).getTime() : 0) -
+                 (b.intro_nudge_email_sent_at ? new Date(b.intro_nudge_email_sent_at).getTime() : 0);
+        case "created-desc":
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+    return rows;
+  }, [members, introFilter, sortBy]);
 
   const load = async () => {
     setLoading(true);
@@ -68,6 +102,11 @@ const AdminMembers = () => {
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [status, search]);
+  useEffect(() => {
+    if (status !== "approved" && status !== "all" && introFilter !== "all") {
+      setIntroFilter("all");
+    }
+  }, [status, introFilter]);
 
   const updateStatus = async (id: string, newStatus: MemberProfile["status"]) => {
     const member = members.find((m) => m.id === id);
@@ -152,17 +191,47 @@ const AdminMembers = () => {
               );
             })}
           </div>
-          <div className="mb-6">
+          <div className="flex flex-wrap items-center gap-3 mb-6">
             <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search…" className="md:w-72" />
+            <Select value={introFilter} onValueChange={(v) => setIntroFilter(v as IntroFilter)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Intro status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All intros</SelectItem>
+                <SelectItem value="posted">Intro posted</SelectItem>
+                <SelectItem value="nudged">Nudged, no intro</SelectItem>
+                <SelectItem value="not-nudged">Not nudged</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="created-desc">Newest members</SelectItem>
+                <SelectItem value="created-asc">Oldest members</SelectItem>
+                <SelectItem value="nudge-desc">Last nudge: newest</SelectItem>
+                <SelectItem value="nudge-asc">Last nudge: oldest</SelectItem>
+              </SelectContent>
+            </Select>
+            {(introFilter !== "all" || sortBy !== "created-desc") && (
+              <button
+                onClick={() => { setIntroFilter("all"); setSortBy("created-desc"); }}
+                className="text-sm text-muted-foreground hover:text-foreground underline"
+              >
+                Reset filters
+              </button>
+            )}
           </div>
 
           {loading ? (
             <div className="flex justify-center py-20"><Loader2 className="animate-spin text-primary" /></div>
-          ) : members.length === 0 ? (
+          ) : displayMembers.length === 0 ? (
             <p className="text-center text-muted-foreground py-12">No members found.</p>
           ) : (
             <div className="space-y-3">
-              {members.map(m => (
+              {displayMembers.map(m => (
                 <div key={m.id} className="bg-card border rounded-lg p-4 flex flex-col md:flex-row gap-4 md:items-center">
                   <div className="h-14 w-14 rounded-full bg-secondary overflow-hidden flex-shrink-0">
                     <MemberAvatar path={m.photo_url} alt={m.name} className="h-full w-full object-cover" />
