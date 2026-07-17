@@ -388,9 +388,60 @@ function SpotlightsTab() {
 
 // ── Story Requests Tab ──────────────────────────────────────
 
-type RequestRow = SpotlightRequest & { member_name?: string; member_photo?: string };
+type DeliveryStatus = "sent" | "failed" | "dlq" | "suppressed" | "bounced" | "complained" | "pending";
+type DeliveryInfo = { status: DeliveryStatus; at: string; error?: string | null };
+type RequestRow = SpotlightRequest & {
+  member_name?: string;
+  member_photo?: string;
+  delivery?: DeliveryInfo | null;
+};
 
 const emptyRequestForm = { user_id: "", personal_note: "" };
+
+// Fetches the latest email_send_log row per idempotency-key prefix so admins can see
+// whether the spotlight-story-request email actually landed. Kept lightweight: one
+// query per page load, filtered to this template only.
+async function loadDeliveryStatuses(
+  requestIds: string[],
+): Promise<Map<string, DeliveryInfo>> {
+  if (requestIds.length === 0) return new Map();
+  const prefixes = requestIds.map((id) => `spotlight-request-${id}%`);
+  const orClause = prefixes.map((p) => `message_id.like.${p}`).join(",");
+  const { data, error } = await (supabase as any)
+    .from("email_send_log")
+    .select("message_id, status, error_message, created_at")
+    .eq("template_name", "spotlight-story-request")
+    .or(orClause)
+    .order("created_at", { ascending: false });
+  if (error || !data) return new Map();
+
+  const map = new Map<string, DeliveryInfo>();
+  for (const row of data as Array<{ message_id: string | null; status: string; error_message: string | null; created_at: string }>) {
+    if (!row.message_id) continue;
+    // message_id is either `spotlight-request-<id>` or `spotlight-request-<id>-resend-<ts>` —
+    // strip everything after the request UUID (36 chars after the fixed prefix).
+    const match = row.message_id.match(/^spotlight-request-([0-9a-f-]{36})/i);
+    if (!match) continue;
+    const requestId = match[1];
+    if (map.has(requestId)) continue; // rows are DESC-ordered so first wins
+    map.set(requestId, {
+      status: (row.status as DeliveryStatus) ?? "pending",
+      at: row.created_at,
+      error: row.error_message,
+    });
+  }
+  return map;
+}
+
+const DELIVERY_LABEL: Record<DeliveryStatus, string> = {
+  sent: "Email delivered",
+  failed: "Email failed",
+  dlq: "Email failed (retries exhausted)",
+  suppressed: "Recipient suppressed",
+  bounced: "Bounced",
+  complained: "Marked as spam",
+  pending: "Email queued",
+};
 
 function StoryRequestsTab() {
   const { user } = useAuth();
@@ -431,16 +482,21 @@ function StoryRequestsTab() {
 
     if (data && data.length > 0) {
       const userIds = [...new Set(data.map((r: any) => r.user_id))];
-      const { data: profiles } = await supabase
-        .from("member_profiles")
-        .select("user_id, name, photo_url")
-        .in("user_id", userIds as string[]);
+      const requestIds = data.map((r: any) => r.id as string);
+      const [{ data: profiles }, deliveryMap] = await Promise.all([
+        supabase
+          .from("member_profiles")
+          .select("user_id, name, photo_url")
+          .in("user_id", userIds as string[]),
+        loadDeliveryStatuses(requestIds),
+      ]);
       const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
       setItems(
         data.map((r: any) => ({
           ...r,
           member_name: profileMap.get(r.user_id)?.name ?? "Unknown",
           member_photo: profileMap.get(r.user_id)?.photo_url ?? null,
+          delivery: deliveryMap.get(r.id) ?? null,
         }))
       );
     } else {
@@ -482,11 +538,12 @@ function StoryRequestsTab() {
       .maybeSingle();
 
     if (profile?.email) {
-      await supabase.functions.invoke("send-transactional-email", {
+      const idempotencyKey = `spotlight-request-${row.id}`;
+      const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
         body: {
           templateName: "spotlight-story-request",
           recipientEmail: profile.email,
-          idempotencyKey: `spotlight-request-${row.id}`,
+          idempotencyKey,
           templateData: {
             name: member?.name,
             personalNote: requestForm.personal_note.trim() || null,
@@ -494,12 +551,25 @@ function StoryRequestsTab() {
           },
         },
       });
+      if (emailErr) {
+        // Tagged so it's easy to grep in browser console; the edge function
+        // separately writes a row to email_send_log for the Supabase-side trail.
+        console.error("[spotlight-story-request] invoke failed", {
+          requestId: row.id,
+          recipient: profile.email,
+          idempotencyKey,
+          error: emailErr.message,
+        });
+        toast.error(`Request saved but email failed: ${emailErr.message}`);
+      } else {
+        console.log("[spotlight-story-request] invoke ok", { requestId: row.id, idempotencyKey });
+        toast.success("Story request sent!");
+      }
     } else {
       toast.warning("Request created, but no email on file to notify her");
     }
 
     setSending(false);
-    toast.success("Story request sent!");
     setRequestOpen(false);
     setRequestForm(emptyRequestForm);
     load();
@@ -515,11 +585,12 @@ function StoryRequestsTab() {
       toast.error("No email on file for this member");
       return;
     }
-    await supabase.functions.invoke("send-transactional-email", {
+    const idempotencyKey = `spotlight-request-${r.id}-resend-${Date.now()}`;
+    const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
       body: {
         templateName: "spotlight-story-request",
         recipientEmail: profile.email,
-        idempotencyKey: `spotlight-request-${r.id}-resend-${Date.now()}`,
+        idempotencyKey,
         templateData: {
           name: r.member_name,
           personalNote: r.personal_note,
@@ -527,7 +598,19 @@ function StoryRequestsTab() {
         },
       },
     });
+    if (emailErr) {
+      console.error("[spotlight-story-request] resend failed", {
+        requestId: r.id,
+        recipient: profile.email,
+        idempotencyKey,
+        error: emailErr.message,
+      });
+      toast.error(`Resend failed: ${emailErr.message}`);
+      return;
+    }
+    console.log("[spotlight-story-request] resend ok", { requestId: r.id, idempotencyKey });
     toast.success("Reminder sent");
+    load();
   };
 
   const decline = async (id: string) => {
@@ -679,7 +762,7 @@ function StoryRequestsTab() {
                 ) : r.personal_note ? (
                   <p className="font-body text-sm mt-0.5 text-muted-foreground line-clamp-1">Note: "{r.personal_note}"</p>
                 ) : null}
-                <div className="flex items-center gap-2 mt-1.5">
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                   <Badge
                     variant={r.status === "published" ? "default" : r.status === "declined" ? "destructive" : "outline"}
                     className="text-xs"
@@ -691,19 +774,40 @@ function StoryRequestsTab() {
                       {r.consent_social ? "✓ Consented to share" : "No consent on file"}
                     </Badge>
                   )}
+                  {r.delivery && (
+                    <Badge
+                      variant={
+                        r.delivery.status === "sent"
+                          ? "secondary"
+                          : r.delivery.status === "pending"
+                          ? "outline"
+                          : "destructive"
+                      }
+                      className="text-xs"
+                      title={
+                        (r.delivery.error ? `${r.delivery.error} — ` : "") +
+                        new Date(r.delivery.at).toLocaleString("en-AE")
+                      }
+                    >
+                      {DELIVERY_LABEL[r.delivery.status]}
+                    </Badge>
+                  )}
                   <span className="text-xs text-muted-foreground">
                     {new Date(r.created_at).toLocaleDateString("en-AE", { dateStyle: "medium" })}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
+                {(r.status === "pending" || r.status === "submitted") && (
+                  <Button size="sm" variant="ghost" onClick={() => resend(r)}>
+                    <Send size={14} className="mr-1" />
+                    {r.delivery?.status === "sent" ? "Send again" : "Send email"}
+                  </Button>
+                )}
                 {r.status === "pending" && (
-                  <>
-                    <Button size="sm" variant="ghost" onClick={() => resend(r)}>Resend</Button>
-                    <Button size="icon" variant="ghost" title="Cancel" onClick={() => decline(r.id)}>
-                      <X size={14} className="text-red-500" />
-                    </Button>
-                  </>
+                  <Button size="icon" variant="ghost" title="Cancel" onClick={() => decline(r.id)}>
+                    <X size={14} className="text-red-500" />
+                  </Button>
                 )}
                 {r.status === "submitted" && (
                   <Button size="sm" onClick={() => openReview(r)}>Review &amp; publish</Button>
