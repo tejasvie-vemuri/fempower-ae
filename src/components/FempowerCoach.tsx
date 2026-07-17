@@ -167,7 +167,7 @@ const FempowerCoach = () => {
       {/* Floating button */}
       <AnimatePresence>
         {!open && (
-          <div className="fixed bottom-6 right-6 z-[60] flex items-end gap-3 max-w-[calc(100vw-3rem)]">
+          <div data-coach-anchor className="fixed bottom-6 right-6 z-[60] flex items-end gap-3 max-w-[calc(100vw-3rem)]">
             <motion.button
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -226,6 +226,7 @@ const FempowerCoach = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.95 }}
             transition={{ duration: 0.25 }}
+            data-coach-anchor
             className="fixed bottom-4 right-4 z-[60] w-[370px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-2rem)] rounded-2xl shadow-2xl flex flex-col overflow-hidden border"
             style={{ background: "#FDF8F3", borderColor: "#4A204030" }}
           >
