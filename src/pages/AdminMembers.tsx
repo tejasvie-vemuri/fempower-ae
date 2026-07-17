@@ -222,11 +222,11 @@ const AdminMembers = () => {
 
           {loading ? (
             <div className="flex justify-center py-20"><Loader2 className="animate-spin text-primary" /></div>
-          ) : members.length === 0 ? (
+          ) : displayMembers.length === 0 ? (
             <p className="text-center text-muted-foreground py-12">No members found.</p>
           ) : (
             <div className="space-y-3">
-              {members.map(m => (
+              {displayMembers.map(m => (
                 <div key={m.id} className="bg-card border rounded-lg p-4 flex flex-col md:flex-row gap-4 md:items-center">
                   <div className="h-14 w-14 rounded-full bg-secondary overflow-hidden flex-shrink-0">
                     <MemberAvatar path={m.photo_url} alt={m.name} className="h-full w-full object-cover" />
