@@ -123,6 +123,8 @@ export type MemberProfile = {
   why_here: string | null;
   status: "pending" | "approved" | "rejected" | "hidden";
   approved_at: string | null;
+  intro_posted_at?: string | null;
+  intro_nudge_email_sent_at?: string | null;
   created_at: string;
   updated_at: string;
 };
