@@ -167,7 +167,7 @@ const FempowerCoach = () => {
       {/* Floating button */}
       <AnimatePresence>
         {!open && (
-          <div className="fixed bottom-6 right-6 z-[60] flex items-end gap-3 max-w-[calc(100vw-3rem)]">
+          <div data-coach-anchor className="fixed bottom-6 right-6 z-[60] flex items-end gap-3 max-w-[calc(100vw-3rem)]">
             <motion.button
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
