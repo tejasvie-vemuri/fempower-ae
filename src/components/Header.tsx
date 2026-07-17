@@ -132,6 +132,9 @@ const Header = () => {
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
+                      <Link to="/admin/northstar">Admin · Northstar</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/admin/members">Admin · Members</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
