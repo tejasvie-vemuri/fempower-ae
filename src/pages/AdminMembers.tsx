@@ -39,6 +39,36 @@ const AdminMembers = () => {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [emails, setEmails] = useState<Record<string, string>>({});
 
+  const introCategory = (m: MemberProfile): IntroFilter => {
+    if (m.status !== "approved") return "all";
+    if (m.intro_posted_at) return "posted";
+    if (m.intro_nudge_email_sent_at) return "nudged";
+    return "not-nudged";
+  };
+
+  const displayMembers = useMemo(() => {
+    let rows = [...members];
+    if (introFilter !== "all") {
+      rows = rows.filter((m) => m.status === "approved" && introCategory(m) === introFilter);
+    }
+    rows.sort((a, b) => {
+      switch (sortBy) {
+        case "created-asc":
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case "nudge-desc":
+          return (b.intro_nudge_email_sent_at ? new Date(b.intro_nudge_email_sent_at).getTime() : 0) -
+                 (a.intro_nudge_email_sent_at ? new Date(a.intro_nudge_email_sent_at).getTime() : 0);
+        case "nudge-asc":
+          return (a.intro_nudge_email_sent_at ? new Date(a.intro_nudge_email_sent_at).getTime() : 0) -
+                 (b.intro_nudge_email_sent_at ? new Date(b.intro_nudge_email_sent_at).getTime() : 0);
+        case "created-desc":
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+    return rows;
+  }, [members, introFilter, sortBy]);
+
   const load = async () => {
     setLoading(true);
     let q = supabase.from("member_profiles").select("*").order("created_at", { ascending: false });
