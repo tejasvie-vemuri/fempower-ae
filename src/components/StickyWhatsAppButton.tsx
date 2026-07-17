@@ -1,5 +1,7 @@
 import { MessageCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { logEngagement } from "@/lib/engagement";
+
 
 const WHATSAPP_NUMBER = "971547911282";
 const WHATSAPP_TEXT = "Hello! I’d love to learn more about Fempower and how to join.";
@@ -27,6 +29,8 @@ const trackClick = () => {
   } catch {
     /* analytics is best-effort */
   }
+  // Persist to engagement_events so the Northstar dashboard counts it.
+  void logEngagement("whatsapp_cta_click", null, { location: "sticky_mobile" });
 };
 
 const StickyWhatsAppButton = () => {

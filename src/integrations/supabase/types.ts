@@ -479,6 +479,33 @@ export type Database = {
         }
         Relationships: []
       }
+      engagement_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json
+          target_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json
+          target_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json
+          target_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       event_photos: {
         Row: {
           alt_text: string | null
@@ -1179,11 +1206,14 @@ export type Database = {
           city: string | null
           company: string | null
           created_at: string
+          digest_opt_out: boolean
           expertise_tags: string[]
           id: string
           industry: string | null
           instagram_url: string | null
           interests: string[]
+          intro_nudge_email_sent_at: string | null
+          intro_posted_at: string | null
           is_trusted_poster: boolean
           linkedin_url: string | null
           looking_for: string[]
@@ -1205,11 +1235,14 @@ export type Database = {
           city?: string | null
           company?: string | null
           created_at?: string
+          digest_opt_out?: boolean
           expertise_tags?: string[]
           id?: string
           industry?: string | null
           instagram_url?: string | null
           interests?: string[]
+          intro_nudge_email_sent_at?: string | null
+          intro_posted_at?: string | null
           is_trusted_poster?: boolean
           linkedin_url?: string | null
           looking_for?: string[]
@@ -1231,11 +1264,14 @@ export type Database = {
           city?: string | null
           company?: string | null
           created_at?: string
+          digest_opt_out?: boolean
           expertise_tags?: string[]
           id?: string
           industry?: string | null
           instagram_url?: string | null
           interests?: string[]
+          intro_nudge_email_sent_at?: string | null
+          intro_posted_at?: string | null
           is_trusted_poster?: boolean
           linkedin_url?: string | null
           looking_for?: string[]

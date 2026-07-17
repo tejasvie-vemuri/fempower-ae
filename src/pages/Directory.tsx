@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -12,9 +13,11 @@ import { Loader2, Users, Sparkles } from "lucide-react";
 import type { MemberProfile } from "@/lib/memberProfile";
 import { Link } from "react-router-dom";
 import { useMemberProfile } from "@/hooks/useMemberProfile";
+import { logEngagement } from "@/lib/engagement";
 import { PalmDivider, DuneWave, CrescentStar } from "@/components/GulfDecoratives";
 
 const Directory = () => {
+  const [searchParams] = useSearchParams();
   const [filters, setFilters] = useState<DirectoryFilters>({ search: "", industry: null, city: null, lookingFor: null });
   const { items, loading, hasMore, loadMore } = useDirectory(filters);
   const [selected, setSelected] = useState<MemberProfile | null>(null);
@@ -33,6 +36,26 @@ const Directory = () => {
       setTotalCount(count ?? null);
     })();
   }, []);
+
+  // Log digest-referred landings so we can attribute weekly-digest conversions
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    const slot = searchParams.get("slot");
+    if (ref === "digest") {
+      void logEngagement("digest_click", null, { slot: slot ?? "member", page: "directory" });
+    }
+  }, [searchParams]);
+
+  // Auto-open a member drawer when the URL carries `?member=<user_id>`
+  useEffect(() => {
+    const memberId = searchParams.get("member");
+    if (!memberId || selected) return;
+    const found = items.find((m) => m.user_id === memberId);
+    if (found) {
+      setSelected(found);
+      void logEngagement("directory_profile_viewed", found.user_id, { source: "digest" });
+    }
+  }, [items, searchParams, selected]);
 
   return (
     <>
@@ -122,7 +145,7 @@ const Directory = () => {
                     key={m.id}
                     variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
                   >
-                    <MemberCard member={m} onClick={() => setSelected(m)} />
+                    <MemberCard member={m} onClick={() => { setSelected(m); void logEngagement("directory_profile_viewed", m.user_id); }} />
                   </motion.div>
                 ))}
               </motion.div>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { CIRCLE_TOPICS, CIRCLE_REACTIONS, CRISIS_TOPICS, REPORT_REASONS, topicLabel, UAE_HELPLINES } from "@/lib/circle";
 import CrisisBanner from "@/components/circle/CrisisBanner";
+import IntroNudgeBanner from "@/components/IntroNudgeBanner";
+import { logEngagement } from "@/lib/engagement";
 
 type Post = {
   id: string;
@@ -42,6 +44,7 @@ type Reply = {
 
 const Circle = () => {
   const { user, loading: authLoading } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const [memberStatus, setMemberStatus] = useState<string | null>(null);
   const [memberName, setMemberName] = useState<string>("");
@@ -83,6 +86,33 @@ const Circle = () => {
       setMemberName(data?.name ?? "");
     })();
   }, [user]);
+
+  // Log digest-referred landings (?ref=digest&slot=circle) once per URL
+  useEffect(() => {
+    if (searchParams.get("ref") !== "digest") return;
+    void logEngagement("digest_click", null, {
+      slot: searchParams.get("slot") ?? "circle",
+      page: "circle",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Open composer pre-filled with the introduction template when linked from
+  // the intro nudge banner/email (`/circle?compose=intro`). Runs once per URL.
+  useEffect(() => {
+    if (searchParams.get("compose") !== "intro") return;
+    if (memberStatus !== "approved" && memberStatus !== "hidden") return;
+    setComposerTopic("introduction");
+    setComposerAnon(false);
+    setComposerBody(
+      "Hi sisters —\n\nI'm [name], from [where you're from].\nRight now I'm working on [what you're doing].\nOne way a sister could support me is [ask].",
+    );
+    setComposerOpen(true);
+    const next = new URLSearchParams(searchParams);
+    next.delete("compose");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memberStatus, searchParams]);
 
   const load = async () => {
     if (!user || (memberStatus !== "approved" && memberStatus !== "hidden")) return;
@@ -290,6 +320,8 @@ const Circle = () => {
             <h1 className="font-heading text-3xl md:text-4xl text-foreground">A safe circle for the hard questions.</h1>
             <p className="text-muted-foreground font-body mt-2">Share anonymously or with your name. Replies are always from approved members and shown with their name.</p>
           </div>
+
+          <IntroNudgeBanner />
 
           {showCrisisBanner && <div className="mb-6"><CrisisBanner /></div>}
 

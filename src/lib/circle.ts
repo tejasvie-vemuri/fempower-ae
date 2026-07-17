@@ -1,4 +1,5 @@
 export const CIRCLE_TOPICS = [
+  { value: "introduction", label: "Introduction" },
   { value: "career", label: "Career" },
   { value: "relationships", label: "Relationships" },
   { value: "motherhood", label: "Motherhood" },
