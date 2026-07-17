@@ -390,7 +390,6 @@ const AdminMembers = () => {
             </div>
           )}
         </div>
-        </div>
       </main>
       <Dialog open={!!spotlightTarget} onOpenChange={(o) => { if (!o) { setSpotlightTarget(null); setSpotlightNote(""); } }}>
         <DialogContent>
