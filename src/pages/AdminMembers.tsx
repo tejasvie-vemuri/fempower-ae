@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Check, X, EyeOff, Eye, Linkedin, Instagram, Globe, Trash2 } from "lucide-react";
+import { Loader2, Check, X, EyeOff, Eye, Linkedin, Instagram, Globe, Trash2, Sparkles } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +40,10 @@ const AdminMembers = () => {
   const [search, setSearch] = useState("");
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [emails, setEmails] = useState<Record<string, string>>({});
+  const [openSpotlightIds, setOpenSpotlightIds] = useState<Set<string>>(new Set());
+  const [spotlightTarget, setSpotlightTarget] = useState<MemberProfile | null>(null);
+  const [spotlightNote, setSpotlightNote] = useState("");
+  const [spotlightSending, setSpotlightSending] = useState(false);
 
   const introCategory = (m: MemberProfile): IntroFilter => {
     if (m.status !== "approved") return "all";
@@ -90,8 +96,16 @@ const AdminMembers = () => {
       const map: Record<string, string> = {};
       (profs ?? []).forEach((p: any) => { if (p.email) map[p.user_id] = p.email; });
       setEmails(map);
+
+      const { data: openReqs } = await (supabase as any)
+        .from("spotlight_requests")
+        .select("user_id")
+        .in("user_id", userIds)
+        .in("status", ["pending", "submitted"]);
+      setOpenSpotlightIds(new Set((openReqs ?? []).map((r: any) => r.user_id)));
     } else {
       setEmails({});
+      setOpenSpotlightIds(new Set());
     }
 
     const { data: all } = await supabase.from("member_profiles").select("status");
@@ -156,6 +170,49 @@ const AdminMembers = () => {
       return;
     }
     toast({ title: "Member deleted", description: `${m.name || "User"} has been removed.` });
+    load();
+  };
+
+  const submitSpotlightInvite = async () => {
+    if (!spotlightTarget || !user) return;
+    const m = spotlightTarget;
+    setSpotlightSending(true);
+    const note = spotlightNote.trim() || null;
+    const { data: row, error } = await (supabase as any)
+      .from("spotlight_requests")
+      .insert({ user_id: m.user_id, requested_by: user.id, personal_note: note })
+      .select("id")
+      .single();
+    if (error) {
+      toast({ title: "Could not create request", description: error.message, variant: "destructive" });
+      setSpotlightSending(false);
+      return;
+    }
+
+    const recipient = emails[m.user_id];
+    if (recipient) {
+      const idempotencyKey = `spotlight-request-${row.id}`;
+      const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "spotlight-story-request",
+          recipientEmail: recipient,
+          idempotencyKey,
+          templateData: { name: m.name, personalNote: note, siteUrl: window.location.origin },
+        },
+      });
+      if (emailErr) {
+        console.error("[spotlight-story-request] invoke failed", { requestId: row.id, recipient, idempotencyKey, error: emailErr.message });
+        toast({ title: "Request saved, email failed", description: emailErr.message, variant: "destructive" });
+      } else {
+        console.log("[spotlight-story-request] invoke ok", { requestId: row.id, idempotencyKey });
+        toast({ title: "Story request sent", description: `${m.name} has been invited.` });
+      }
+    } else {
+      toast({ title: "Request created", description: "No email on file to notify her." });
+    }
+    setSpotlightSending(false);
+    setSpotlightTarget(null);
+    setSpotlightNote("");
     load();
   };
 
@@ -286,7 +343,19 @@ const AdminMembers = () => {
                       <Button size="sm" onClick={() => updateStatus(m.id, "approved")}><Check size={14} className="mr-1" />Approve</Button>
                     )}
                     {m.status === "approved" && (
-                      <Button size="sm" variant="outline" onClick={() => updateStatus(m.id, "hidden")}><EyeOff size={14} className="mr-1" />Hide</Button>
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => { setSpotlightTarget(m); setSpotlightNote(""); }}
+                          disabled={openSpotlightIds.has(m.user_id)}
+                          title={openSpotlightIds.has(m.user_id) ? "Already invited — pending or submitted" : "Invite to share her story"}
+                        >
+                          <Sparkles size={14} className="mr-1" />
+                          {openSpotlightIds.has(m.user_id) ? "Invited" : "Invite to share story"}
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => updateStatus(m.id, "hidden")}><EyeOff size={14} className="mr-1" />Hide</Button>
+                      </>
                     )}
                     {m.status === "hidden" && (
                       <Button size="sm" variant="outline" onClick={() => updateStatus(m.id, "approved")}><Eye size={14} className="mr-1" />Unhide</Button>
@@ -322,6 +391,30 @@ const AdminMembers = () => {
           )}
         </div>
       </main>
+      <Dialog open={!!spotlightTarget} onOpenChange={(o) => { if (!o) { setSpotlightTarget(null); setSpotlightNote(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Invite {spotlightTarget?.name || "member"} to share her story</DialogTitle>
+            <DialogDescription>
+              Creates a spotlight request and emails her a link to the guided story form. Add an optional personal note.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={spotlightNote}
+            onChange={(e) => setSpotlightNote(e.target.value)}
+            placeholder="Optional personal note — why you'd love to feature her…"
+            rows={4}
+            maxLength={1000}
+          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setSpotlightTarget(null)} disabled={spotlightSending}>Cancel</Button>
+            <Button onClick={submitSpotlightInvite} disabled={spotlightSending}>
+              {spotlightSending ? <Loader2 className="animate-spin mr-1" size={14} /> : <Sparkles size={14} className="mr-1" />}
+              Send invite
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Footer />
     </>
   );
