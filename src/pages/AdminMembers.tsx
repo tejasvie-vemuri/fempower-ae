@@ -102,6 +102,11 @@ const AdminMembers = () => {
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [status, search]);
+  useEffect(() => {
+    if (status !== "approved" && status !== "all" && introFilter !== "all") {
+      setIntroFilter("all");
+    }
+  }, [status, introFilter]);
 
   const updateStatus = async (id: string, newStatus: MemberProfile["status"]) => {
     const member = members.find((m) => m.id === id);
