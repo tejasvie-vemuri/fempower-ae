@@ -171,8 +171,34 @@ const AdminMembers = () => {
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-heading text-lg">{m.name || "(no name)"}</h3>
                       <Badge variant={m.status === "approved" ? "default" : "outline"}>{m.status}</Badge>
+                      {m.status === "approved" && (
+                        m.intro_posted_at ? (
+                          <Badge
+                            variant="secondary"
+                            className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100"
+                            title={`Posted ${new Date(m.intro_posted_at).toLocaleString()}`}
+                          >
+                            Intro posted · {new Date(m.intro_posted_at).toLocaleDateString()}
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="border-amber-400 text-amber-800"
+                            title={
+                              m.intro_nudge_email_sent_at
+                                ? `Last nudge sent ${new Date(m.intro_nudge_email_sent_at).toLocaleString()}`
+                                : "No nudge sent yet"
+                            }
+                          >
+                            {m.intro_nudge_email_sent_at
+                              ? `No intro · nudged ${new Date(m.intro_nudge_email_sent_at).toLocaleDateString()}`
+                              : "No intro · not nudged"}
+                          </Badge>
+                        )
+                      )}
                       {m.industry && <Badge variant="secondary">{m.industry}</Badge>}
                     </div>
+
                     <p className="text-sm text-muted-foreground">{[m.role, m.company, m.city].filter(Boolean).join(" · ") || "—"}</p>
                     {emails[m.user_id] && (
                       <a href={`mailto:${emails[m.user_id]}`} className="text-xs text-blush-dark hover:underline break-all">
