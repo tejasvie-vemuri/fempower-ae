@@ -482,16 +482,21 @@ function StoryRequestsTab() {
 
     if (data && data.length > 0) {
       const userIds = [...new Set(data.map((r: any) => r.user_id))];
-      const { data: profiles } = await supabase
-        .from("member_profiles")
-        .select("user_id, name, photo_url")
-        .in("user_id", userIds as string[]);
+      const requestIds = data.map((r: any) => r.id as string);
+      const [{ data: profiles }, deliveryMap] = await Promise.all([
+        supabase
+          .from("member_profiles")
+          .select("user_id, name, photo_url")
+          .in("user_id", userIds as string[]),
+        loadDeliveryStatuses(requestIds),
+      ]);
       const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
       setItems(
         data.map((r: any) => ({
           ...r,
           member_name: profileMap.get(r.user_id)?.name ?? "Unknown",
           member_photo: profileMap.get(r.user_id)?.photo_url ?? null,
+          delivery: deliveryMap.get(r.id) ?? null,
         }))
       );
     } else {
