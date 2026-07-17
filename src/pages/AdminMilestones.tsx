@@ -388,9 +388,60 @@ function SpotlightsTab() {
 
 // ── Story Requests Tab ──────────────────────────────────────
 
-type RequestRow = SpotlightRequest & { member_name?: string; member_photo?: string };
+type DeliveryStatus = "sent" | "failed" | "dlq" | "suppressed" | "bounced" | "complained" | "pending";
+type DeliveryInfo = { status: DeliveryStatus; at: string; error?: string | null };
+type RequestRow = SpotlightRequest & {
+  member_name?: string;
+  member_photo?: string;
+  delivery?: DeliveryInfo | null;
+};
 
 const emptyRequestForm = { user_id: "", personal_note: "" };
+
+// Fetches the latest email_send_log row per idempotency-key prefix so admins can see
+// whether the spotlight-story-request email actually landed. Kept lightweight: one
+// query per page load, filtered to this template only.
+async function loadDeliveryStatuses(
+  requestIds: string[],
+): Promise<Map<string, DeliveryInfo>> {
+  if (requestIds.length === 0) return new Map();
+  const prefixes = requestIds.map((id) => `spotlight-request-${id}%`);
+  const orClause = prefixes.map((p) => `message_id.like.${p}`).join(",");
+  const { data, error } = await (supabase as any)
+    .from("email_send_log")
+    .select("message_id, status, error_message, created_at")
+    .eq("template_name", "spotlight-story-request")
+    .or(orClause)
+    .order("created_at", { ascending: false });
+  if (error || !data) return new Map();
+
+  const map = new Map<string, DeliveryInfo>();
+  for (const row of data as Array<{ message_id: string | null; status: string; error_message: string | null; created_at: string }>) {
+    if (!row.message_id) continue;
+    // message_id is either `spotlight-request-<id>` or `spotlight-request-<id>-resend-<ts>` —
+    // strip everything after the request UUID (36 chars after the fixed prefix).
+    const match = row.message_id.match(/^spotlight-request-([0-9a-f-]{36})/i);
+    if (!match) continue;
+    const requestId = match[1];
+    if (map.has(requestId)) continue; // rows are DESC-ordered so first wins
+    map.set(requestId, {
+      status: (row.status as DeliveryStatus) ?? "pending",
+      at: row.created_at,
+      error: row.error_message,
+    });
+  }
+  return map;
+}
+
+const DELIVERY_LABEL: Record<DeliveryStatus, string> = {
+  sent: "Email delivered",
+  failed: "Email failed",
+  dlq: "Email failed (retries exhausted)",
+  suppressed: "Recipient suppressed",
+  bounced: "Bounced",
+  complained: "Marked as spam",
+  pending: "Email queued",
+};
 
 function StoryRequestsTab() {
   const { user } = useAuth();
