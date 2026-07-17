@@ -762,7 +762,7 @@ function StoryRequestsTab() {
                 ) : r.personal_note ? (
                   <p className="font-body text-sm mt-0.5 text-muted-foreground line-clamp-1">Note: "{r.personal_note}"</p>
                 ) : null}
-                <div className="flex items-center gap-2 mt-1.5">
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                   <Badge
                     variant={r.status === "published" ? "default" : r.status === "declined" ? "destructive" : "outline"}
                     className="text-xs"
@@ -774,19 +774,40 @@ function StoryRequestsTab() {
                       {r.consent_social ? "✓ Consented to share" : "No consent on file"}
                     </Badge>
                   )}
+                  {r.delivery && (
+                    <Badge
+                      variant={
+                        r.delivery.status === "sent"
+                          ? "secondary"
+                          : r.delivery.status === "pending"
+                          ? "outline"
+                          : "destructive"
+                      }
+                      className="text-xs"
+                      title={
+                        (r.delivery.error ? `${r.delivery.error} — ` : "") +
+                        new Date(r.delivery.at).toLocaleString("en-AE")
+                      }
+                    >
+                      {DELIVERY_LABEL[r.delivery.status]}
+                    </Badge>
+                  )}
                   <span className="text-xs text-muted-foreground">
                     {new Date(r.created_at).toLocaleDateString("en-AE", { dateStyle: "medium" })}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
+                {(r.status === "pending" || r.status === "submitted") && (
+                  <Button size="sm" variant="ghost" onClick={() => resend(r)}>
+                    <Send size={14} className="mr-1" />
+                    {r.delivery?.status === "sent" ? "Send again" : "Send email"}
+                  </Button>
+                )}
                 {r.status === "pending" && (
-                  <>
-                    <Button size="sm" variant="ghost" onClick={() => resend(r)}>Resend</Button>
-                    <Button size="icon" variant="ghost" title="Cancel" onClick={() => decline(r.id)}>
-                      <X size={14} className="text-red-500" />
-                    </Button>
-                  </>
+                  <Button size="icon" variant="ghost" title="Cancel" onClick={() => decline(r.id)}>
+                    <X size={14} className="text-red-500" />
+                  </Button>
                 )}
                 {r.status === "submitted" && (
                   <Button size="sm" onClick={() => openReview(r)}>Review &amp; publish</Button>
