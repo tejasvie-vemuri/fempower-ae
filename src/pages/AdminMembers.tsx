@@ -40,6 +40,10 @@ const AdminMembers = () => {
   const [search, setSearch] = useState("");
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [emails, setEmails] = useState<Record<string, string>>({});
+  const [openSpotlightIds, setOpenSpotlightIds] = useState<Set<string>>(new Set());
+  const [spotlightTarget, setSpotlightTarget] = useState<MemberProfile | null>(null);
+  const [spotlightNote, setSpotlightNote] = useState("");
+  const [spotlightSending, setSpotlightSending] = useState(false);
 
   const introCategory = (m: MemberProfile): IntroFilter => {
     if (m.status !== "approved") return "all";
