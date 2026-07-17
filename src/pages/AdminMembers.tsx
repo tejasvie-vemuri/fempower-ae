@@ -186,8 +186,38 @@ const AdminMembers = () => {
               );
             })}
           </div>
-          <div className="mb-6">
+          <div className="flex flex-wrap items-center gap-3 mb-6">
             <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search…" className="md:w-72" />
+            <Select value={introFilter} onValueChange={(v) => setIntroFilter(v as IntroFilter)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Intro status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All intros</SelectItem>
+                <SelectItem value="posted">Intro posted</SelectItem>
+                <SelectItem value="nudged">Nudged, no intro</SelectItem>
+                <SelectItem value="not-nudged">Not nudged</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="created-desc">Newest members</SelectItem>
+                <SelectItem value="created-asc">Oldest members</SelectItem>
+                <SelectItem value="nudge-desc">Last nudge: newest</SelectItem>
+                <SelectItem value="nudge-asc">Last nudge: oldest</SelectItem>
+              </SelectContent>
+            </Select>
+            {(introFilter !== "all" || sortBy !== "created-desc") && (
+              <button
+                onClick={() => { setIntroFilter("all"); setSortBy("created-desc"); }}
+                className="text-sm text-muted-foreground hover:text-foreground underline"
+              >
+                Reset filters
+              </button>
+            )}
           </div>
 
           {loading ? (
