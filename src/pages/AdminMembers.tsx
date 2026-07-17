@@ -24,6 +24,8 @@ import type { MemberProfile } from "@/lib/memberProfile";
 import { MemberAvatar } from "@/components/directory/MemberAvatar";
 
 const STATUSES: Array<MemberProfile["status"] | "all"> = ["pending", "approved", "hidden", "rejected", "all"];
+type IntroFilter = "all" | "posted" | "nudged" | "not-nudged";
+type SortBy = "created-desc" | "created-asc" | "nudge-desc" | "nudge-asc";
 
 const AdminMembers = () => {
   const { user } = useAuth();
@@ -31,6 +33,8 @@ const AdminMembers = () => {
   const [members, setMembers] = useState<MemberProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<MemberProfile["status"] | "all">("pending");
+  const [introFilter, setIntroFilter] = useState<IntroFilter>("all");
+  const [sortBy, setSortBy] = useState<SortBy>("created-desc");
   const [search, setSearch] = useState("");
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [emails, setEmails] = useState<Record<string, string>>({});
