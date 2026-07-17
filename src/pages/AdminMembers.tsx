@@ -96,8 +96,16 @@ const AdminMembers = () => {
       const map: Record<string, string> = {};
       (profs ?? []).forEach((p: any) => { if (p.email) map[p.user_id] = p.email; });
       setEmails(map);
+
+      const { data: openReqs } = await (supabase as any)
+        .from("spotlight_requests")
+        .select("user_id")
+        .in("user_id", userIds)
+        .in("status", ["pending", "submitted"]);
+      setOpenSpotlightIds(new Set((openReqs ?? []).map((r: any) => r.user_id)));
     } else {
       setEmails({});
+      setOpenSpotlightIds(new Set());
     }
 
     const { data: all } = await supabase.from("member_profiles").select("status");
