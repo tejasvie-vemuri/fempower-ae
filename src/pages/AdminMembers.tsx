@@ -343,7 +343,19 @@ const AdminMembers = () => {
                       <Button size="sm" onClick={() => updateStatus(m.id, "approved")}><Check size={14} className="mr-1" />Approve</Button>
                     )}
                     {m.status === "approved" && (
-                      <Button size="sm" variant="outline" onClick={() => updateStatus(m.id, "hidden")}><EyeOff size={14} className="mr-1" />Hide</Button>
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => { setSpotlightTarget(m); setSpotlightNote(""); }}
+                          disabled={openSpotlightIds.has(m.user_id)}
+                          title={openSpotlightIds.has(m.user_id) ? "Already invited — pending or submitted" : "Invite to share her story"}
+                        >
+                          <Sparkles size={14} className="mr-1" />
+                          {openSpotlightIds.has(m.user_id) ? "Invited" : "Invite to share story"}
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => updateStatus(m.id, "hidden")}><EyeOff size={14} className="mr-1" />Hide</Button>
+                      </>
                     )}
                     {m.status === "hidden" && (
                       <Button size="sm" variant="outline" onClick={() => updateStatus(m.id, "approved")}><Eye size={14} className="mr-1" />Unhide</Button>
