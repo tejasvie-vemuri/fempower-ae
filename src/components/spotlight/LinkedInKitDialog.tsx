@@ -79,6 +79,7 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
     setRallyLine(row.rally_line || "Rooted together, rising together.");
     setCaption(row.linkedin_caption || "");
     setLinkedinUrl(row.linkedin_url || "");
+    setAttempts(Array.isArray(row.linkedin_post_attempts) ? row.linkedin_post_attempts : []);
     setPhotoDataUrl(null);
 
     // Resolve the photo to a data URL so html-to-image can inline it without
