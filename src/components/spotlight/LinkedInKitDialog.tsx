@@ -130,10 +130,6 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
     }
   };
 
-  const runExport = async () => {
-    setDownloading(true);
-    setExportError(null);
-    try {
   const persistAttempt = async (attempt: LinkedInPostAttempt) => {
     const next = [attempt, ...attempts].slice(0, 25);
     setAttempts(next);
