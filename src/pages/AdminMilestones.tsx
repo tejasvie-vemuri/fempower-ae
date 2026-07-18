@@ -822,9 +822,14 @@ function StoryRequestsTab() {
                   <Button size="sm" onClick={() => openReview(r)}>Review &amp; publish</Button>
                 )}
                 {r.status === "published" && r.consent_social && (
-                  <Button size="sm" variant="outline" onClick={() => copyLinkedIn(r)}>
-                    <Copy size={14} className="mr-1" /> Copy LinkedIn snippet
-                  </Button>
+                  <>
+                    <Button size="sm" variant="outline" onClick={() => copyLinkedIn(r)}>
+                      <Copy size={14} className="mr-1" /> Snippet
+                    </Button>
+                    <Button size="sm" onClick={() => { setKitRow(r); setKitOpen(true); }}>
+                      <Star size={14} className="mr-1" /> LinkedIn Kit
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
