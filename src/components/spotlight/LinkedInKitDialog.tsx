@@ -60,6 +60,9 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
   const [downloading, setDownloading] = useState(false);
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [saving, setSaving] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [exportStep, setExportStep] = useState<ExportStep>("idle");
+  const [exportError, setExportError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!row) return;
