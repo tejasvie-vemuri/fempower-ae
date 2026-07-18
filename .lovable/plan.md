@@ -1,94 +1,105 @@
+## Goal
+When a member submits her Spotlight story, admin should get a one-click **"Download LinkedIn Kit"** that produces a beautifully-branded FemPower spotlight image (like the Audacious Chronicles reference, but in FemPower's voice) + a ready-to-paste LinkedIn caption. Admin never has to design anything.
 
-# Fempower engagement pack — implementation plan
+## What the member provides (expand the current form)
 
-Three connected features + one honest answer on bulk emails.
+The current `spotlight_requests` form already collects: headline, the_before, the_turning_point, the_now, advice, shoutout, photo_url, consent_social. We'll add a few fields so the poster and caption write themselves with FemPower depth:
 
----
+- **Role & company** (short, e.g. "CEO, Studio Layla")
+- **One-line identity tag** (e.g. "Founder. Mother. First-gen entrepreneur.") — sits under the name on the poster
+- **What she stopped waiting for** (short phrase, e.g. "permission to lead") — becomes the poster sub-headline in the FemPower voice
+- **Pull-quote** (auto-suggested from `advice`, editable) — the italic highlighted line on the poster
+- **Rally line / call to sisterhood** (optional, one sentence) — the closing "why FemPower" beat
+- **Consent to LinkedIn publication** (separate from existing `consent_social`) + **tag me on LinkedIn** (optional LinkedIn URL)
 
-## 1. Weekly personalised digest email
+All new fields optional except role, identity tag, and LinkedIn consent — story still works if a member skips the rest.
 
-A once-a-week email, sent Sunday 09:00 GST, that gives each approved member three concrete nudges.
+## The poster (LinkedIn-ready image)
 
-**Sections**
-- **An event for you** — next upcoming event, ideally matching a tag from her Directory interests / emirate; falls back to the soonest event.
-- **A Circle post to reply to** — latest published Circle post she hasn't replied to (skip her own), preferring posts in topics she's tagged interested in.
-- **A member to meet** — one approved Directory member she hasn't seen before, matched loosely on shared emirate/industry/interests.
+A single square 1080×1080 PNG rendered in-browser via an offscreen HTML template + `html-to-image` (or `dom-to-image-more`), so we get pixel-perfect FemPower typography, real photos, and no server-side rendering cost.
 
-Each section has a one-tap CTA button linking deep into the app (`/events/:id`, `/circle#post-:id`, `/directory?member=:id`) with UTM params so we can attribute clicks in analytics.
+Layout — inspired by the reference, re-skinned in FemPower's language:
 
-**Delivery**
-- New app-email template `weekly-digest.tsx` styled like existing branded templates.
-- New edge function `send-weekly-digest` that loops through approved, non-unsubscribed members, builds each recipient's personalised payload, and enqueues one `send-transactional-email` call per user with a per-week idempotency key (`weekly-digest-<userId>-<isoWeek>`).
-- pg_cron job runs the edge function every Sunday 09:00 GST.
-- Respects `suppressed_emails` and a per-user "digest opt-out" flag (new column on `member_profiles`).
-- Members can unsubscribe from the digest specifically via the standard unsubscribe footer.
+```
+  FEMPOWER · SPOTLIGHT SERIES · 2026
+  ──────────────────────────────
+  THE RISING
+    CHRONICLES              (Playfair display, plum + gold)
+  Vol. N · Rooted Together, Rising Together
 
-This is transactional-safe: each email is personalised, action-triggered by the recipient's own account state, and one recipient at a time — not a broadcast list.
+  ┌──────────┐   She {stopped waiting for X}
+  │  photo   │   and {turning-point verb phrase}.
+  │  (b&w    │
+  │  duotone │   {the_before → the_turning_point → the_now,
+  │  plum)   │    tightened to 4–5 short lines}
+  └──────────┘
+  NAME                       "{pull-quote}"   ← italic, gold underline
+  ROLE · COMPANY
+                              {rally line}
+  ──────────────────────────────
+  FEMPOWERAE.COM   ·   Join the sisterhood   ·   [QR to /join]
+```
 
----
+FemPower vibes, not Audacious Chronicles copy:
+- Serif: Playfair Display (already loaded). Body: DM Sans.
+- Palette: Deep Plum #4A2040, Warm Gold #D4A853, Soft Ivory #FDF8F3 background.
+- Gulf-inspired corner motif (reuse `GulfDecoratives`) instead of the octopus/hedgehog.
+- Photo rendered as a plum duotone so every spotlight looks like part of one series.
+- No stock "special edition" language — copy leans on FemPower's own vocabulary: "Rising Chronicles", "Rooted Together, Rising Together", "The sisterhood that made the room".
 
-## 2. Northstar analytics + baseline dashboard
+## The caption (ready-to-paste LinkedIn post)
 
-**Northstar definition (encoded in one place)**
+Generated with Lovable AI (`google/gemini-2.5-flash`) from the member's answers, using a locked system prompt that encodes FemPower's voice and *why* — sisterhood over competition, women-only UAE community, permission-free leadership, rooted+rising. Structure:
 
-> A member is *connection-active* in a given ISO week if she performs ≥1 of: RSVP'd to an event, published a Circle post, replied in the Circle, RSVP'd to a Meetup, hosted a Meetup, completed a Learn module, or opened a Directory member profile.
+1. Hook line (1 sentence, from headline + identity tag)
+2. Her story compressed to 4–6 short lines (before → turning point → now)
+3. Pull-quote on its own line, italicised with quotation marks
+4. Why we're telling this — one line about what FemPower stands for, tailored to her arc
+5. Tag line + LinkedIn handle if provided
+6. Hashtags: `#FemPowerAE #RisingChronicles #WomenInUAE #CommunityOverCompetition` + 2 story-specific tags the AI picks
 
-**Instrumentation**
-- New table `engagement_events` (user_id, event_type, target_id, created_at, metadata jsonb) with RLS: users can insert their own, admins can read all.
-- Server-side triggers where the action already lives in the DB (RSVP insert, Circle post insert, meetup insert/rsvp insert, learn_progress upsert).
-- Client-side call for view-based signals (Directory profile opened, digest click via UTM landing handler).
-- Existing WhatsApp sticky CTA click also lands here (it already fires a `fempower:whatsapp_cta_click` window event — we just persist it).
+Admin sees the caption in an editable textarea before copy — nothing auto-publishes.
 
-**Admin dashboard at `/admin/northstar`** (admin-only route)
-- **Big number**: WAM (weekly active members) this ISO week vs last week, with % delta.
-- **Trend chart**: last 12 weeks of WAM.
-- **Funnel**: Signed up → approved → first connection action → came back the following week (W2 retention).
-- **Breakdown**: actions per member type (Circle, Events, Meetups, Learn, Directory) — which pillar is pulling engagement.
-- **Time-to-first-action** median for members approved in the last 30 days.
-- Filters: date range, emirate, approval cohort week.
+## Admin experience
 
-The dashboard reads only from `engagement_events` + `member_profiles`, so we start with an empty baseline that fills in from the day we ship. Historical backfill for existing tables (registrations, circle_posts, meetup_rsvps, learn_progress) runs once during the migration so week 0 isn't empty.
+New tab in `/admin/milestones` → **Story Requests** (already exists). On any `submitted` or `published` row, a **"LinkedIn Kit"** button opens a dialog:
 
----
+- **Preview pane** — live render of the 1080×1080 poster (the actual DOM node we'll snapshot).
+- **Caption pane** — editable textarea pre-filled by AI; "Regenerate" button re-runs the prompt.
+- **Actions:** Download PNG, Copy caption, Copy caption + download PNG (single click), Mark as posted (stamps `linkedin_posted_at`).
+- If member hasn't consented to LinkedIn, the button is disabled with a tooltip.
 
-## 3. "Introduce yourself" ritual — 48h post-approval
+## Data changes
 
-**Flow**
-- When an admin approves a member (`member_profiles.status` moves to `approved`), we stamp `approved_at` (already exists) and add `intro_posted_at` (nullable).
-- When the member publishes her first Circle post tagged `introduction`, we set `intro_posted_at = now()`.
-- **In-app nudge**: on any authenticated page, if `approved_at` set, `intro_posted_at` null, and `now() - approved_at < 7 days`, show a soft dismissable banner on the homepage / Circle page: *"Welcome, [first name]. Tell the community who you are — a 3-line intro helps sisters find you."* with a "Write my intro" CTA that opens the Circle composer pre-loaded with the `introduction` topic tag and a prompt.
-- **Email nudge**: single transactional email `intro-nudge.tsx` sent 48h ± 6h after approval if `intro_posted_at` is still null. Sent once per member (idempotency `intro-nudge-<userId>`).
-- Adds a new `introduction` topic tag to Circle (if not already there) and a fresh empty-state on the Circle feed showing recent intros so new members see the pattern.
+Extend `spotlight_requests` and `member_spotlights` with the same new columns:
+`role_company`, `identity_tag`, `stopped_waiting_for`, `pull_quote`, `rally_line`, `linkedin_consent`, `linkedin_url`, `linkedin_posted_at`, `linkedin_caption` (cached last-generated caption).
 
----
+All nullable, no data migration needed. RLS: same policies as existing columns on those tables (admin write, self-read on requests, public read on published spotlights).
 
-## 4. Your question about a bulk re-engagement email
+## Technical bits (for the technical reviewer)
 
-I can't build the bulk "come back to the platform" campaign inside Lovable. Bulk / re-engagement / marketing emails aren't supported by the app-email system here — mixing broadcast marketing with a transactional sender damages deliverability for the emails members actually need (auth, RSVPs, receipts).
+- New component `src/components/spotlight/LinkedInPoster.tsx` — pure JSX + inline styles + CSS variables from `index.css` so `html-to-image` captures colors correctly.
+- New hook `useLinkedInKit(requestId)` — loads request + member profile + photo, calls edge function for caption, exposes `downloadPng()` and `regenerateCaption()`.
+- New edge function `generate-spotlight-caption` — admin-only, calls Lovable AI with the locked FemPower system prompt, returns `{ caption }`. Rate-limited to 5/min per admin.
+- `html-to-image` (~15KB) added to deps for the PNG snapshot.
+- Poster fonts: preload Playfair + DM Sans in the poster component so the snapshot is deterministic.
+- Photo duotone applied via CSS `filter` + a plum overlay `mix-blend-mode: color` (works in html-to-image).
+- Storage: nothing new — the PNG is generated client-side and downloaded; we don't persist it.
+- Guided-form update in `src/pages/ShareMyStory.tsx` — 3 new short-answer prompts + consent checkbox, using the existing question renderer, no route/UX overhaul.
 
-Two clean paths, both compatible with what we're building above:
+## Out of scope for this plan
 
-1. **Let the weekly digest carry it.** The Sunday digest is personalised, wanted, and *is* your re-engagement lever — inactive members literally get "here's an event, a post, a sister." Expect a much higher open + click rate than a one-off blast.
-2. **Use a marketing tool for true broadcasts.** Export the approved-member list to Mailchimp, Beehiiv, ConvertKit, or Substack (you already use Substack). Draft one intentional "we miss you" email there. I can build the export CSV + an admin page that lets you generate it whenever you want — just say the word.
+- Auto-posting to LinkedIn (would need OAuth + per-admin LinkedIn account; only offer if you explicitly want it — the connector exists but publishing needs the `w_member_social` scope granted to a specific LinkedIn account).
+- Batch/carousel posters (multi-slide). Single-square first; carousel can come after we see one round in the wild.
+- Video/animated versions.
 
----
+## Deliverable order
 
-## Technical details
+1. Migration: add the new columns to `spotlight_requests` + `member_spotlights`.
+2. Update `ShareMyStory` guided form + `STORY_QUESTIONS` in `spotlightRequests.ts`.
+3. Build `LinkedInPoster` component (with a `/admin/spotlight-preview` sandbox route to iterate on the visual).
+4. Edge function `generate-spotlight-caption` + registry.
+5. Admin "LinkedIn Kit" dialog wired into `AdminMilestones`.
+6. QA: render one real submitted request end-to-end, download the PNG, paste caption, eyeball on a LinkedIn draft.
 
-- **DB migrations**: `engagement_events` table with grants + RLS + indexes; `member_profiles` gains `intro_posted_at`, `digest_opt_out`; DB triggers on `registrations`, `circle_posts`, `circle_replies`, `meetups`, `meetup_rsvps`, `learn_progress` to insert into `engagement_events`; one-time backfill.
-- **New edge functions**: `send-weekly-digest`, `send-intro-nudges` (also cron), and the digest/intro React Email templates registered in `_shared/transactional-email-templates/registry.ts`.
-- **Cron**: `send-weekly-digest` every Sunday 09:00 GST; `send-intro-nudges` hourly.
-- **Frontend**: `/admin/northstar` page (admin-gated), homepage intro banner component, Circle composer pre-fill via query param, tiny helper `logEngagement(eventType, targetId?)` used from the few client-side entry points that don't have DB triggers.
-- **Analytics wiring**: WhatsApp sticky click, digest email UTM landing (`?ref=digest&slot=event|circle|member`), Directory profile open, all funnel through `logEngagement`.
-
----
-
-## Sequencing
-
-1. Migrations (engagement_events, member_profiles columns, triggers, backfill).
-2. `logEngagement` helper + client instrumentation.
-3. `/admin/northstar` dashboard so we can see the baseline immediately.
-4. Intro ritual (banner + email + composer pre-fill).
-5. Weekly digest (template + edge function + cron).
-
-Shall I proceed with all of it in this order, or trim/reorder anything first?
+Approve and I'll build in that order.
