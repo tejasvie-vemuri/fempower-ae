@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, ExternalLink, Download, Pencil } from "lucide-react";
+import { ArrowLeft, ExternalLink, Download, Pencil, RotateCcw } from "lucide-react";
 
 type Emirate = "dubai" | "abu-dhabi" | "sharjah";
 type VisaType = "employment" | "freelance" | "golden" | "family";
@@ -335,6 +335,23 @@ const StarterKit = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleClear = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+    setAnswers({
+      name: "",
+      emirate: "",
+      visa: "",
+      housing: "",
+      driving: false,
+    });
+    setShowResults(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <style>{`
@@ -465,6 +482,9 @@ const StarterKit = () => {
                     className="bg-blush-dark hover:bg-blush-dark/90 text-primary-foreground"
                   >
                     <Download className="h-4 w-4 mr-2" /> Download PDF
+                  </Button>
+                  <Button variant="ghost" onClick={handleClear} className="text-muted-foreground hover:text-destructive">
+                    <RotateCcw className="h-4 w-4 mr-2" /> Clear my saved answers
                   </Button>
                 </div>
 
