@@ -14,8 +14,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Copy, Download, Loader2, Sparkles, Link as LinkIcon } from "lucide-react";
+import { Copy, Download, Loader2, Sparkles, Link as LinkIcon, AlertCircle, CheckCircle2, RotateCcw } from "lucide-react";
 import { LinkedInPoster, POSTER_SIZE } from "./LinkedInPoster";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+type ExportStep = "idle" | "caption" | "poster" | "download" | "done" | "error";
+const STEP_LABEL: Record<ExportStep, string> = {
+  idle: "",
+  caption: "Copying caption to clipboard…",
+  poster: "Rendering 1080×1080 poster…",
+  download: "Downloading PNG…",
+  done: "Assets ready",
+  error: "Something went wrong",
+};
 import type { SpotlightRequest } from "@/lib/spotlightRequests";
 
 interface Props {
