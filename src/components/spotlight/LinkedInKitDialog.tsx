@@ -407,7 +407,27 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
                 onChange={(e) => setCaption(e.target.value)}
                 rows={8}
                 placeholder="Click 'Draft with AI' to generate in FemPower voice"
+                className={captionOver ? "border-destructive focus-visible:ring-destructive" : undefined}
               />
+              <div
+                className={`flex justify-between items-center text-[11px] mt-1 ${
+                  captionOver ? "text-destructive" : captionNear ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"
+                }`}
+                aria-live="polite"
+              >
+                <span>
+                  {captionLen.toLocaleString()} / {LINKEDIN_HARD_LIMIT.toLocaleString()} chars
+                </span>
+                <span>
+                  {captionOver
+                    ? `Over LinkedIn's ${LINKEDIN_HARD_LIMIT}-char cap — trim before posting`
+                    : captionNear
+                    ? `Approaching LinkedIn's ${LINKEDIN_HARD_LIMIT}-char cap`
+                    : captionLen > 210
+                    ? "First ~210 chars show before 'see more'"
+                    : ""}
+                </span>
+              </div>
               <div className="flex gap-2 mt-2">
                 <Button size="sm" variant="outline" onClick={generateCaption} disabled={generating}>
                   {generating ? <Loader2 size={14} className="mr-1 animate-spin" /> : <Sparkles size={14} className="mr-1" />}
@@ -418,6 +438,36 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
                 </Button>
               </div>
             </div>
+            {attempts.length > 0 && (
+              <div className="rounded-md border border-border bg-muted/30 p-3">
+                <div className="text-xs font-medium mb-2">Posting attempts ({attempts.length})</div>
+                <ul className="space-y-1.5 max-h-40 overflow-y-auto text-[11px]">
+                  {attempts.map((a, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      {a.status === "success" ? (
+                        <CheckCircle2 size={12} className="mt-0.5 shrink-0 text-emerald-600" />
+                      ) : (
+                        <AlertCircle size={12} className="mt-0.5 shrink-0 text-destructive" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium capitalize">{a.status}</span>
+                          <span className="text-muted-foreground">
+                            {new Date(a.at).toLocaleString()}
+                          </span>
+                          {typeof a.caption_len === "number" && (
+                            <span className="text-muted-foreground">· {a.caption_len} chars</span>
+                          )}
+                        </div>
+                        {a.error && (
+                          <div className="text-destructive break-words mt-0.5">{a.error}</div>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div>
               <Label htmlFor="linkedinUrl" className="flex items-center gap-1">
                 <LinkIcon size={12} /> Posted URL (optional)
