@@ -35,6 +35,7 @@ import {
 } from "@/lib/spotlightRequests";
 import SpotlightStory from "@/components/SpotlightStory";
 import { MemberAvatar } from "@/components/directory/MemberAvatar";
+import { LinkedInKitDialog } from "@/components/spotlight/LinkedInKitDialog";
 
 // ── Milestones Tab ──────────────────────────────────────────
 
