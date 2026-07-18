@@ -18,10 +18,23 @@ export interface SpotlightRequest {
   published_at: string | null;
   spotlight_id: string | null;
   created_at: string;
+  // LinkedIn-kit fields (added later; nullable on older rows)
+  role_company?: string | null;
+  identity_tag?: string | null;
+  stopped_waiting_for?: string | null;
+  pull_quote?: string | null;
+  rally_line?: string | null;
+  linkedin_consent?: boolean | null;
+  linkedin_url?: string | null;
+  linkedin_posted_at?: string | null;
+  linkedin_caption?: string | null;
 }
 
 export interface StoryAnswers {
   headline: string;
+  role_company: string;
+  identity_tag: string;
+  stopped_waiting_for: string;
   the_before: string;
   the_turning_point: string;
   the_now: string;
@@ -31,6 +44,9 @@ export interface StoryAnswers {
 
 export const emptyStoryAnswers: StoryAnswers = {
   headline: "",
+  role_company: "",
+  identity_tag: "",
+  stopped_waiting_for: "",
   the_before: "",
   the_turning_point: "",
   the_now: "",
@@ -57,6 +73,33 @@ export const STORY_QUESTIONS: StoryQuestion[] = [
     prompt: "If your story had one headline, what would it say?",
     placeholder: "e.g. From career break to running my own studio in 8 months",
     maxLength: 80,
+    required: true,
+    multiline: false,
+  },
+  {
+    field: "role_company",
+    label: "Where you show up",
+    prompt: "Your role and company — how you'd introduce yourself in a room?",
+    placeholder: "e.g. CEO, Studio Layla · Founder, Amber & Oud",
+    maxLength: 80,
+    required: true,
+    multiline: false,
+  },
+  {
+    field: "identity_tag",
+    label: "One line about you",
+    prompt: "A single line that says who you are — the many hats you wear.",
+    placeholder: "e.g. Founder. Mother. First-gen entrepreneur.",
+    maxLength: 90,
+    required: true,
+    multiline: false,
+  },
+  {
+    field: "stopped_waiting_for",
+    label: "What you stopped waiting for",
+    prompt: "FemPower is for women who stopped waiting for permission. What did you stop waiting for?",
+    placeholder: "e.g. permission to lead · a seat at the table · the perfect moment",
+    maxLength: 60,
     required: true,
     multiline: false,
   },

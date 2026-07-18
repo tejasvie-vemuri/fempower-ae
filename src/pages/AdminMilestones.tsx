@@ -35,6 +35,7 @@ import {
 } from "@/lib/spotlightRequests";
 import SpotlightStory from "@/components/SpotlightStory";
 import { MemberAvatar } from "@/components/directory/MemberAvatar";
+import { LinkedInKitDialog } from "@/components/spotlight/LinkedInKitDialog";
 
 // ── Milestones Tab ──────────────────────────────────────────
 
@@ -461,6 +462,8 @@ function StoryRequestsTab() {
   const [activeUntil, setActiveUntil] = useState("");
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [kitOpen, setKitOpen] = useState(false);
+  const [kitRow, setKitRow] = useState<RequestRow | null>(null);
 
   const loadMembers = async () => {
     const { data } = await supabase
@@ -625,6 +628,9 @@ function StoryRequestsTab() {
     setEditing(r);
     setEditAnswers({
       headline: r.headline ?? "",
+      role_company: r.role_company ?? "",
+      identity_tag: r.identity_tag ?? "",
+      stopped_waiting_for: r.stopped_waiting_for ?? "",
       the_before: r.the_before ?? "",
       the_turning_point: r.the_turning_point ?? "",
       the_now: r.the_now ?? "",
@@ -698,6 +704,9 @@ function StoryRequestsTab() {
     const snippet = composeLinkedInSnippet(
       {
         headline: r.headline ?? "",
+        role_company: r.role_company ?? "",
+        identity_tag: r.identity_tag ?? "",
+        stopped_waiting_for: r.stopped_waiting_for ?? "",
         the_before: r.the_before ?? "",
         the_turning_point: r.the_turning_point ?? "",
         the_now: r.the_now ?? "",
@@ -813,9 +822,14 @@ function StoryRequestsTab() {
                   <Button size="sm" onClick={() => openReview(r)}>Review &amp; publish</Button>
                 )}
                 {r.status === "published" && r.consent_social && (
-                  <Button size="sm" variant="outline" onClick={() => copyLinkedIn(r)}>
-                    <Copy size={14} className="mr-1" /> Copy LinkedIn snippet
-                  </Button>
+                  <>
+                    <Button size="sm" variant="outline" onClick={() => copyLinkedIn(r)}>
+                      <Copy size={14} className="mr-1" /> Snippet
+                    </Button>
+                    <Button size="sm" onClick={() => { setKitRow(r); setKitOpen(true); }}>
+                      <Star size={14} className="mr-1" /> LinkedIn Kit
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
@@ -931,6 +945,13 @@ function StoryRequestsTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <LinkedInKitDialog
+        open={kitOpen}
+        onClose={() => setKitOpen(false)}
+        row={kitRow}
+        onSaved={() => load()}
+      />
     </>
   );
 }

@@ -1297,9 +1297,18 @@ export type Database = {
           created_at: string
           headline: string | null
           id: string
+          identity_tag: string | null
+          linkedin_caption: string | null
+          linkedin_consent: boolean
+          linkedin_posted_at: string | null
+          linkedin_url: string | null
           photo_url: string | null
+          pull_quote: string | null
+          rally_line: string | null
           request_id: string | null
+          role_company: string | null
           shoutout: string | null
+          stopped_waiting_for: string | null
           story: string
           the_before: string | null
           the_now: string | null
@@ -1314,9 +1323,18 @@ export type Database = {
           created_at?: string
           headline?: string | null
           id?: string
+          identity_tag?: string | null
+          linkedin_caption?: string | null
+          linkedin_consent?: boolean
+          linkedin_posted_at?: string | null
+          linkedin_url?: string | null
           photo_url?: string | null
+          pull_quote?: string | null
+          rally_line?: string | null
           request_id?: string | null
+          role_company?: string | null
           shoutout?: string | null
+          stopped_waiting_for?: string | null
           story: string
           the_before?: string | null
           the_now?: string | null
@@ -1331,9 +1349,18 @@ export type Database = {
           created_at?: string
           headline?: string | null
           id?: string
+          identity_tag?: string | null
+          linkedin_caption?: string | null
+          linkedin_consent?: boolean
+          linkedin_posted_at?: string | null
+          linkedin_url?: string | null
           photo_url?: string | null
+          pull_quote?: string | null
+          rally_line?: string | null
           request_id?: string | null
+          role_company?: string | null
           shoutout?: string | null
+          stopped_waiting_for?: string | null
           story?: string
           the_before?: string | null
           the_now?: string | null
@@ -1760,13 +1787,22 @@ export type Database = {
           created_at: string
           headline: string | null
           id: string
+          identity_tag: string | null
+          linkedin_caption: string | null
+          linkedin_consent: boolean
+          linkedin_posted_at: string | null
+          linkedin_url: string | null
           personal_note: string | null
           photo_url: string | null
           published_at: string | null
+          pull_quote: string | null
+          rally_line: string | null
           requested_by: string
+          role_company: string | null
           shoutout: string | null
           spotlight_id: string | null
           status: string
+          stopped_waiting_for: string | null
           submitted_at: string | null
           the_before: string | null
           the_now: string | null
@@ -1779,13 +1815,22 @@ export type Database = {
           created_at?: string
           headline?: string | null
           id?: string
+          identity_tag?: string | null
+          linkedin_caption?: string | null
+          linkedin_consent?: boolean
+          linkedin_posted_at?: string | null
+          linkedin_url?: string | null
           personal_note?: string | null
           photo_url?: string | null
           published_at?: string | null
+          pull_quote?: string | null
+          rally_line?: string | null
           requested_by: string
+          role_company?: string | null
           shoutout?: string | null
           spotlight_id?: string | null
           status?: string
+          stopped_waiting_for?: string | null
           submitted_at?: string | null
           the_before?: string | null
           the_now?: string | null
@@ -1798,13 +1843,22 @@ export type Database = {
           created_at?: string
           headline?: string | null
           id?: string
+          identity_tag?: string | null
+          linkedin_caption?: string | null
+          linkedin_consent?: boolean
+          linkedin_posted_at?: string | null
+          linkedin_url?: string | null
           personal_note?: string | null
           photo_url?: string | null
           published_at?: string | null
+          pull_quote?: string | null
+          rally_line?: string | null
           requested_by?: string
+          role_company?: string | null
           shoutout?: string | null
           spotlight_id?: string | null
           status?: string
+          stopped_waiting_for?: string | null
           submitted_at?: string | null
           the_before?: string | null
           the_now?: string | null
