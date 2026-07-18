@@ -207,15 +207,25 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
                 />
               </div>
             </div>
-            <Button
-              onClick={downloadPng}
-              disabled={downloading || !photoDataUrl}
-              className="w-full mt-3"
-              variant="outline"
-            >
-              {downloading ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Download size={14} className="mr-2" />}
-              Download PNG
-            </Button>
+            <div className="grid grid-cols-2 gap-2 mt-3">
+              <Button
+                onClick={copyAssets}
+                disabled={downloading || !photoDataUrl}
+              >
+                {downloading ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Sparkles size={14} className="mr-2" />}
+                Copy assets
+              </Button>
+              <Button
+                onClick={downloadPng}
+                disabled={downloading || !photoDataUrl}
+                variant="outline"
+              >
+                <Download size={14} className="mr-2" /> Poster only
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-1.5 text-center">
+              One click: caption → clipboard, poster → downloads.
+            </p>
           </div>
 
           {/* Controls */}
