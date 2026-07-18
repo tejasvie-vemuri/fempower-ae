@@ -36,7 +36,11 @@ const STEP_LABEL: Record<ExportStep, string> = {
   done: "Assets ready",
   error: "Something went wrong",
 };
-import type { SpotlightRequest } from "@/lib/spotlightRequests";
+import type { SpotlightRequest, LinkedInPostAttempt } from "@/lib/spotlightRequests";
+
+// LinkedIn caption limits: hard cap 3000, recommended first-screen ~210 chars.
+const LINKEDIN_HARD_LIMIT = 3000;
+const LINKEDIN_WARN_LIMIT = 2600;
 
 interface Props {
   open: boolean;
