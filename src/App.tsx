@@ -129,6 +129,7 @@ const App = () => (
             <Route path="/admin/milestones" element={<AdminRoute><AdminMilestones /></AdminRoute>} />
             <Route path="/lifestyle-manager" element={<ProtectedRoute><LifestyleManager /></ProtectedRoute>} />
             <Route path="/the-pause" element={<ProtectedRoute><ThePause /></ProtectedRoute>} />
+            <Route path="/starter-kit" element={<ProtectedRoute><StarterKit /></ProtectedRoute>} />
             <Route path="/ai-edge" element={<ProtectedRoute><AiEdge /></ProtectedRoute>} />
             <Route path="/admin/ai-edge" element={<AdminRoute><AdminAiEdge /></AdminRoute>} />
             <Route path="/admin/lifestyle-manager" element={<AdminRoute><AdminLifestyleManager /></AdminRoute>} />
