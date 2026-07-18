@@ -18,10 +18,23 @@ export interface SpotlightRequest {
   published_at: string | null;
   spotlight_id: string | null;
   created_at: string;
+  // LinkedIn-kit fields (added later; nullable on older rows)
+  role_company?: string | null;
+  identity_tag?: string | null;
+  stopped_waiting_for?: string | null;
+  pull_quote?: string | null;
+  rally_line?: string | null;
+  linkedin_consent?: boolean | null;
+  linkedin_url?: string | null;
+  linkedin_posted_at?: string | null;
+  linkedin_caption?: string | null;
 }
 
 export interface StoryAnswers {
   headline: string;
+  role_company: string;
+  identity_tag: string;
+  stopped_waiting_for: string;
   the_before: string;
   the_turning_point: string;
   the_now: string;
@@ -31,6 +44,9 @@ export interface StoryAnswers {
 
 export const emptyStoryAnswers: StoryAnswers = {
   headline: "",
+  role_company: "",
+  identity_tag: "",
+  stopped_waiting_for: "",
   the_before: "",
   the_turning_point: "",
   the_now: "",
