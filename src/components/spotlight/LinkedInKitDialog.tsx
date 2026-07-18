@@ -134,6 +134,32 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
     setDownloading(true);
     setExportError(null);
     try {
+  const persistAttempt = async (attempt: LinkedInPostAttempt) => {
+    const next = [attempt, ...attempts].slice(0, 25);
+    setAttempts(next);
+    const { error } = await (supabase as any)
+      .from("spotlight_requests")
+      .update({
+        linkedin_caption: caption || null,
+        linkedin_post_attempts: next,
+      })
+      .eq("id", row.id);
+    if (error) {
+      console.error("[LinkedInKit] persistAttempt failed", error);
+      toast.error(`Audit log not saved: ${error.message}`);
+    } else {
+      onSaved?.();
+    }
+  };
+
+  const runExport = async () => {
+    if (captionOver) {
+      toast.error(`Caption is ${captionLen} chars — LinkedIn cap is ${LINKEDIN_HARD_LIMIT}. Trim before posting.`);
+      return;
+    }
+    setDownloading(true);
+    setExportError(null);
+    try {
       if (caption) {
         setExportStep("caption");
         // Copy caption first (clipboard write must be inside the user gesture).
@@ -151,17 +177,33 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
       toast.success(
         caption ? "Caption copied · poster downloading" : "Poster downloading (no caption yet)",
       );
+      await persistAttempt({
+        at: new Date().toISOString(),
+        status: "success",
+        caption_len: captionLen,
+      });
     } catch (e: any) {
       console.error("[LinkedInKit] copyAssets failed", e);
+      const msg = e?.message ?? String(e);
       setExportStep("error");
-      setExportError(e?.message ?? String(e));
-      toast.error(`Could not copy assets: ${e?.message ?? e}`);
+      setExportError(msg);
+      toast.error(`Could not copy assets: ${msg}`);
+      await persistAttempt({
+        at: new Date().toISOString(),
+        status: "error",
+        error: msg.slice(0, 500),
+        caption_len: captionLen,
+      });
     } finally {
       setDownloading(false);
     }
   };
 
   const copyAssets = () => {
+    if (captionOver) {
+      toast.error(`Caption is ${captionLen} chars — LinkedIn cap is ${LINKEDIN_HARD_LIMIT}. Trim before posting.`);
+      return;
+    }
     // Confirm first — this triggers a download and clipboard write.
     setExportStep("idle");
     setExportError(null);
