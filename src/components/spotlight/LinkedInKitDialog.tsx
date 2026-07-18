@@ -67,6 +67,11 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [exportStep, setExportStep] = useState<ExportStep>("idle");
   const [exportError, setExportError] = useState<string | null>(null);
+  const [attempts, setAttempts] = useState<LinkedInPostAttempt[]>([]);
+
+  const captionLen = caption.length;
+  const captionOver = captionLen > LINKEDIN_HARD_LIMIT;
+  const captionNear = captionLen > LINKEDIN_WARN_LIMIT && !captionOver;
 
   useEffect(() => {
     if (!row) return;
