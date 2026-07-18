@@ -701,6 +701,9 @@ function StoryRequestsTab() {
     const snippet = composeLinkedInSnippet(
       {
         headline: r.headline ?? "",
+        role_company: r.role_company ?? "",
+        identity_tag: r.identity_tag ?? "",
+        stopped_waiting_for: r.stopped_waiting_for ?? "",
         the_before: r.the_before ?? "",
         the_turning_point: r.the_turning_point ?? "",
         the_now: r.the_now ?? "",
