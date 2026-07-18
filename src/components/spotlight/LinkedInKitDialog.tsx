@@ -14,8 +14,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Copy, Download, Loader2, Sparkles, Link as LinkIcon } from "lucide-react";
+import { Copy, Download, Loader2, Sparkles, Link as LinkIcon, AlertCircle, CheckCircle2, RotateCcw } from "lucide-react";
 import { LinkedInPoster, POSTER_SIZE } from "./LinkedInPoster";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+type ExportStep = "idle" | "caption" | "poster" | "download" | "done" | "error";
+const STEP_LABEL: Record<ExportStep, string> = {
+  idle: "",
+  caption: "Copying caption to clipboard…",
+  poster: "Rendering 1080×1080 poster…",
+  download: "Downloading PNG…",
+  done: "Assets ready",
+  error: "Something went wrong",
+};
 import type { SpotlightRequest } from "@/lib/spotlightRequests";
 
 interface Props {
@@ -40,6 +60,9 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
   const [downloading, setDownloading] = useState(false);
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [saving, setSaving] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [exportStep, setExportStep] = useState<ExportStep>("idle");
+  const [exportError, setExportError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!row) return;
@@ -97,27 +120,47 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
     }
   };
 
-  const copyAssets = async () => {
+  const runExport = async () => {
     setDownloading(true);
+    setExportError(null);
     try {
-      // Copy caption first (clipboard write must be inside the user gesture).
-      if (caption) await navigator.clipboard.writeText(caption);
-      const dataUrl = await buildPng();
-      if (dataUrl) {
-        const link = document.createElement("a");
-        link.download = `fempower-spotlight-${(row.member_name ?? "member").replace(/\s+/g, "-").toLowerCase()}.png`;
-        link.href = dataUrl;
-        link.click();
+      if (caption) {
+        setExportStep("caption");
+        // Copy caption first (clipboard write must be inside the user gesture).
+        await navigator.clipboard.writeText(caption);
       }
+      setExportStep("poster");
+      const dataUrl = await buildPng();
+      if (!dataUrl) throw new Error("Poster rendering returned empty output");
+      setExportStep("download");
+      const link = document.createElement("a");
+      link.download = `fempower-spotlight-${(row.member_name ?? "member").replace(/\s+/g, "-").toLowerCase()}.png`;
+      link.href = dataUrl;
+      link.click();
+      setExportStep("done");
       toast.success(
         caption ? "Caption copied · poster downloading" : "Poster downloading (no caption yet)",
       );
     } catch (e: any) {
       console.error("[LinkedInKit] copyAssets failed", e);
-      toast.error(`Could not copy assets: ${e.message ?? e}`);
+      setExportStep("error");
+      setExportError(e?.message ?? String(e));
+      toast.error(`Could not copy assets: ${e?.message ?? e}`);
     } finally {
       setDownloading(false);
     }
+  };
+
+  const copyAssets = () => {
+    // Confirm first — this triggers a download and clipboard write.
+    setExportStep("idle");
+    setExportError(null);
+    setConfirmOpen(true);
+  };
+
+  const confirmAndExport = async () => {
+    setConfirmOpen(false);
+    await runExport();
   };
 
   const generateCaption = async () => {
@@ -226,7 +269,66 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
             <p className="text-[11px] text-muted-foreground mt-1.5 text-center">
               One click: caption → clipboard, poster → downloads.
             </p>
+
+            {/* Progress / error surface */}
+            {(downloading || exportStep === "done" || exportStep === "error") && (
+              <div
+                role="status"
+                aria-live="polite"
+                className={`mt-3 rounded-md border p-2.5 text-xs flex items-start gap-2 ${
+                  exportStep === "error"
+                    ? "border-destructive/50 bg-destructive/5 text-destructive"
+                    : exportStep === "done"
+                    ? "border-emerald-500/40 bg-emerald-500/5 text-emerald-700 dark:text-emerald-400"
+                    : "border-border bg-muted/40 text-muted-foreground"
+                }`}
+              >
+                {downloading ? (
+                  <Loader2 size={14} className="animate-spin mt-0.5 shrink-0" />
+                ) : exportStep === "done" ? (
+                  <CheckCircle2 size={14} className="mt-0.5 shrink-0" />
+                ) : (
+                  <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium">{STEP_LABEL[exportStep]}</div>
+                  {exportError && (
+                    <div className="mt-0.5 text-[11px] break-words opacity-90">{exportError}</div>
+                  )}
+                  {downloading && (
+                    <div className="mt-1.5 flex gap-1">
+                      {(["caption", "poster", "download"] as ExportStep[]).map((s) => {
+                        const order = ["caption", "poster", "download"] as const;
+                        const currentIdx = order.indexOf(exportStep as any);
+                        const idx = order.indexOf(s as any);
+                        const done = currentIdx > idx;
+                        const active = currentIdx === idx;
+                        return (
+                          <div
+                            key={s}
+                            className={`h-1 flex-1 rounded-full ${
+                              done ? "bg-emerald-500" : active ? "bg-primary animate-pulse" : "bg-muted"
+                            }`}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
+                  {exportStep === "error" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="mt-2 h-7"
+                      onClick={runExport}
+                    >
+                      <RotateCcw size={12} className="mr-1" /> Retry
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
+
 
           {/* Controls */}
           <div className="space-y-3">
@@ -304,6 +406,29 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Ready to export the LinkedIn kit?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will {caption ? "copy the caption to your clipboard and " : ""}download the 1080×1080 poster PNG for {row.member_name}.
+              {!caption && (
+                <span className="block mt-2 text-amber-700 dark:text-amber-400">
+                  No caption drafted yet — only the poster will be exported.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmAndExport}>
+              {caption ? "Copy & download" : "Download poster"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
+
   );
 };
