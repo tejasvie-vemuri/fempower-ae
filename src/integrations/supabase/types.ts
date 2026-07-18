@@ -1790,6 +1790,7 @@ export type Database = {
           identity_tag: string | null
           linkedin_caption: string | null
           linkedin_consent: boolean
+          linkedin_post_attempts: Json
           linkedin_posted_at: string | null
           linkedin_url: string | null
           personal_note: string | null
@@ -1818,6 +1819,7 @@ export type Database = {
           identity_tag?: string | null
           linkedin_caption?: string | null
           linkedin_consent?: boolean
+          linkedin_post_attempts?: Json
           linkedin_posted_at?: string | null
           linkedin_url?: string | null
           personal_note?: string | null
@@ -1846,6 +1848,7 @@ export type Database = {
           identity_tag?: string | null
           linkedin_caption?: string | null
           linkedin_consent?: boolean
+          linkedin_post_attempts?: Json
           linkedin_posted_at?: string | null
           linkedin_url?: string | null
           personal_note?: string | null
