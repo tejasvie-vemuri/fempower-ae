@@ -38,6 +38,7 @@ const memberNavLinks = [
   { label: "Lifestyle Manager", to: "/lifestyle-manager", showFrom: "lg" as const },
   { label: "The Pause", to: "/the-pause", showFrom: "lg" as const },
   { label: "AI Edge", to: "/ai-edge", showFrom: "lg" as const },
+  { label: "Starter Kit", to: "/starter-kit", showFrom: "lg" as const },
 ];
 
 const showFromClass: Record<"md" | "lg" | "xl", string> = {
