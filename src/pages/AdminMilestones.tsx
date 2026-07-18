@@ -945,6 +945,13 @@ function StoryRequestsTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <LinkedInKitDialog
+        open={kitOpen}
+        onClose={() => setKitOpen(false)}
+        row={kitRow}
+        onSaved={() => load()}
+      />
     </>
   );
 }
