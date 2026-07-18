@@ -37,6 +37,7 @@ const navLinks = [
 const memberNavLinks = [
   { label: "Lifestyle Manager", to: "/lifestyle-manager", showFrom: "lg" as const },
   { label: "The Pause", to: "/the-pause", showFrom: "lg" as const },
+  { label: "AI Edge", to: "/ai-edge", showFrom: "lg" as const },
 ];
 
 const showFromClass: Record<"md" | "lg" | "xl", string> = {
@@ -151,6 +152,9 @@ const Header = () => {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/admin/lifestyle-manager">Admin · Lifestyle Manager</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/ai-edge">Admin · AI Edge</Link>
                     </DropdownMenuItem>
                   </>
                 )}

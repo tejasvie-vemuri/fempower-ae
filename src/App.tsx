@@ -41,6 +41,8 @@ import ShareMyStory from "./pages/ShareMyStory";
 import AdminMilestones from "./pages/AdminMilestones";
 import LifestyleManager from "./pages/LifestyleManager";
 import ThePause from "./pages/ThePause";
+import AiEdge from "./pages/AiEdge";
+import AdminAiEdge from "./pages/AdminAiEdge";
 import AdminLifestyleManager from "./pages/AdminLifestyleManager";
 import AdminNorthstar from "./pages/AdminNorthstar";
 import ScrollToHash from "@/components/ScrollToHash";
@@ -126,6 +128,8 @@ const App = () => (
             <Route path="/admin/milestones" element={<AdminRoute><AdminMilestones /></AdminRoute>} />
             <Route path="/lifestyle-manager" element={<ProtectedRoute><LifestyleManager /></ProtectedRoute>} />
             <Route path="/the-pause" element={<ProtectedRoute><ThePause /></ProtectedRoute>} />
+            <Route path="/ai-edge" element={<ProtectedRoute><AiEdge /></ProtectedRoute>} />
+            <Route path="/admin/ai-edge" element={<AdminRoute><AdminAiEdge /></AdminRoute>} />
             <Route path="/admin/lifestyle-manager" element={<AdminRoute><AdminLifestyleManager /></AdminRoute>} />
             <Route path="/admin/northstar" element={<AdminRoute><AdminNorthstar /></AdminRoute>} />
             <Route path="/programs" element={<Navigate to="/#programs" replace />} />
