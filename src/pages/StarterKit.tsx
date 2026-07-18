@@ -473,17 +473,17 @@ const StarterKit = () => {
               </Card>
             ) : (
               <>
-                <div className="no-print flex flex-wrap gap-3 mb-6">
-                  <Button variant="outline" onClick={() => setShowResults(false)}>
-                    <Pencil className="h-4 w-4 mr-2" /> Edit answers
-                  </Button>
+                <div className="no-print flex flex-col sm:flex-row sm:flex-wrap gap-3 mb-6">
                   <Button
                     onClick={() => window.print()}
-                    className="bg-blush-dark hover:bg-blush-dark/90 text-primary-foreground"
+                    className="w-full sm:w-auto bg-blush-dark hover:bg-blush-dark/90 text-primary-foreground"
                   >
                     <Download className="h-4 w-4 mr-2" /> Download PDF
                   </Button>
-                  <Button variant="ghost" onClick={handleClear} className="text-muted-foreground hover:text-destructive">
+                  <Button variant="outline" onClick={() => setShowResults(false)} className="w-full sm:w-auto">
+                    <Pencil className="h-4 w-4 mr-2" /> Edit answers
+                  </Button>
+                  <Button variant="ghost" onClick={handleClear} className="w-full sm:w-auto text-muted-foreground hover:text-destructive">
                     <RotateCcw className="h-4 w-4 mr-2" /> Clear my saved answers
                   </Button>
                 </div>
