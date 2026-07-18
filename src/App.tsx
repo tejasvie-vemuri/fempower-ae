@@ -41,6 +41,7 @@ import ShareMyStory from "./pages/ShareMyStory";
 import AdminMilestones from "./pages/AdminMilestones";
 import LifestyleManager from "./pages/LifestyleManager";
 import ThePause from "./pages/ThePause";
+import StarterKit from "./pages/StarterKit";
 import AiEdge from "./pages/AiEdge";
 import AdminAiEdge from "./pages/AdminAiEdge";
 import AdminLifestyleManager from "./pages/AdminLifestyleManager";
