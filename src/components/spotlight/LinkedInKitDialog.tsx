@@ -69,16 +69,21 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
 
   if (!row) return null;
 
+  const buildPng = async (): Promise<string | null> => {
+    if (!posterRef.current) return null;
+    return await toPng(posterRef.current, {
+      width: POSTER_SIZE,
+      height: POSTER_SIZE,
+      pixelRatio: 2,
+      cacheBust: true,
+    });
+  };
+
   const downloadPng = async () => {
-    if (!posterRef.current) return;
     setDownloading(true);
     try {
-      const dataUrl = await toPng(posterRef.current, {
-        width: POSTER_SIZE,
-        height: POSTER_SIZE,
-        pixelRatio: 2,
-        cacheBust: true,
-      });
+      const dataUrl = await buildPng();
+      if (!dataUrl) return;
       const link = document.createElement("a");
       link.download = `fempower-spotlight-${(row.member_name ?? "member").replace(/\s+/g, "-").toLowerCase()}.png`;
       link.href = dataUrl;
@@ -87,6 +92,29 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
     } catch (e: any) {
       console.error("[LinkedInKit] toPng failed", e);
       toast.error(`Could not export: ${e.message ?? e}`);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const copyAssets = async () => {
+    setDownloading(true);
+    try {
+      // Copy caption first (clipboard write must be inside the user gesture).
+      if (caption) await navigator.clipboard.writeText(caption);
+      const dataUrl = await buildPng();
+      if (dataUrl) {
+        const link = document.createElement("a");
+        link.download = `fempower-spotlight-${(row.member_name ?? "member").replace(/\s+/g, "-").toLowerCase()}.png`;
+        link.href = dataUrl;
+        link.click();
+      }
+      toast.success(
+        caption ? "Caption copied · poster downloading" : "Poster downloading (no caption yet)",
+      );
+    } catch (e: any) {
+      console.error("[LinkedInKit] copyAssets failed", e);
+      toast.error(`Could not copy assets: ${e.message ?? e}`);
     } finally {
       setDownloading(false);
     }
