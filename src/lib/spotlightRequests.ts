@@ -28,6 +28,15 @@ export interface SpotlightRequest {
   linkedin_url?: string | null;
   linkedin_posted_at?: string | null;
   linkedin_caption?: string | null;
+  linkedin_post_attempts?: LinkedInPostAttempt[] | null;
+}
+
+export interface LinkedInPostAttempt {
+  at: string; // ISO timestamp
+  status: "success" | "error";
+  error?: string;
+  caption_len?: number;
+  actor?: string; // admin user id if available
 }
 
 export interface StoryAnswers {
