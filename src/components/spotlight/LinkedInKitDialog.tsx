@@ -251,7 +251,7 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
               />
             </div>
             <div>
-              <Label>Caption for LinkedIn post</Label>
+              <Label>Caption for LinkedIn post <span className="text-muted-foreground font-normal">(edit freely before posting)</span></Label>
               <Textarea
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
