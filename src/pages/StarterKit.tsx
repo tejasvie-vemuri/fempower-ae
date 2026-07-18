@@ -335,6 +335,23 @@ const StarterKit = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleClear = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+    setAnswers({
+      name: "",
+      emirate: "",
+      visa: "",
+      housing: "",
+      driving: false,
+    });
+    setShowResults(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <style>{`
