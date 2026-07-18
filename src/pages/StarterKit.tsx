@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, ExternalLink, Download, Pencil } from "lucide-react";
+import { ArrowLeft, ExternalLink, Download, Pencil, RotateCcw } from "lucide-react";
 
 type Emirate = "dubai" | "abu-dhabi" | "sharjah";
 type VisaType = "employment" | "freelance" | "golden" | "family";
