@@ -406,6 +406,29 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Ready to export the LinkedIn kit?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will {caption ? "copy the caption to your clipboard and " : ""}download the 1080×1080 poster PNG for {row.member_name}.
+              {!caption && (
+                <span className="block mt-2 text-amber-700 dark:text-amber-400">
+                  No caption drafted yet — only the poster will be exported.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmAndExport}>
+              {caption ? "Copy & download" : "Download poster"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
+
   );
 };
