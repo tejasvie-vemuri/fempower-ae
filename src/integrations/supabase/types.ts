@@ -14,6 +14,115 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_edge_bookmarks: {
+        Row: {
+          created_at: string
+          id: string
+          prompt_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          prompt_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          prompt_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_edge_bookmarks_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "ai_edge_prompts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_edge_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_published: boolean
+          order_index: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_published?: boolean
+          order_index?: number
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_published?: boolean
+          order_index?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      ai_edge_prompts: {
+        Row: {
+          category_id: string
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_published: boolean
+          order_index: number
+          prompt_text: string
+          source: string | null
+          source_url: string | null
+          title: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_published?: boolean
+          order_index?: number
+          prompt_text: string
+          source?: string | null
+          source_url?: string | null
+          title: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_published?: boolean
+          order_index?: number
+          prompt_text?: string
+          source?: string | null
+          source_url?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_edge_prompts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "ai_edge_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approval_actions: {
         Row: {
           action_type: string
