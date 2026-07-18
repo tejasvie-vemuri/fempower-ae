@@ -483,6 +483,9 @@ const StarterKit = () => {
                   >
                     <Download className="h-4 w-4 mr-2" /> Download PDF
                   </Button>
+                  <Button variant="ghost" onClick={handleClear} className="text-muted-foreground hover:text-destructive">
+                    <RotateCcw className="h-4 w-4 mr-2" /> Clear my saved answers
+                  </Button>
                 </div>
 
                 <div className="no-print mb-4 text-sm text-muted-foreground">
