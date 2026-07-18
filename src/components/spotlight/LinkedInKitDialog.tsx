@@ -120,27 +120,47 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
     }
   };
 
-  const copyAssets = async () => {
+  const runExport = async () => {
     setDownloading(true);
+    setExportError(null);
     try {
-      // Copy caption first (clipboard write must be inside the user gesture).
-      if (caption) await navigator.clipboard.writeText(caption);
-      const dataUrl = await buildPng();
-      if (dataUrl) {
-        const link = document.createElement("a");
-        link.download = `fempower-spotlight-${(row.member_name ?? "member").replace(/\s+/g, "-").toLowerCase()}.png`;
-        link.href = dataUrl;
-        link.click();
+      if (caption) {
+        setExportStep("caption");
+        // Copy caption first (clipboard write must be inside the user gesture).
+        await navigator.clipboard.writeText(caption);
       }
+      setExportStep("poster");
+      const dataUrl = await buildPng();
+      if (!dataUrl) throw new Error("Poster rendering returned empty output");
+      setExportStep("download");
+      const link = document.createElement("a");
+      link.download = `fempower-spotlight-${(row.member_name ?? "member").replace(/\s+/g, "-").toLowerCase()}.png`;
+      link.href = dataUrl;
+      link.click();
+      setExportStep("done");
       toast.success(
         caption ? "Caption copied · poster downloading" : "Poster downloading (no caption yet)",
       );
     } catch (e: any) {
       console.error("[LinkedInKit] copyAssets failed", e);
-      toast.error(`Could not copy assets: ${e.message ?? e}`);
+      setExportStep("error");
+      setExportError(e?.message ?? String(e));
+      toast.error(`Could not copy assets: ${e?.message ?? e}`);
     } finally {
       setDownloading(false);
     }
+  };
+
+  const copyAssets = () => {
+    // Confirm first — this triggers a download and clipboard write.
+    setExportStep("idle");
+    setExportError(null);
+    setConfirmOpen(true);
+  };
+
+  const confirmAndExport = async () => {
+    setConfirmOpen(false);
+    await runExport();
   };
 
   const generateCaption = async () => {
