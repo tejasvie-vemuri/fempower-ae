@@ -69,16 +69,21 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
 
   if (!row) return null;
 
+  const buildPng = async (): Promise<string | null> => {
+    if (!posterRef.current) return null;
+    return await toPng(posterRef.current, {
+      width: POSTER_SIZE,
+      height: POSTER_SIZE,
+      pixelRatio: 2,
+      cacheBust: true,
+    });
+  };
+
   const downloadPng = async () => {
-    if (!posterRef.current) return;
     setDownloading(true);
     try {
-      const dataUrl = await toPng(posterRef.current, {
-        width: POSTER_SIZE,
-        height: POSTER_SIZE,
-        pixelRatio: 2,
-        cacheBust: true,
-      });
+      const dataUrl = await buildPng();
+      if (!dataUrl) return;
       const link = document.createElement("a");
       link.download = `fempower-spotlight-${(row.member_name ?? "member").replace(/\s+/g, "-").toLowerCase()}.png`;
       link.href = dataUrl;
@@ -87,6 +92,29 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
     } catch (e: any) {
       console.error("[LinkedInKit] toPng failed", e);
       toast.error(`Could not export: ${e.message ?? e}`);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const copyAssets = async () => {
+    setDownloading(true);
+    try {
+      // Copy caption first (clipboard write must be inside the user gesture).
+      if (caption) await navigator.clipboard.writeText(caption);
+      const dataUrl = await buildPng();
+      if (dataUrl) {
+        const link = document.createElement("a");
+        link.download = `fempower-spotlight-${(row.member_name ?? "member").replace(/\s+/g, "-").toLowerCase()}.png`;
+        link.href = dataUrl;
+        link.click();
+      }
+      toast.success(
+        caption ? "Caption copied · poster downloading" : "Poster downloading (no caption yet)",
+      );
+    } catch (e: any) {
+      console.error("[LinkedInKit] copyAssets failed", e);
+      toast.error(`Could not copy assets: ${e.message ?? e}`);
     } finally {
       setDownloading(false);
     }
@@ -179,15 +207,25 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
                 />
               </div>
             </div>
-            <Button
-              onClick={downloadPng}
-              disabled={downloading || !photoDataUrl}
-              className="w-full mt-3"
-              variant="outline"
-            >
-              {downloading ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Download size={14} className="mr-2" />}
-              Download PNG
-            </Button>
+            <div className="grid grid-cols-2 gap-2 mt-3">
+              <Button
+                onClick={copyAssets}
+                disabled={downloading || !photoDataUrl}
+              >
+                {downloading ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Sparkles size={14} className="mr-2" />}
+                Copy assets
+              </Button>
+              <Button
+                onClick={downloadPng}
+                disabled={downloading || !photoDataUrl}
+                variant="outline"
+              >
+                <Download size={14} className="mr-2" /> Poster only
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-1.5 text-center">
+              One click: caption → clipboard, poster → downloads.
+            </p>
           </div>
 
           {/* Controls */}
@@ -213,7 +251,7 @@ export const LinkedInKitDialog = ({ open, onClose, row, onSaved }: Props) => {
               />
             </div>
             <div>
-              <Label>Caption for LinkedIn post</Label>
+              <Label>Caption for LinkedIn post <span className="text-muted-foreground font-normal">(edit freely before posting)</span></Label>
               <Textarea
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
