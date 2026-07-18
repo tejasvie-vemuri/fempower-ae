@@ -462,6 +462,8 @@ function StoryRequestsTab() {
   const [activeUntil, setActiveUntil] = useState("");
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [kitOpen, setKitOpen] = useState(false);
+  const [kitRow, setKitRow] = useState<RequestRow | null>(null);
 
   const loadMembers = async () => {
     const { data } = await supabase
