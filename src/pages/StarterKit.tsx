@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, ExternalLink, Download, Pencil, RotateCcw } from "lucide-react";
+import { ArrowLeft, ExternalLink, Download, Pencil, RotateCcw, AlertCircle } from "lucide-react";
 
 type Emirate = "dubai" | "abu-dhabi" | "sharjah";
 type VisaType = "employment" | "freelance" | "golden" | "family";
