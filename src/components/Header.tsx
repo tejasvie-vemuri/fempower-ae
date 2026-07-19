@@ -54,6 +54,10 @@ const Header = () => {
     "Account";
   const initial = displayName.charAt(0).toUpperCase();
   const visibleNavLinks = navLinks;
+  const visibleMembersMenu = membersMenu.filter((m) => !m.memberOnly || !!user);
+
+  const linkClass =
+    "text-[11px] font-body font-medium uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground transition-colors";
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
@@ -62,27 +66,44 @@ const Header = () => {
           <img src={logo} alt="Fempower" className="h-10 md:h-12 w-auto object-contain" />
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6 lg:gap-8 xl:gap-10">
+        <nav className="hidden md:flex items-center gap-7 lg:gap-9 xl:gap-11">
           {visibleNavLinks.map((link) => (
-            <HashLink
-              key={link.to}
-              to={link.to}
-              className={`${showFromClass[link.showFrom]} text-xs font-body font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors`}
-            >
+            <HashLink key={link.to} to={link.to} className={linkClass}>
               {link.label}
             </HashLink>
           ))}
-          {user &&
-            memberNavLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`${showFromClass[link.showFrom]} text-xs font-body font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors`}
-              >
-                {link.label}
-              </Link>
-            ))}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={`${linkClass} inline-flex items-center gap-1 outline-none focus-visible:text-foreground`}
+              aria-label="Members menu"
+            >
+              Members <ChevronDown size={12} aria-hidden="true" className="opacity-70" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52 mt-2">
+              {visibleMembersMenu.map((m) => (
+                <DropdownMenuItem key={m.to} asChild>
+                  <Link
+                    to={m.to}
+                    className="font-body text-sm tracking-wide"
+                  >
+                    {m.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+              {!user && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/join" className="font-body text-sm tracking-wide text-foreground">
+                      Unlock member tools →
+                    </Link>
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
+
 
         <div className="flex items-center gap-3 md:gap-4">
           <a href="https://www.instagram.com/fempower.ae?igsh=cDB1OXNxcmhxanY5&utm_source=qr" target="_blank" rel="noreferrer" aria-label="Fempower on Instagram" className="hidden sm:inline-flex text-muted-foreground hover:text-foreground transition-colors">
