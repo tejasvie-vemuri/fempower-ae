@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, Instagram, User, LogOut, Bookmark, Heart } from "lucide-react";
+import { Menu, Instagram, User, LogOut, Bookmark, Heart, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import HashLink from "@/components/HashLink";
 import {
@@ -24,28 +24,22 @@ import { useMemberProfile } from "@/hooks/useMemberProfile";
 import InviteSisterDialog from "@/components/InviteSisterDialog";
 import logo from "@/assets/fempower-logo.png";
 
+// Primary nav — kept intentionally short (3 items) for a premium, editorial feel.
 const navLinks = [
-  { label: "What We Do", to: "/#offerings", showFrom: "md" as const },
-  { label: "Programs", to: "/#programs", showFrom: "xl" as const },
-  { label: "Events", to: "/#events-calendar", showFrom: "md" as const },
-  { label: "Directory", to: "/directory", showFrom: "md" as const },
-  { label: "Learn", to: "/learn", showFrom: "lg" as const },
+  { label: "What We Do", to: "/#offerings" },
+  { label: "Events", to: "/#events-calendar" },
+  { label: "Directory", to: "/directory" },
 ];
 
-// Member-only links, shown only once signed in, kept separate from
-// navLinks since visibleNavLinks no longer filters by auth.
-const memberNavLinks = [
-  { label: "Lifestyle Manager", to: "/lifestyle-manager", showFrom: "lg" as const },
-  { label: "The Pause", to: "/the-pause", showFrom: "lg" as const },
-  { label: "AI Edge", to: "/ai-edge", showFrom: "lg" as const },
-  { label: "Starter Kit", to: "/starter-kit", showFrom: "lg" as const },
+// Grouped under the "Members" dropdown. Learn is public; the rest are member-only.
+const membersMenu = [
+  { label: "Learn", to: "/learn", memberOnly: false },
+  { label: "Lifestyle Manager", to: "/lifestyle-manager", memberOnly: true },
+  { label: "The Pause", to: "/the-pause", memberOnly: true },
+  { label: "AI Edge", to: "/ai-edge", memberOnly: true },
+  { label: "Starter Kit", to: "/starter-kit", memberOnly: true },
 ];
 
-const showFromClass: Record<"md" | "lg" | "xl", string> = {
-  md: "hidden md:inline-flex",
-  lg: "hidden lg:inline-flex",
-  xl: "hidden xl:inline-flex",
-};
 
 const Header = () => {
   const [open, setOpen] = useState(false);
@@ -60,6 +54,10 @@ const Header = () => {
     "Account";
   const initial = displayName.charAt(0).toUpperCase();
   const visibleNavLinks = navLinks;
+  const visibleMembersMenu = membersMenu.filter((m) => !m.memberOnly || !!user);
+
+  const linkClass =
+    "text-[11px] font-body font-medium uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground transition-colors";
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
@@ -68,27 +66,44 @@ const Header = () => {
           <img src={logo} alt="Fempower" className="h-10 md:h-12 w-auto object-contain" />
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6 lg:gap-8 xl:gap-10">
+        <nav className="hidden md:flex items-center gap-7 lg:gap-9 xl:gap-11">
           {visibleNavLinks.map((link) => (
-            <HashLink
-              key={link.to}
-              to={link.to}
-              className={`${showFromClass[link.showFrom]} text-xs font-body font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors`}
-            >
+            <HashLink key={link.to} to={link.to} className={linkClass}>
               {link.label}
             </HashLink>
           ))}
-          {user &&
-            memberNavLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`${showFromClass[link.showFrom]} text-xs font-body font-medium uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors`}
-              >
-                {link.label}
-              </Link>
-            ))}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={`${linkClass} inline-flex items-center gap-1 outline-none focus-visible:text-foreground`}
+              aria-label="Members menu"
+            >
+              Members <ChevronDown size={12} aria-hidden="true" className="opacity-70" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52 mt-2">
+              {visibleMembersMenu.map((m) => (
+                <DropdownMenuItem key={m.to} asChild>
+                  <Link
+                    to={m.to}
+                    className="font-body text-sm tracking-wide"
+                  >
+                    {m.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+              {!user && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/join" className="font-body text-sm tracking-wide text-foreground">
+                      Unlock member tools →
+                    </Link>
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
+
 
         <div className="flex items-center gap-3 md:gap-4">
           <a href="https://www.instagram.com/fempower.ae?igsh=cDB1OXNxcmhxanY5&utm_source=qr" target="_blank" rel="noreferrer" aria-label="Fempower on Instagram" className="hidden sm:inline-flex text-muted-foreground hover:text-foreground transition-colors">
@@ -229,18 +244,23 @@ const Header = () => {
                     {link.label}
                   </HashLink>
                 ))}
+                {/* Members section — mirrors the desktop dropdown */}
+                <div className="pt-2 mt-1 border-t border-border/60">
+                  <p className="text-[10px] font-body uppercase tracking-[0.22em] text-muted-foreground/70 mb-2">Members</p>
+                  {visibleMembersMenu.map((m) => (
+                    <Link
+                      key={m.to}
+                      to={m.to}
+                      onClick={() => setOpen(false)}
+                      className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground min-h-11 flex items-center"
+                    >
+                      {m.label}
+                    </Link>
+                  ))}
+                </div>
                 {user ? (
                   <>
-                    {memberNavLinks.map((link) => (
-                      <Link
-                        key={link.to}
-                        to={link.to}
-                        onClick={() => setOpen(false)}
-                        className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground min-h-11 flex items-center"
-                      >
-                        {link.label}
-                      </Link>
-                    ))}
+
                     <Link
                       to="/account/profile"
                       onClick={() => setOpen(false)}
