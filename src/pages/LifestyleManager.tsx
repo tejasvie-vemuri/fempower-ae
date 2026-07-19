@@ -146,6 +146,15 @@ const dueLabel = (days: number) => {
   return `In ${days} days`;
 };
 
+const LM_TABS = [
+  { value: "chat", label: "Chat" },
+  { value: "today", label: "Today" },
+  { value: "people", label: "People" },
+  { value: "groceries", label: "Groceries" },
+  { value: "history", label: "History" },
+  { value: "settings", label: "Settings" },
+];
+
 const LifestyleManager = () => {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
