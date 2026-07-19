@@ -301,6 +301,10 @@ const StarterKit = () => {
     driving: false,
   });
   const [showResults, setShowResults] = useState(false);
+  const [errors, setErrors] = useState<{ emirate?: string; visa?: string; housing?: string }>({});
+  const emirateRef = useRef<HTMLDivElement | null>(null);
+  const visaRef = useRef<HTMLDivElement | null>(null);
+  const housingRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     try {
@@ -325,7 +329,23 @@ const StarterKit = () => {
   );
 
   const handleBuild = () => {
-    if (!canSubmit) return;
+    const nextErrors: typeof errors = {};
+    if (!answers.emirate) nextErrors.emirate = "Please choose the emirate you're moving to.";
+    if (!answers.visa) nextErrors.visa = "Please choose your visa type.";
+    if (!answers.housing) nextErrors.housing = "Please tell us if you're renting or own your home.";
+    setErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
+      const firstRef = nextErrors.emirate ? emirateRef : nextErrors.visa ? visaRef : housingRef;
+      firstRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Move focus to the first invalid control for accessibility
+      const focusable = firstRef.current?.querySelector<HTMLElement>(
+        'button, [role="radiogroup"] button, input',
+      );
+      focusable?.focus({ preventScroll: true });
+      return;
+    }
+
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(answers));
     } catch {
