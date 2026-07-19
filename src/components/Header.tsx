@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, Instagram, User, LogOut, Bookmark, Heart } from "lucide-react";
+import { Menu, Instagram, User, LogOut, Bookmark, Heart, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import HashLink from "@/components/HashLink";
 import {
@@ -24,28 +24,22 @@ import { useMemberProfile } from "@/hooks/useMemberProfile";
 import InviteSisterDialog from "@/components/InviteSisterDialog";
 import logo from "@/assets/fempower-logo.png";
 
+// Primary nav — kept intentionally short (3 items) for a premium, editorial feel.
 const navLinks = [
-  { label: "What We Do", to: "/#offerings", showFrom: "md" as const },
-  { label: "Programs", to: "/#programs", showFrom: "xl" as const },
-  { label: "Events", to: "/#events-calendar", showFrom: "md" as const },
-  { label: "Directory", to: "/directory", showFrom: "md" as const },
-  { label: "Learn", to: "/learn", showFrom: "lg" as const },
+  { label: "What We Do", to: "/#offerings" },
+  { label: "Events", to: "/#events-calendar" },
+  { label: "Directory", to: "/directory" },
 ];
 
-// Member-only links, shown only once signed in, kept separate from
-// navLinks since visibleNavLinks no longer filters by auth.
-const memberNavLinks = [
-  { label: "Lifestyle Manager", to: "/lifestyle-manager", showFrom: "lg" as const },
-  { label: "The Pause", to: "/the-pause", showFrom: "lg" as const },
-  { label: "AI Edge", to: "/ai-edge", showFrom: "lg" as const },
-  { label: "Starter Kit", to: "/starter-kit", showFrom: "lg" as const },
+// Grouped under the "Members" dropdown. Learn is public; the rest are member-only.
+const membersMenu = [
+  { label: "Learn", to: "/learn", memberOnly: false },
+  { label: "Lifestyle Manager", to: "/lifestyle-manager", memberOnly: true },
+  { label: "The Pause", to: "/the-pause", memberOnly: true },
+  { label: "AI Edge", to: "/ai-edge", memberOnly: true },
+  { label: "Starter Kit", to: "/starter-kit", memberOnly: true },
 ];
 
-const showFromClass: Record<"md" | "lg" | "xl", string> = {
-  md: "hidden md:inline-flex",
-  lg: "hidden lg:inline-flex",
-  xl: "hidden xl:inline-flex",
-};
 
 const Header = () => {
   const [open, setOpen] = useState(false);
