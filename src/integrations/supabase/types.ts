@@ -80,11 +80,13 @@ export type Database = {
           description: string | null
           icon: string | null
           id: string
+          instructions: string | null
           is_published: boolean
           order_index: number
           prompt_text: string
           source: string | null
           source_url: string | null
+          steps: Json | null
           title: string
         }
         Insert: {
@@ -93,11 +95,13 @@ export type Database = {
           description?: string | null
           icon?: string | null
           id?: string
+          instructions?: string | null
           is_published?: boolean
           order_index?: number
-          prompt_text: string
+          prompt_text?: string
           source?: string | null
           source_url?: string | null
+          steps?: Json | null
           title: string
         }
         Update: {
@@ -106,11 +110,13 @@ export type Database = {
           description?: string | null
           icon?: string | null
           id?: string
+          instructions?: string | null
           is_published?: boolean
           order_index?: number
           prompt_text?: string
           source?: string | null
           source_url?: string | null
+          steps?: Json | null
           title?: string
         }
         Relationships: [
