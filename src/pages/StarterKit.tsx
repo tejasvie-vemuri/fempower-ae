@@ -367,6 +367,7 @@ const StarterKit = () => {
       visa: "",
       housing: "",
       driving: false,
+    });
     setShowResults(false);
     setErrors({});
     window.scrollTo({ top: 0, behavior: "smooth" });
