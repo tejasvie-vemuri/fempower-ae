@@ -427,22 +427,53 @@ const StarterKit = () => {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Which emirate are you moving to?</Label>
-                    <Select value={answers.emirate} onValueChange={(v) => setAnswers({ ...answers, emirate: v as Emirate })}>
-                      <SelectTrigger><SelectValue placeholder="Choose an emirate" /></SelectTrigger>
+                  <div className="space-y-2" ref={emirateRef}>
+                    <Label htmlFor="emirate-trigger">Which emirate are you moving to?</Label>
+                    <Select
+                      value={answers.emirate}
+                      onValueChange={(v) => {
+                        setAnswers({ ...answers, emirate: v as Emirate });
+                        setErrors((e) => ({ ...e, emirate: undefined }));
+                      }}
+                    >
+                      <SelectTrigger
+                        id="emirate-trigger"
+                        aria-invalid={!!errors.emirate}
+                        aria-describedby={errors.emirate ? "emirate-error" : undefined}
+                        className={errors.emirate ? "border-destructive focus:ring-destructive" : ""}
+                      >
+                        <SelectValue placeholder="Choose an emirate" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="dubai">Dubai</SelectItem>
                         <SelectItem value="abu-dhabi">Abu Dhabi</SelectItem>
                         <SelectItem value="sharjah">Sharjah</SelectItem>
                       </SelectContent>
                     </Select>
+                    {errors.emirate && (
+                      <p id="emirate-error" role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
+                        <AlertCircle className="h-4 w-4" /> {errors.emirate}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Visa type</Label>
-                    <Select value={answers.visa} onValueChange={(v) => setAnswers({ ...answers, visa: v as VisaType })}>
-                      <SelectTrigger><SelectValue placeholder="Choose your visa" /></SelectTrigger>
+                  <div className="space-y-2" ref={visaRef}>
+                    <Label htmlFor="visa-trigger">Visa type</Label>
+                    <Select
+                      value={answers.visa}
+                      onValueChange={(v) => {
+                        setAnswers({ ...answers, visa: v as VisaType });
+                        setErrors((e) => ({ ...e, visa: undefined }));
+                      }}
+                    >
+                      <SelectTrigger
+                        id="visa-trigger"
+                        aria-invalid={!!errors.visa}
+                        aria-describedby={errors.visa ? "visa-error" : undefined}
+                        className={errors.visa ? "border-destructive focus:ring-destructive" : ""}
+                      >
+                        <SelectValue placeholder="Choose your visa" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="employment">Employment visa (sponsored by employer)</SelectItem>
                         <SelectItem value="freelance">Freelance / self-sponsored visa</SelectItem>
@@ -450,14 +481,24 @@ const StarterKit = () => {
                         <SelectItem value="family">Family / dependent visa</SelectItem>
                       </SelectContent>
                     </Select>
+                    {errors.visa && (
+                      <p id="visa-error" role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
+                        <AlertCircle className="h-4 w-4" /> {errors.visa}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2" ref={housingRef}>
                     <Label>Are you renting or do you own your home?</Label>
                     <RadioGroup
                       value={answers.housing}
-                      onValueChange={(v) => setAnswers({ ...answers, housing: v as Housing })}
-                      className="flex gap-6"
+                      onValueChange={(v) => {
+                        setAnswers({ ...answers, housing: v as Housing });
+                        setErrors((e) => ({ ...e, housing: undefined }));
+                      }}
+                      aria-invalid={!!errors.housing}
+                      aria-describedby={errors.housing ? "housing-error" : undefined}
+                      className={`flex gap-6 ${errors.housing ? "rounded-md ring-1 ring-destructive p-2 -m-2" : ""}`}
                     >
                       <label className="flex items-center gap-2 cursor-pointer">
                         <RadioGroupItem value="rent" id="rent" />
@@ -468,6 +509,11 @@ const StarterKit = () => {
                         <span>Own home</span>
                       </label>
                     </RadioGroup>
+                    {errors.housing && (
+                      <p id="housing-error" role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
+                        <AlertCircle className="h-4 w-4" /> {errors.housing}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between rounded-lg border border-border p-4">
@@ -484,7 +530,6 @@ const StarterKit = () => {
 
                   <Button
                     onClick={handleBuild}
-                    disabled={!canSubmit}
                     className="w-full bg-blush-dark hover:bg-blush-dark/90 text-primary-foreground"
                     size="lg"
                   >
