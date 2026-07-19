@@ -701,14 +701,29 @@ const LifestyleManager = () => {
             )}
           </motion.div>
 
-          <Tabs defaultValue="chat" className="mt-8">
-            <TabsList className="mb-6 w-full justify-start overflow-x-auto flex-nowrap">
-              <TabsTrigger value="chat" className="shrink-0">Chat</TabsTrigger>
-              <TabsTrigger value="today" className="shrink-0">Today</TabsTrigger>
-              <TabsTrigger value="people" className="shrink-0">People</TabsTrigger>
-              <TabsTrigger value="groceries" className="shrink-0">Groceries</TabsTrigger>
-              <TabsTrigger value="history" className="shrink-0">History</TabsTrigger>
-              <TabsTrigger value="settings" className="shrink-0">Settings</TabsTrigger>
+          <Tabs value={lmTab} onValueChange={setLmTab} className="mt-8">
+            {/* Mobile: vertical drawer via Select — no horizontal scroll */}
+            <div className="md:hidden mb-6">
+              <Select value={lmTab} onValueChange={setLmTab}>
+                <SelectTrigger className="w-full font-body">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LM_TABS.map((t) => (
+                    <SelectItem key={t.value} value={t.value} className="font-body">
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Desktop: premium segmented control (underline style comes from ui/tabs) */}
+            <TabsList className="hidden md:inline-flex mb-6">
+              {LM_TABS.map((t) => (
+                <TabsTrigger key={t.value} value={t.value}>
+                  {t.label}
+                </TabsTrigger>
+              ))}
             </TabsList>
 
             {/* ── Chat ── */}
