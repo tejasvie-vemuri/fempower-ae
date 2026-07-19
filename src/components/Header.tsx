@@ -244,18 +244,23 @@ const Header = () => {
                     {link.label}
                   </HashLink>
                 ))}
+                {/* Members section — mirrors the desktop dropdown */}
+                <div className="pt-2 mt-1 border-t border-border/60">
+                  <p className="text-[10px] font-body uppercase tracking-[0.22em] text-muted-foreground/70 mb-2">Members</p>
+                  {visibleMembersMenu.map((m) => (
+                    <Link
+                      key={m.to}
+                      to={m.to}
+                      onClick={() => setOpen(false)}
+                      className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground min-h-11 flex items-center"
+                    >
+                      {m.label}
+                    </Link>
+                  ))}
+                </div>
                 {user ? (
                   <>
-                    {memberNavLinks.map((link) => (
-                      <Link
-                        key={link.to}
-                        to={link.to}
-                        onClick={() => setOpen(false)}
-                        className="text-sm font-body uppercase tracking-widest text-muted-foreground hover:text-foreground min-h-11 flex items-center"
-                      >
-                        {link.label}
-                      </Link>
-                    ))}
+
                     <Link
                       to="/account/profile"
                       onClick={() => setOpen(false)}
