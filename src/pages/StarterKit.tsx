@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, ExternalLink, Download, Pencil, RotateCcw } from "lucide-react";
+import { ArrowLeft, ExternalLink, Download, Pencil, RotateCcw, AlertCircle } from "lucide-react";
 
 type Emirate = "dubai" | "abu-dhabi" | "sharjah";
 type VisaType = "employment" | "freelance" | "golden" | "family";
@@ -301,6 +301,10 @@ const StarterKit = () => {
     driving: false,
   });
   const [showResults, setShowResults] = useState(false);
+  const [errors, setErrors] = useState<{ emirate?: string; visa?: string; housing?: string }>({});
+  const emirateRef = useRef<HTMLDivElement | null>(null);
+  const visaRef = useRef<HTMLDivElement | null>(null);
+  const housingRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     try {
@@ -325,7 +329,23 @@ const StarterKit = () => {
   );
 
   const handleBuild = () => {
-    if (!canSubmit) return;
+    const nextErrors: typeof errors = {};
+    if (!answers.emirate) nextErrors.emirate = "Please choose the emirate you're moving to.";
+    if (!answers.visa) nextErrors.visa = "Please choose your visa type.";
+    if (!answers.housing) nextErrors.housing = "Please tell us if you're renting or own your home.";
+    setErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
+      const firstRef = nextErrors.emirate ? emirateRef : nextErrors.visa ? visaRef : housingRef;
+      firstRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Move focus to the first invalid control for accessibility
+      const focusable = firstRef.current?.querySelector<HTMLElement>(
+        'button, [role="radiogroup"] button, input',
+      );
+      focusable?.focus({ preventScroll: true });
+      return;
+    }
+
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(answers));
     } catch {
@@ -349,6 +369,7 @@ const StarterKit = () => {
       driving: false,
     });
     setShowResults(false);
+    setErrors({});
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -406,22 +427,53 @@ const StarterKit = () => {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Which emirate are you moving to?</Label>
-                    <Select value={answers.emirate} onValueChange={(v) => setAnswers({ ...answers, emirate: v as Emirate })}>
-                      <SelectTrigger><SelectValue placeholder="Choose an emirate" /></SelectTrigger>
+                  <div className="space-y-2" ref={emirateRef}>
+                    <Label htmlFor="emirate-trigger">Which emirate are you moving to?</Label>
+                    <Select
+                      value={answers.emirate}
+                      onValueChange={(v) => {
+                        setAnswers({ ...answers, emirate: v as Emirate });
+                        setErrors((e) => ({ ...e, emirate: undefined }));
+                      }}
+                    >
+                      <SelectTrigger
+                        id="emirate-trigger"
+                        aria-invalid={!!errors.emirate}
+                        aria-describedby={errors.emirate ? "emirate-error" : undefined}
+                        className={errors.emirate ? "border-destructive focus:ring-destructive" : ""}
+                      >
+                        <SelectValue placeholder="Choose an emirate" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="dubai">Dubai</SelectItem>
                         <SelectItem value="abu-dhabi">Abu Dhabi</SelectItem>
                         <SelectItem value="sharjah">Sharjah</SelectItem>
                       </SelectContent>
                     </Select>
+                    {errors.emirate && (
+                      <p id="emirate-error" role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
+                        <AlertCircle className="h-4 w-4" /> {errors.emirate}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Visa type</Label>
-                    <Select value={answers.visa} onValueChange={(v) => setAnswers({ ...answers, visa: v as VisaType })}>
-                      <SelectTrigger><SelectValue placeholder="Choose your visa" /></SelectTrigger>
+                  <div className="space-y-2" ref={visaRef}>
+                    <Label htmlFor="visa-trigger">Visa type</Label>
+                    <Select
+                      value={answers.visa}
+                      onValueChange={(v) => {
+                        setAnswers({ ...answers, visa: v as VisaType });
+                        setErrors((e) => ({ ...e, visa: undefined }));
+                      }}
+                    >
+                      <SelectTrigger
+                        id="visa-trigger"
+                        aria-invalid={!!errors.visa}
+                        aria-describedby={errors.visa ? "visa-error" : undefined}
+                        className={errors.visa ? "border-destructive focus:ring-destructive" : ""}
+                      >
+                        <SelectValue placeholder="Choose your visa" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="employment">Employment visa (sponsored by employer)</SelectItem>
                         <SelectItem value="freelance">Freelance / self-sponsored visa</SelectItem>
@@ -429,14 +481,24 @@ const StarterKit = () => {
                         <SelectItem value="family">Family / dependent visa</SelectItem>
                       </SelectContent>
                     </Select>
+                    {errors.visa && (
+                      <p id="visa-error" role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
+                        <AlertCircle className="h-4 w-4" /> {errors.visa}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2" ref={housingRef}>
                     <Label>Are you renting or do you own your home?</Label>
                     <RadioGroup
                       value={answers.housing}
-                      onValueChange={(v) => setAnswers({ ...answers, housing: v as Housing })}
-                      className="flex gap-6"
+                      onValueChange={(v) => {
+                        setAnswers({ ...answers, housing: v as Housing });
+                        setErrors((e) => ({ ...e, housing: undefined }));
+                      }}
+                      aria-invalid={!!errors.housing}
+                      aria-describedby={errors.housing ? "housing-error" : undefined}
+                      className={`flex gap-6 ${errors.housing ? "rounded-md ring-1 ring-destructive p-2 -m-2" : ""}`}
                     >
                       <label className="flex items-center gap-2 cursor-pointer">
                         <RadioGroupItem value="rent" id="rent" />
@@ -447,6 +509,11 @@ const StarterKit = () => {
                         <span>Own home</span>
                       </label>
                     </RadioGroup>
+                    {errors.housing && (
+                      <p id="housing-error" role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
+                        <AlertCircle className="h-4 w-4" /> {errors.housing}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between rounded-lg border border-border p-4">
@@ -463,7 +530,6 @@ const StarterKit = () => {
 
                   <Button
                     onClick={handleBuild}
-                    disabled={!canSubmit}
                     className="w-full bg-blush-dark hover:bg-blush-dark/90 text-primary-foreground"
                     size="lg"
                   >
@@ -536,6 +602,23 @@ const StarterKit = () => {
                 <p className="mt-6 text-xs text-muted-foreground italic">
                   Fees and requirements are verified against official government sources as of July 2026 and can change. Always confirm against the linked source before you go.
                 </p>
+
+                {/* Spacer so the sticky mobile bar never covers the disclaimer */}
+                <div className="h-24 md:hidden no-print" aria-hidden="true" />
+
+                {/* Sticky bottom Download PDF — mobile only. pr-20 leaves room for the WhatsApp FAB. */}
+                <div
+                  className="no-print md:hidden fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 pl-3 pr-20 pt-3"
+                  style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)" }}
+                >
+                  <Button
+                    onClick={() => window.print()}
+                    size="lg"
+                    className="w-full bg-blush-dark hover:bg-blush-dark/90 text-primary-foreground shadow-lg"
+                  >
+                    <Download className="h-4 w-4 mr-2" /> Download PDF
+                  </Button>
+                </div>
               </>
             )}
           </div>
