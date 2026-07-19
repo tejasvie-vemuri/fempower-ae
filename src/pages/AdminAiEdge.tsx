@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, ArrowLeft, Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import { Loader2, ArrowLeft, Plus, Trash2, ChevronDown, ChevronRight, ChevronUp } from "lucide-react";
 
 type Category = {
   id: string;
@@ -21,12 +21,16 @@ type Category = {
   is_published: boolean;
 };
 
+type Step = { label: string; text: string };
+
 type Prompt = {
   id: string;
   category_id: string;
   title: string;
   description: string | null;
+  instructions: string | null;
   prompt_text: string;
+  steps: Step[] | null;
   source: string | null;
   source_url: string | null;
   icon: string | null;
@@ -335,6 +339,11 @@ const PromptEditor = ({ prompt, onSaved }: { prompt: Prompt; onSaved: () => void
     <div className="flex items-center gap-2 border border-border rounded-md px-3 py-2">
       {prompt.icon && <span>{prompt.icon}</span>}
       <span className="text-sm font-body text-foreground flex-1 truncate">{prompt.title}</span>
+      {Array.isArray(prompt.steps) && prompt.steps.length > 0 && (
+        <span className="text-[10px] font-body uppercase tracking-widest text-primary border border-primary/40 rounded px-1.5 py-0.5">
+          Guide · {prompt.steps.length}
+        </span>
+      )}
       {!prompt.is_published && (
         <span className="text-[10px] font-body uppercase tracking-widest text-muted-foreground">Draft</span>
       )}
@@ -364,23 +373,57 @@ const PromptFields = ({
   const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState(prompt?.title ?? "");
   const [description, setDescription] = useState(prompt?.description ?? "");
+  const [instructions, setInstructions] = useState(prompt?.instructions ?? "");
   const [promptText, setPromptText] = useState(prompt?.prompt_text ?? "");
+  const [steps, setSteps] = useState<Step[]>(
+    Array.isArray(prompt?.steps) ? (prompt!.steps as Step[]) : []
+  );
   const [source, setSource] = useState(prompt?.source ?? "");
   const [sourceUrl, setSourceUrl] = useState(prompt?.source_url ?? "");
   const [icon, setIcon] = useState(prompt?.icon ?? "");
   const [order, setOrder] = useState(String(prompt?.order_index ?? nextOrder));
   const [published, setPublished] = useState(prompt?.is_published ?? false);
 
+  const isGuide = steps.length > 0;
+
+  const addStep = () => setSteps((s) => [...s, { label: "", text: "" }]);
+  const updateStep = (i: number, patch: Partial<Step>) =>
+    setSteps((s) => s.map((st, idx) => (idx === i ? { ...st, ...patch } : st)));
+  const removeStep = (i: number) => setSteps((s) => s.filter((_, idx) => idx !== i));
+  const moveStep = (i: number, dir: -1 | 1) =>
+    setSteps((s) => {
+      const j = i + dir;
+      if (j < 0 || j >= s.length) return s;
+      const next = [...s];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
+
   const save = async () => {
-    if (!title.trim() || !promptText.trim()) {
-      return toast({ title: "Title and prompt text are required", variant: "destructive" });
+    const cleanSteps = steps
+      .map((s) => ({ label: s.label.trim(), text: s.text.trim() }))
+      .filter((s) => s.text);
+
+    if (!title.trim()) {
+      return toast({ title: "Title is required", variant: "destructive" });
     }
+    if (cleanSteps.length === 0 && !promptText.trim()) {
+      return toast({
+        title: "Add a prompt",
+        description: "Fill in the single prompt text, or add at least one step to make a guide.",
+        variant: "destructive",
+      });
+    }
+
     setSaving(true);
     const payload = {
       category_id: categoryId,
       title: title.trim(),
       description: description.trim() || null,
-      prompt_text: promptText,
+      instructions: instructions.trim() || null,
+      // For a guide the single prompt_text is unused; keep it empty.
+      prompt_text: cleanSteps.length > 0 ? "" : promptText,
+      steps: cleanSteps.length > 0 ? cleanSteps : null,
       source: source.trim() || null,
       source_url: sourceUrl.trim() || null,
       icon: icon.trim() || null,
@@ -415,15 +458,78 @@ const PromptFields = ({
         <Label className={labelCls}>Description</Label>
         <Input value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1.5" />
       </div>
+
       <div>
-        <Label className={labelCls}>Prompt text</Label>
+        <Label className={labelCls}>Instructions (optional)</Label>
         <Textarea
-          value={promptText}
-          onChange={(e) => setPromptText(e.target.value)}
-          rows={5}
-          className="mt-1.5 font-mono text-sm"
+          value={instructions}
+          onChange={(e) => setInstructions(e.target.value)}
+          rows={3}
+          placeholder="Shown above the prompt(s). Great for a guide, e.g. 'Run these prompts in order…'"
+          className="mt-1.5 text-sm"
         />
       </div>
+
+      {/* Single prompt text — hidden once this becomes a multi-prompt guide */}
+      {!isGuide && (
+        <div>
+          <Label className={labelCls}>Prompt text</Label>
+          <Textarea
+            value={promptText}
+            onChange={(e) => setPromptText(e.target.value)}
+            rows={5}
+            className="mt-1.5 font-mono text-sm"
+          />
+        </div>
+      )}
+
+      {/* Multi-prompt guide: an ordered list of prompts under one title */}
+      <div className="rounded-md border border-border p-3 space-y-3">
+        <div className="flex items-center justify-between">
+          <span className={labelCls}>
+            {isGuide ? `Guide prompts (${steps.length})` : "Multiple prompts (optional)"}
+          </span>
+        </div>
+        {isGuide && (
+          <p className="text-xs font-body text-muted-foreground -mt-1">
+            This entry now shows as a guide: the instructions above, then each prompt below as its own
+            copyable block. The single prompt text is not used.
+          </p>
+        )}
+        {steps.map((s, i) => (
+          <div key={i} className="rounded-md bg-muted/40 border border-border p-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-body font-medium text-foreground">Step {i + 1}</span>
+              <Input
+                value={s.label}
+                onChange={(e) => updateStep(i, { label: e.target.value })}
+                placeholder="Short label (optional), e.g. Map your footprint"
+                className="h-8 text-sm flex-1"
+              />
+              <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => moveStep(i, -1)} disabled={i === 0} aria-label="Move up">
+                <ChevronUp size={14} />
+              </Button>
+              <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => moveStep(i, 1)} disabled={i === steps.length - 1} aria-label="Move down">
+                <ChevronDown size={14} />
+              </Button>
+              <Button variant="ghost" size="sm" className="h-8 px-2 text-destructive hover:text-destructive" onClick={() => removeStep(i)} aria-label="Remove step">
+                <Trash2 size={14} />
+              </Button>
+            </div>
+            <Textarea
+              value={s.text}
+              onChange={(e) => updateStep(i, { text: e.target.value })}
+              rows={4}
+              placeholder="The prompt for this step…"
+              className="font-mono text-sm"
+            />
+          </div>
+        ))}
+        <Button variant="outline" size="sm" onClick={addStep}>
+          <Plus size={14} className="mr-1.5" /> Add prompt{isGuide ? "" : " (make this a guide)"}
+        </Button>
+      </div>
+
       <div className="flex gap-3">
         <div className="flex-1">
           <Label className={labelCls}>Source</Label>

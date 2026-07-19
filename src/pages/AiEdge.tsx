@@ -25,12 +25,16 @@ type Category = {
   order_index: number;
 };
 
+type Step = { label?: string | null; text: string };
+
 type Prompt = {
   id: string;
   category_id: string;
   title: string;
   description: string | null;
+  instructions: string | null;
   prompt_text: string;
+  steps: Step[] | null;
   source: string | null;
   source_url: string | null;
   icon: string | null;
@@ -261,6 +265,39 @@ const AiEdge = () => {
   );
 };
 
+/* A single copyable prompt block with its own copied state. */
+const CopyBlock = ({ text }: { text: string }) => {
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      toast({ title: "Couldn't copy", description: "Select the text and copy manually.", variant: "destructive" });
+    }
+  };
+
+  return (
+    <div className="relative">
+      <pre className="rounded-md bg-muted/60 border border-border p-4 pr-12 text-sm font-mono text-foreground whitespace-pre-wrap break-words">
+        {text}
+      </pre>
+      <Button
+        size="icon"
+        variant="ghost"
+        onClick={copy}
+        aria-label="Copy prompt"
+        className="absolute top-2 right-2 h-8 w-8"
+      >
+        {copied ? <Check size={15} className="text-primary" /> : <Copy size={15} />}
+      </Button>
+    </div>
+  );
+};
+
 const PromptCard = ({
   prompt,
   saved,
@@ -270,18 +307,8 @@ const PromptCard = ({
   saved: boolean;
   onToggleSave: () => void;
 }) => {
-  const { toast } = useToast();
-  const [copied, setCopied] = useState(false);
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(prompt.prompt_text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } catch {
-      toast({ title: "Couldn't copy", description: "Select the text and copy manually.", variant: "destructive" });
-    }
-  };
+  const steps = (prompt.steps ?? []).filter((s) => s && s.text?.trim());
+  const isGuide = steps.length > 0;
 
   return (
     <Card className="p-5">
@@ -289,7 +316,14 @@ const PromptCard = ({
         <div className="flex items-start gap-2.5 min-w-0">
           {prompt.icon && <span className="text-xl leading-none mt-0.5">{prompt.icon}</span>}
           <div className="min-w-0">
-            <div className="font-heading text-lg text-foreground">{prompt.title}</div>
+            <div className="flex items-center gap-2">
+              <div className="font-heading text-lg text-foreground">{prompt.title}</div>
+              {isGuide && (
+                <span className="shrink-0 text-[10px] font-body uppercase tracking-widest text-primary border border-primary/40 rounded px-1.5 py-0.5">
+                  {steps.length} prompts
+                </span>
+              )}
+            </div>
             {prompt.description && (
               <p className="text-sm text-muted-foreground font-body mt-0.5">{prompt.description}</p>
             )}
@@ -304,21 +338,37 @@ const PromptCard = ({
         </button>
       </div>
 
-      {/* Copyable prompt */}
-      <div className="relative mt-3">
-        <pre className="rounded-md bg-muted/60 border border-border p-4 pr-12 text-sm font-mono text-foreground whitespace-pre-wrap break-words">
-          {prompt.prompt_text}
-        </pre>
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={copy}
-          aria-label="Copy prompt"
-          className="absolute top-2 right-2 h-8 w-8"
-        >
-          {copied ? <Check size={15} className="text-primary" /> : <Copy size={15} />}
-        </Button>
-      </div>
+      {/* Instructions section (shown for guides, or any entry with instructions) */}
+      {prompt.instructions && (
+        <div className="mt-3 rounded-md border border-border bg-background p-4">
+          <div className="text-xs font-body uppercase tracking-widest text-muted-foreground mb-2">
+            How to use
+          </div>
+          <p className="text-sm font-body text-foreground/90 whitespace-pre-wrap">
+            {prompt.instructions}
+          </p>
+        </div>
+      )}
+
+      {isGuide ? (
+        /* Multi-prompt guide: each step is its own copyable block */
+        <div className="mt-4 space-y-4">
+          {steps.map((s, i) => (
+            <div key={i}>
+              <div className="text-xs font-body font-medium text-foreground mb-1.5">
+                {`Step ${i + 1}`}
+                {s.label?.trim() ? ` · ${s.label.trim()}` : ""}
+              </div>
+              <CopyBlock text={s.text} />
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* Single prompt */
+        <div className="mt-3">
+          <CopyBlock text={prompt.prompt_text} />
+        </div>
+      )}
 
       {prompt.source && (
         <div className="mt-2 text-xs font-body text-muted-foreground">
