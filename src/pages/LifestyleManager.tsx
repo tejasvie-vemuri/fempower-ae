@@ -157,6 +157,7 @@ const LifestyleManager = () => {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [groceries, setGroceries] = useState<GroceryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lmTab, setLmTab] = useState("chat");
 
   // Inline "add" form state
   const [newPersonName, setNewPersonName] = useState("");
