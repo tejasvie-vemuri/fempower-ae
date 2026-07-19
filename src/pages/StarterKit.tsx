@@ -602,6 +602,23 @@ const StarterKit = () => {
                 <p className="mt-6 text-xs text-muted-foreground italic">
                   Fees and requirements are verified against official government sources as of July 2026 and can change. Always confirm against the linked source before you go.
                 </p>
+
+                {/* Spacer so the sticky mobile bar never covers the disclaimer */}
+                <div className="h-24 md:hidden no-print" aria-hidden="true" />
+
+                {/* Sticky bottom Download PDF — mobile only. pr-20 leaves room for the WhatsApp FAB. */}
+                <div
+                  className="no-print md:hidden fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 pl-3 pr-20 pt-3"
+                  style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)" }}
+                >
+                  <Button
+                    onClick={() => window.print()}
+                    size="lg"
+                    className="w-full bg-blush-dark hover:bg-blush-dark/90 text-primary-foreground shadow-lg"
+                  >
+                    <Download className="h-4 w-4 mr-2" /> Download PDF
+                  </Button>
+                </div>
               </>
             )}
           </div>
