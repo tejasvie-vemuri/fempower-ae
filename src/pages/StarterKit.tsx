@@ -115,7 +115,7 @@ function buildChecklist(a: Answers): ChecklistItem[] {
     title: "Open a bank account",
     bullets: bankBullets,
     sources: [
-      { label: "u.ae — Opening a bank account", url: "https://u.ae/en/information-and-services/finance-and-investment/banking-in-uae/opening-a-bank-account" },
+      { label: "u.ae — Banking in the UAE", url: "https://u.ae/en/information-and-services/finance-and-investment/banking-in-uae" },
       { label: "Central Bank of the UAE — licensing & regulation", url: "https://www.centralbank.ae/en/licensing/" },
     ],
   });
@@ -183,8 +183,8 @@ function buildChecklist(a: Answers): ChecklistItem[] {
         bullets: [
           "Buy a windshield RFID tag: AED 100 (AED 50 tag + AED 50 starting credit).",
           "Register/activate within 10 working days of your first gate crossing.",
-          "AED 4 normal / AED 6 peak (6-10am & 4-8pm Sat-Thu), charged automatically — no need to slow down.",
-          "There are 9 Salik gates across Dubai.",
+          "AED 6 during peak hours (6-10am & 4-8pm, Mon-Sat) and AED 4 off-peak; Sundays and public holidays are a flat AED 4, and there is no charge between 1-6am. Charged automatically — no need to slow down.",
+          "There are 10 Salik gates across Dubai.",
         ],
         sources: [{ label: "Salik — How it works", url: "https://www.salik.ae/en/about/how-it-works" }],
       });
@@ -231,7 +231,7 @@ function buildChecklist(a: Answers): ChecklistItem[] {
       timing: "Anytime",
       title: "Get a Hafilat card (Abu Dhabi public transport)",
       bullets: [
-        "The anonymous card is free, pay-as-you-go, sold at bus stations, Lulu Hypermarket and SPAR branches.",
+        "The anonymous card costs AED 10 (valid up to 16 years), pay-as-you-go, sold at bus stations, Lulu Hypermarket and SPAR branches.",
         "For long-term use, get the personalized card — bring your Emirates ID to a Customer Happiness office at a bus station or the airport.",
         "Weekly pass AED 30, monthly AED 80, annual AED 500 — cheaper than pay-as-you-go if you commute daily.",
       ],
