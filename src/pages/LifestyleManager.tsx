@@ -386,14 +386,21 @@ const LifestyleManager = () => {
     const dateItems = dates.map((d) => ({
       id: `date-${d.id}`,
       title: `${peopleById.get(d.person_id)?.name ?? "Someone"}'s ${d.label}`,
-      days: daysUntilNextOccurrence(d.date, d.recurrence),
+      days: daysUntilNextOccurrence(d.date, d.recurrence) as number | null,
     }));
+    // Every pending reminder shows here, dated or not, no matter how far out
+    // or overdue, so nothing added through chat or the form ever vanishes.
+    // Undated reminders carry days = null and sort after everything dated.
     const reminderItems = reminders
-      .filter((r) => r.status === "pending" && r.due_date)
-      .map((r) => ({ id: r.id, title: r.title, days: daysUntil(r.due_date as string) }));
-    // Every pending reminder and date shows here, no matter how far out or
-    // overdue, so nothing added through chat ever looks like it vanished.
-    return [...dateItems, ...reminderItems].sort((a, b) => a.days - b.days);
+      .filter((r) => r.status === "pending")
+      .map((r) => ({
+        id: r.id,
+        title: r.title,
+        days: r.due_date ? daysUntil(r.due_date) : null,
+      }));
+    return [...dateItems, ...reminderItems].sort(
+      (a, b) => (a.days ?? Infinity) - (b.days ?? Infinity),
+    );
   }, [dates, reminders, peopleById]);
 
   const pastReminders = reminders.filter((r) => r.status === "done");
@@ -873,8 +880,8 @@ const LifestyleManager = () => {
                     >
                       <div>
                         <p className="font-body text-lifestyle-espresso">{item.title}</p>
-                        <p className={`text-xs font-body ${item.days < 0 ? "text-destructive" : "text-muted-foreground"}`}>
-                          {dueLabel(item.days)}
+                        <p className={`text-xs font-body ${item.days !== null && item.days < 0 ? "text-destructive" : "text-muted-foreground"}`}>
+                          {item.days === null ? "No date yet" : dueLabel(item.days)}
                         </p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
