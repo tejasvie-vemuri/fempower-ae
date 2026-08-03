@@ -34,6 +34,8 @@ const cacheHeaders = (status: 'HIT' | 'MISS' | 'STALE' | 'ERROR') => ({
   'X-Cache': status,
 });
 
+let lastUpstreamError: string | null = null;
+
 async function fetchFromInstagram(token: string): Promise<CacheEntry | null> {
   const fields = 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp';
   const url = `https://graph.instagram.com/me/media?fields=${fields}&limit=12&access_token=${token}`;
@@ -42,8 +44,15 @@ async function fetchFromInstagram(token: string): Promise<CacheEntry | null> {
 
   if (!res.ok) {
     console.error('Instagram API error', json);
+    const msg = json?.error?.message ?? 'Unknown Instagram API error';
+    lastUpstreamError =
+      json?.error?.code === 190
+        ? `Instagram access token is invalid or expired (${msg}). Update INSTAGRAM_ACCESS_TOKEN.`
+        : msg;
     return null;
   }
+
+  lastUpstreamError = null;
 
   const posts = ((json.data ?? []) as IgMedia[]).map((m) => ({
     id: m.id,
@@ -113,9 +122,11 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify(cache.data), { headers: cacheHeaders('STALE') });
     }
 
+    // Degrade gracefully: 200 + empty posts so the client shows the
+    // "Follow us on Instagram" fallback instead of throwing on a 502.
     return new Response(
-      JSON.stringify({ error: 'Instagram API error', posts: [] }),
-      { status: 502, headers: cacheHeaders('ERROR') },
+      JSON.stringify({ error: lastUpstreamError ?? 'Instagram API error', posts: [] }),
+      { status: 200, headers: cacheHeaders('ERROR') },
     );
   } catch (err) {
     console.error('fetch-instagram error', err);
