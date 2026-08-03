@@ -122,9 +122,11 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify(cache.data), { headers: cacheHeaders('STALE') });
     }
 
+    // Degrade gracefully: 200 + empty posts so the client shows the
+    // "Follow us on Instagram" fallback instead of throwing on a 502.
     return new Response(
-      JSON.stringify({ error: 'Instagram API error', posts: [] }),
-      { status: 502, headers: cacheHeaders('ERROR') },
+      JSON.stringify({ error: lastUpstreamError ?? 'Instagram API error', posts: [] }),
+      { status: 200, headers: cacheHeaders('ERROR') },
     );
   } catch (err) {
     console.error('fetch-instagram error', err);
