@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import desertDunes from "@/assets/desert-dunes.jpg";
 import { PalmDivider } from "./GulfDecoratives";
 
-const INSTAGRAM_URL = "https://www.instagram.com/fempower.ae?igsh=cDB1OXNxcmhxanY5&utm_source=qr";
+const INSTAGRAM_URL = "https://www.instagram.com/fempower.ae";
 
 const bullets = [
   "Daily prompts + honest conversations",

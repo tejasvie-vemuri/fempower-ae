@@ -57,7 +57,7 @@ const WingOfTheWeek = () => {
 
   if (!wing) return null;
 
-  const whatsappText = `✨ *FemPower Wing of the Week*\n\n📖 *${wing.title}*\nfrom ${wing.course_title}\n\n💭 *Reflect on this:*\n${wing.reflection_prompt}\n\nWrite your reflection on FemPower Learn → fempower.ae/learn`;
+  const whatsappText = `✨ *FemPower Wing of the Week*\n\n📖 *${wing.title}*\nfrom ${wing.course_title}\n\n💭 *Reflect on this:*\n${wing.reflection_prompt}\n\nWrite your reflection on FemPower Learn → fempowerae.com/learn`;
 
   const copyForWhatsApp = () => {
     navigator.clipboard.writeText(whatsappText);

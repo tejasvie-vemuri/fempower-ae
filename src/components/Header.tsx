@@ -106,7 +106,7 @@ const Header = () => {
 
 
         <div className="flex items-center gap-3 md:gap-4">
-          <a href="https://www.instagram.com/fempower.ae?igsh=cDB1OXNxcmhxanY5&utm_source=qr" target="_blank" rel="noreferrer" aria-label="Fempower on Instagram" className="hidden sm:inline-flex text-muted-foreground hover:text-foreground transition-colors">
+          <a href="https://www.instagram.com/fempower.ae" target="_blank" rel="noreferrer" aria-label="Fempower on Instagram" className="hidden sm:inline-flex text-muted-foreground hover:text-foreground transition-colors">
             <Instagram size={18} />
           </a>
           <a href="https://www.linkedin.com/company/fempowerae/" target="_blank" rel="noopener noreferrer" aria-label="Fempower on LinkedIn" className="hidden sm:inline-flex text-muted-foreground hover:text-foreground transition-colors">

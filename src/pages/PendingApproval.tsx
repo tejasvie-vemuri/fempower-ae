@@ -9,7 +9,7 @@ import fempowerLogo from "@/assets/fempower-logo.png";
 
 
 const INSTAGRAM_URL =
-  "https://www.instagram.com/fempower.ae?igsh=cDB1OXNxcmhxanY5&utm_source=qr";
+  "https://www.instagram.com/fempower.ae";
 
 const STATUS_COPY: Record<string, { title: string; body: string }> = {
   pending: {

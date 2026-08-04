@@ -78,7 +78,7 @@ export function AttendeeQuestionsForm({
 
               {showIgLink && (
                 <a
-                  href="https://instagram.com/fempower.ae"
+                  href="https://www.instagram.com/fempower.ae"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"

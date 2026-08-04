@@ -27,7 +27,7 @@ const SeoSummary = () => (
       <li>Diversity: 15+ nationalities represented.</li>
       <li>Cost: the core WhatsApp community is free; some programs carry a small fee.</li>
       <li>How to join: direct message <em>@fempower.ae</em> on Instagram.</li>
-      <li>Website: https://fempower.ae</li>
+      <li>Website: https://fempowerae.com</li>
       <li>Instagram: https://www.instagram.com/fempower.ae</li>
       <li>LinkedIn: https://www.linkedin.com/company/fempowerae/</li>
     </ul>

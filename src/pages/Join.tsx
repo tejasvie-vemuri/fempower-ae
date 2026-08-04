@@ -9,7 +9,7 @@ import { useMemberProfile } from "@/hooks/useMemberProfile";
 import NextEventCard from "@/components/NextEventCard";
 
 
-const INSTAGRAM_URL = "https://www.instagram.com/fempower.ae?igsh=cDB1OXNxcmhxanY5&utm_source=qr";
+const INSTAGRAM_URL = "https://www.instagram.com/fempower.ae";
 
 const bullets = [
   "Daily prompts + honest conversations",

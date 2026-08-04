@@ -27,7 +27,7 @@ const JoinGateContext = createContext<JoinGateValue>({
 export const useJoinGate = () => useContext(JoinGateContext);
 
 const INSTAGRAM_URL =
-  "https://www.instagram.com/fempower.ae?igsh=cDB1OXNxcmhxanY5&utm_source=qr";
+  "https://www.instagram.com/fempower.ae";
 
 export const JoinGateProvider = ({ children }: { children: ReactNode }) => {
   const { user, loading } = useAuth();

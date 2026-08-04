@@ -719,7 +719,7 @@ const EventDetail = () => {
                       <p>
                         To cancel or transfer, reach out to us on{" "}
                         <a
-                          href="https://instagram.com/fempower.ae"
+                          href="https://www.instagram.com/fempower.ae"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-primary hover:underline"
