@@ -7,6 +7,20 @@ const Footer = () => (
   <footer className="border-t border-border">
     <DuneWave className="-mt-[1px]" />
     <div className="py-12">
+    {/* Guides are linked here so crawlers can reach them from every page. */}
+    <nav
+      aria-label="Guides"
+      className="container flex flex-wrap items-center justify-center gap-x-5 gap-y-2 pb-8 text-xs font-body text-muted-foreground"
+    >
+      <Link to="/lonely-in-dubai" className="hover:text-foreground transition-colors">
+        Feeling lonely in Dubai
+      </Link>
+      <span aria-hidden="true">·</span>
+      <Link to="/roundtables" className="hover:text-foreground transition-colors">
+        Intimate roundtables
+      </Link>
+    </nav>
+
     <div className="container flex flex-col md:flex-row items-center justify-between gap-6">
       <div className="flex items-center gap-4">
         <img src={logo} alt="Fempower" className="h-8 w-auto" />

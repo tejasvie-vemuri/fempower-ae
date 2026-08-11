@@ -5,7 +5,17 @@ import fs from "fs";
 import { pathToFileURL } from "url";
 import { componentTagger } from "lovable-tagger";
 
-const PRERENDER_ROUTES = ["/", "/join", "/meetups", "/privacy", "/terms"];
+const PRERENDER_ROUTES = [
+  "/",
+  "/join",
+  "/meetups",
+  "/privacy",
+  "/terms",
+  // Public content pages. These exist to be found by search engines and AI
+  // assistants, so prerendering them is not optional — crawlers do not run JS.
+  "/lonely-in-dubai",
+  "/roundtables",
+];
 
 /**
  * Runs after the client build finishes. Programmatically kicks off a second
