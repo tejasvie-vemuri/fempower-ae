@@ -51,6 +51,7 @@ import AdminAiEdge from "./pages/AdminAiEdge";
 import AdminLifestyleManager from "./pages/AdminLifestyleManager";
 import AdminNorthstar from "./pages/AdminNorthstar";
 import ScrollToHash from "@/components/ScrollToHash";
+import OrganizationJsonLd from "@/components/OrganizationJsonLd";
 import Analytics from "@/components/Analytics";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
