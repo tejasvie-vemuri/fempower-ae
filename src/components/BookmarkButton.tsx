@@ -3,6 +3,7 @@ import { Bookmark } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { track } from "@/lib/analytics";
 
 interface BookmarkButtonProps {
   itemType: "circle_post" | "resource";
@@ -49,6 +50,7 @@ const BookmarkButton = ({ itemType, itemId, className = "", onToggle }: Bookmark
           .eq("item_id", itemId);
         setSaved(false);
         onToggle?.(false);
+        track("bookmark_toggled", { saved: false, item_type: itemType, target_id: itemId });
         toast({ title: "Removed from bookmarks" });
       } else {
         await (supabase as any)
@@ -56,6 +58,7 @@ const BookmarkButton = ({ itemType, itemId, className = "", onToggle }: Bookmark
           .insert({ user_id: user.id, item_type: itemType, item_id: itemId });
         setSaved(true);
         onToggle?.(true);
+        track("bookmark_toggled", { saved: true, item_type: itemType, target_id: itemId });
         toast({ title: "Saved to your bookmarks" });
       }
     } catch {

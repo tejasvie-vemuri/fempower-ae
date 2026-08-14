@@ -1,37 +1,10 @@
 import { MessageCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { logEngagement } from "@/lib/engagement";
-
 
 const WHATSAPP_NUMBER = "971547911282";
 const WHATSAPP_TEXT = "Hello! I’d love to learn more about Fempower and how to join.";
 const BASE_GAP_PX = 16; // 1rem gap above safe area
 const COACH_GAP_PX = 12; // spacing between coach and WhatsApp button when stacked
-
-const trackClick = () => {
-  const payload = {
-    event: "whatsapp_cta_click",
-    location: "sticky_mobile",
-    number: WHATSAPP_NUMBER,
-    timestamp: new Date().toISOString(),
-  };
-  try {
-    const w = window as unknown as {
-      dataLayer?: unknown[];
-      gtag?: (...args: unknown[]) => void;
-      plausible?: (name: string, opts?: { props?: Record<string, unknown> }) => void;
-    };
-    w.dataLayer = w.dataLayer ?? [];
-    w.dataLayer.push(payload);
-    w.gtag?.("event", payload.event, { location: payload.location });
-    w.plausible?.("WhatsApp CTA Click", { props: { location: payload.location } });
-    window.dispatchEvent(new CustomEvent("fempower:whatsapp_cta_click", { detail: payload }));
-  } catch {
-    /* analytics is best-effort */
-  }
-  // Persist to engagement_events so the Northstar dashboard counts it.
-  void logEngagement("whatsapp_cta_click", null, { location: "sticky_mobile" });
-};
 
 const StickyWhatsAppButton = () => {
   const href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_TEXT)}`;
@@ -93,7 +66,11 @@ const StickyWhatsAppButton = () => {
       href={href}
       target="_blank"
       rel="noreferrer"
-      onClick={trackClick}
+      // Auto-capture (src/lib/analytics/autoCapture.ts) recognises wa.me links
+      // and fires `whatsapp_cta_click`, which also persists to
+      // engagement_events for the Northstar dashboard. `data-location` becomes
+      // the `location` dimension on that event.
+      data-location="sticky_mobile"
       aria-label="Chat with Fempower on WhatsApp"
       className="md:hidden fixed left-4 z-[55] inline-flex items-center gap-1.5 sm:gap-2 rounded-full px-3 sm:px-4 py-2 sm:py-3 font-body text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-white shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
       style={{

@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useMemberProfile } from "@/hooks/useMemberProfile";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { isActiveMemberStatus } from "@/lib/memberProfile";
+import { setMemberContext } from "@/lib/analytics";
 import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
@@ -16,6 +18,13 @@ export const ProtectedRoute = ({ children, allowPending = false }: ProtectedRout
   const { profile, loading: profileLoading } = useMemberProfile();
   const { isAdmin, loading: adminLoading } = useIsAdmin();
   const location = useLocation();
+
+  // This is the one place that already knows both facts, so it's the cheapest
+  // place to tag replays with them — no extra queries anywhere else.
+  useEffect(() => {
+    if (profileLoading || adminLoading) return;
+    setMemberContext({ status: profile?.status ?? "none", isAdmin });
+  }, [profile?.status, isAdmin, profileLoading, adminLoading]);
 
   if (loading || profileLoading || adminLoading) {
     return (

@@ -2,8 +2,9 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import AnalyticsOptOutToggle from "@/components/AnalyticsOptOutToggle";
 
-const UPDATED = "23 May 2026";
+const UPDATED = "14 August 2026";
 const CONTACT_EMAIL = "hello@fempowerae.com";
 
 const Privacy = () => {
@@ -98,6 +99,16 @@ const Privacy = () => {
                 address and browser type) handled by our hosting and backend
                 providers for security and reliability.
               </li>
+              <li>
+                <strong>Usage &amp; product analytics:</strong> pages you
+                visit, buttons and links you click, how far you scroll, how
+                long a page takes to load, and any errors the site hits. This
+                includes an anonymised recording of how the page behaved
+                during your visit (a &quot;session replay&quot;) so we can see
+                where the site is confusing or broken. Text you type, your
+                name, email, phone number and passwords are masked out before
+                the recording leaves your browser.
+              </li>
             </ul>
             <p className="mt-3 text-sm text-muted-foreground">
               We do not knowingly collect data from anyone under 18.
@@ -131,6 +142,13 @@ const Privacy = () => {
                 <strong>To communicate with you</strong> — replying to your
                 messages and sending newsletters you opt in to. Legal basis:
                 your consent (you can unsubscribe at any time).
+              </li>
+              <li>
+                <strong>To improve the site</strong> — understanding which
+                pages and features are used, where people get stuck, and what
+                is slow or broken. Legal basis: our legitimate interest in a
+                site that works. You can opt out at any time (see
+                &quot;Analytics and session replay&quot; below).
               </li>
             </ul>
           </section>
@@ -190,6 +208,21 @@ const Privacy = () => {
                 resources are pulled from Google Sheets and Google Drive
                 where applicable; our newsletter content is hosted by
                 Substack.
+              </li>
+              <li>
+                <strong>Product analytics</strong> — Microsoft Clarity
+                (Microsoft Corporation) collects the usage data and session
+                replays described above. We send it a random identifier for
+                your account, never your name or email address.{" "}
+                <a
+                  href="https://privacy.microsoft.com/privacystatement"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary underline underline-offset-4"
+                >
+                  Microsoft&apos;s privacy statement
+                </a>
+                .
               </li>
             </ul>
             <p>
@@ -266,9 +299,30 @@ const Privacy = () => {
             <h2 className="font-heading text-2xl text-foreground">Cookies</h2>
             <p>
               We use only the minimum cookies and local storage needed to
-              keep you signed in and remember basic preferences. We do not
-              currently use advertising or cross-site tracking cookies.
+              keep you signed in, remember basic preferences, and measure how
+              the site is used. We do not currently use advertising or
+              cross-site tracking cookies.
             </p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl text-foreground">
+              Analytics and session replay
+            </h2>
+            <p>
+              To understand how the site is actually used we record page
+              views, clicks, scroll depth, performance timings and errors, and
+              we capture masked session replays through Microsoft Clarity.
+              Replays never show what you type: form fields, and any area
+              showing member details, are masked before anything is sent.
+            </p>
+            <p className="mt-3">
+              We honour the Global Privacy Control signal automatically. You
+              can also turn analytics off for this browser at any time using
+              the switch below — it takes effect immediately and we will stop
+              collecting anything from your visits.
+            </p>
+            <AnalyticsOptOutToggle />
           </section>
 
           <section>

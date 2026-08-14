@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { track } from "@/lib/analytics";
 import { Mail } from "lucide-react";
 
 interface ContactFormDialogProps {
@@ -18,8 +19,15 @@ const ContactFormDialog = ({ trigger }: ContactFormDialogProps) => {
   const [message, setMessage] = useState("");
   const { toast } = useToast();
 
+  const onOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (next) track("contact_form_opened", { path: window.location.pathname });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Length only — the message body itself never leaves the browser.
+    track("contact_form_submitted", { message_length: message.length });
     const subject = encodeURIComponent(`Contact from ${name}`);
     const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`);
     window.open(`mailto:tejasvie59@gmail.com?subject=${subject}&body=${body}`, "_blank");
@@ -31,7 +39,7 @@ const ContactFormDialog = ({ trigger }: ContactFormDialogProps) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         {trigger || (
           <Button size="sm" variant="outline" className="font-body uppercase tracking-widest text-xs px-5">
@@ -44,7 +52,8 @@ const ContactFormDialog = ({ trigger }: ContactFormDialogProps) => {
         <DialogHeader>
           <DialogTitle className="font-heading text-lg">Contact Us 🦋</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+        {/* Name, email and message stay out of session replays. */}
+        <form onSubmit={handleSubmit} data-clarity-mask="True" className="space-y-4 mt-2">
           <div className="space-y-1.5">
             <Label htmlFor="contact-name">Name</Label>
             <Input id="contact-name" value={name} onChange={(e) => setName(e.target.value)} required placeholder="Your name" />

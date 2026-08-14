@@ -141,6 +141,88 @@ ignored by crawlers, which is worse than having none.
 
 ---
 
+## Analytics (Microsoft Clarity)
+
+Product analytics live in `src/lib/analytics/`. One import gives you everything:
+
+```ts
+import { track } from "@/lib/analytics";
+
+track("join_cta_click", { location: "hero" });
+```
+
+A single `track()` call fans the event out to Microsoft Clarity (custom event +
+filterable tags), `window.dataLayer` (so GTM can be added later without touching
+components), `gtag`/`plausible` if those scripts happen to be present, a
+`fempower:<event>` DOM event, and — for two event types only — the Supabase
+`engagement_events` table. Nothing throws, nothing awaits.
+
+### Setup
+
+Set `VITE_CLARITY_PROJECT_ID` in `.env` (Clarity → Settings → Setup → project id).
+**With it unset, Clarity never loads** and the rest of the pipeline no-ops — which
+is the intended state for local dev and preview builds.
+
+| Variable | Default | Effect |
+|----------|---------|--------|
+| `VITE_CLARITY_PROJECT_ID` | empty | Clarity project id. Empty → Clarity disabled. |
+| `VITE_ANALYTICS_DEBUG` | `false` | Log every tracked event to the console. `?analytics_debug` on any URL does the same for one visit. |
+| `VITE_ANALYTICS_ALLOW_LOCALHOST` | `false` | Track from localhost too. Off by default so dev traffic stays out of the dashboards. |
+| `VITE_ANALYTICS_RESPECT_DNT` | `false` | Honour the legacy `DNT` header. Off by default because several browsers send it unconditionally. Global Privacy Control is *always* honoured. |
+
+### Files
+
+| File | Purpose |
+|------|---------|
+| `config.ts` | Env flags, the privacy gate, PII scrubbing, path redaction |
+| `clarity.ts` | Lazy Clarity loader (injected on first idle, not in `<head>`) + typed wrapper |
+| `events.ts` | The event-name taxonomy and route→section mapping |
+| `index.ts` | `track`, `trackPageView`, `identifyMember`, `trackError`, the sink fan-out |
+| `autoCapture.ts` | Delegated listeners: outbound clicks, scroll depth, time on page, section views, errors |
+| `webVitals.ts` | LCP / CLS / INP / FID / FCP / TTFB via `PerformanceObserver`, no dependency |
+| `../../components/Analytics.tsx` | Mounts the pipeline; page views and identity |
+
+### What is captured without any per-component work
+
+Page views, session/device context, scroll-depth milestones, time on page, section
+visibility on long pages, outbound link clicks (with WhatsApp / Instagram /
+LinkedIn / Substack as their own events), downloads, unhandled errors and promise
+rejections, and Core Web Vitals.
+
+Opt in to more without writing a handler:
+
+```tsx
+<Link to="/join" data-analytics-event="join_cta_click" data-analytics-location="header">
+<form data-analytics-form="newsletter">
+<a href="https://wa.me/…" data-location="sticky_mobile">
+```
+
+### Rules
+
+- **Event names are a typed union** in `events.ts`. Add the name there first — a
+  typo then fails the build instead of quietly creating a second event in Clarity.
+- **Never pass personal data.** `sanitizeProps` drops any prop whose key names PII
+  and scrubs emails/phones out of the values it keeps, but don't rely on it: pass
+  ids and enums, not names or free text. `identifyMember` sends the Supabase UUID
+  and nothing else.
+- **Mask sensitive UI** with `data-clarity-mask="True"` on any container showing
+  credentials or member details. Already applied to the auth card, the contact
+  form and the directory grid.
+- **`engagement_events` is not a general analytics sink.** RSVPs, circle posts and
+  replies, meetup hosting/RSVPs and learn wings are written by SECURITY DEFINER
+  triggers in the database, so mirroring them from the client double-counts them
+  on the Northstar dashboard. The bridge in `index.ts` covers only
+  `whatsapp_cta_click` and `directory_profile_viewed`, and the table has a CHECK
+  constraint — adding anything needs a migration first.
+- **Everything is browser-only.** The public routes are prerendered through
+  `renderToString`, so keep side effects inside effects.
+
+Visitors can turn analytics off per browser from the switch on `/privacy`
+(`AnalyticsOptOutToggle`), which the Privacy Policy promises exists — the PDPL
+right to object. It's checked on every tracking call, so it takes effect immediately.
+
+---
+
 ## Community
 
 - Instagram: [@fempower.ae](https://www.instagram.com/fempower.ae)

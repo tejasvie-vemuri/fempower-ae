@@ -57,6 +57,16 @@ All infrastructure is managed through Lovable + Supabase.
   ```
 - Run one test payment intent and one refund before publishing paid events
 
+### 6. Analytics (Microsoft Clarity)
+- Create a project at [clarity.microsoft.com](https://clarity.microsoft.com) and copy the
+  project id from **Settings → Setup**
+- Set `VITE_CLARITY_PROJECT_ID` for the production build (see below). With it unset, Clarity
+  simply never loads — the app works normally
+- Confirm masking after the first deploy: open a replay and check that the sign-in card, the
+  contact form and the member directory are masked. See the Analytics section in `README.md`
+- Optional build flags: `VITE_ANALYTICS_DEBUG`, `VITE_ANALYTICS_ALLOW_LOCALHOST`,
+  `VITE_ANALYTICS_RESPECT_DNT`
+
 ---
 
 ## Deploying via Lovable
@@ -64,7 +74,17 @@ All infrastructure is managed through Lovable + Supabase.
 1. Open your project at [lovable.dev](https://lovable.dev)
 2. Click **Share → Publish**
 3. To connect a custom domain: **Settings → Custom Domain → Add Domain**
-4. All environment variables (Supabase keys, Gemini key) are managed inside Lovable settings — never commit them to this repo
+4. **Secrets** (Gemini key, Ziina token/webhook secret, any service-role key) live in Lovable
+   settings and Supabase Edge Function secrets — never commit them to this repo.
+5. **`VITE_*` variables are not secrets.** Vite inlines them into the client bundle at build
+   time, so anyone can read them in the shipped JavaScript. They are therefore committed to
+   `.env` in this repo (Supabase URL + publishable anon key, payments client token,
+   `VITE_CLARITY_PROJECT_ID`), which is what the Lovable build reads. Adding a new one means
+   editing `.env` and pushing — Lovable rebuilds and picks it up. If you would rather keep it
+   out of git, add the same key in **Lovable → Project Settings → Environment variables**
+   instead; either source works, but do not set it in both places or the two will drift.
+
+   Never put a genuine secret behind a `VITE_` prefix.
 
 ---
 

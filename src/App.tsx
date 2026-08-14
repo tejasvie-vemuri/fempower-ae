@@ -49,6 +49,7 @@ import AdminAiEdge from "./pages/AdminAiEdge";
 import AdminLifestyleManager from "./pages/AdminLifestyleManager";
 import AdminNorthstar from "./pages/AdminNorthstar";
 import ScrollToHash from "@/components/ScrollToHash";
+import Analytics from "@/components/Analytics";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
@@ -61,6 +62,7 @@ const App = () => (
       <Sonner />
       <AuthProvider>
         <ScrollToHash />
+        <Analytics />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthPage />} />

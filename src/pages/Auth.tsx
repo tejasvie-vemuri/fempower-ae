@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { z } from "zod";
+import { track } from "@/lib/analytics";
 import fempowerLogo from "@/assets/fempower-logo.png";
 
 const emailSchema = z.string().trim().min(1, "Email is required").email("Please enter a valid email address").max(255);
@@ -37,6 +38,10 @@ const AuthPage = () => {
   const [signUpErrors, setSignUpErrors] = useState<Errors>({});
 
   useEffect(() => {
+    track("auth_page_viewed", { tab: defaultTab, redirect: redirectTo });
+  }, [defaultTab, redirectTo]);
+
+  useEffect(() => {
     if (loading || !user) return;
     (async () => {
       const [{ data: profile }, { data: roleRow }] = await Promise.all([
@@ -55,10 +60,12 @@ const AuthPage = () => {
 
   const handleGoogle = async () => {
     setSubmitting(true);
+    track("oauth_started", { provider: "google", redirect: redirectTo });
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin + redirectTo,
     });
     if (result.error) {
+      track("oauth_failed", { provider: "google", reason: result.error.message });
       toast.error("Google sign-in failed");
       setSubmitting(false);
     }
@@ -90,17 +97,23 @@ const AuthPage = () => {
     const pwRes = passwordSchema.safeParse(signInData.password);
     if (!pwRes.success) errs.password = pwRes.error.issues[0].message;
     setSignInErrors(errs);
-    if (Object.keys(errs).length) return;
+    if (Object.keys(errs).length) {
+      track("sign_in_failed", { stage: "validation", fields: Object.keys(errs).join(",") });
+      return;
+    }
 
     setSubmitting(true);
+    track("sign_in_submitted", { method: "password" });
     const { error } = await supabase.auth.signInWithPassword({
       email: emailRes.data!,
       password: pwRes.data!,
     });
     setSubmitting(false);
     if (error) {
+      track("sign_in_failed", { stage: "server", method: "password", reason: error.message });
       toast.error(error.message);
     } else {
+      track("sign_in_succeeded", { method: "password" });
       toast.success("Welcome back");
       // The useEffect above will route to /pending-approval or redirectTo
       // based on the user's approval status.
@@ -117,9 +130,13 @@ const AuthPage = () => {
     const pwRes = passwordSignUpSchema.safeParse(signUpData.password);
     if (!pwRes.success) errs.password = pwRes.error.issues[0].message;
     setSignUpErrors(errs);
-    if (Object.keys(errs).length) return;
+    if (Object.keys(errs).length) {
+      track("sign_up_failed", { stage: "validation", fields: Object.keys(errs).join(",") });
+      return;
+    }
 
     setSubmitting(true);
+    track("sign_up_submitted", { method: "password" });
     const { error } = await supabase.auth.signUp({
       email: emailRes.data!,
       password: pwRes.data!,
@@ -130,8 +147,10 @@ const AuthPage = () => {
     });
     setSubmitting(false);
     if (error) {
+      track("sign_up_failed", { stage: "server", method: "password", reason: error.message });
       toast.error(error.message);
     } else {
+      track("sign_up_succeeded", { method: "password" });
       toast.success("Check your email to confirm your account");
     }
   };
@@ -146,7 +165,11 @@ const AuthPage = () => {
           <h1 className="font-heading text-3xl text-primary">Sign in to Fempower</h1>
           <p className="mt-2 text-sm italic text-muted-foreground">Rooted Together, Rising Together</p>
         </Link>
-        <div className="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-sm">
+        {/* Session replays must never show credentials — mask the whole card. */}
+        <div
+          data-clarity-mask="True"
+          className="bg-card border border-border rounded-2xl p-6 md:p-8 shadow-sm"
+        >
           <Tabs defaultValue={defaultTab}>
             <TabsList className="grid grid-cols-2 w-full mb-6">
               <TabsTrigger value="signin">Sign in</TabsTrigger>

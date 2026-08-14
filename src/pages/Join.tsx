@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Loader2, CheckCircle, Clock, Instagram, ArrowRight, Zap } from "lucide-react";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useMemberProfile } from "@/hooks/useMemberProfile";
 import NextEventCard from "@/components/NextEventCard";
+import { track } from "@/lib/analytics";
 
 
 const INSTAGRAM_URL = "https://www.instagram.com/fempower.ae";
@@ -58,6 +60,14 @@ const Card = ({ children }: { children: React.ReactNode }) => (
 const JoinPage = () => {
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useMemberProfile();
+
+  // /join renders three very different pages. Reporting which one a visitor
+  // actually saw is what makes the join funnel readable.
+  const stage = !user ? "signed_out" : (profile?.status ?? "no_profile");
+  useEffect(() => {
+    if (authLoading || (user && profileLoading)) return;
+    track("join_page_viewed", { stage, authenticated: !!user });
+  }, [stage, authLoading, profileLoading, user]);
 
   if (authLoading || (user && profileLoading)) {
     return (

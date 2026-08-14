@@ -13,6 +13,7 @@ import {
   slugifyFilename,
   type CalendarEvent,
 } from "@/lib/calendar";
+import { track } from "@/lib/analytics";
 
 interface Props {
   event: CalendarEvent;
@@ -39,19 +40,30 @@ export function AddToCalendarButton({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-popover z-50">
         <DropdownMenuItem
-          onClick={() =>
-            downloadIcs(event, `${slugifyFilename(event.title)}.ics`)
-          }
+          onClick={() => {
+            track("calendar_added", { provider: "ics", title: event.title });
+            downloadIcs(event, `${slugifyFilename(event.title)}.ics`);
+          }}
         >
           Apple Calendar / .ics file
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <a href={googleCalendarUrl(event)} target="_blank" rel="noreferrer">
+          <a
+            href={googleCalendarUrl(event)}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => track("calendar_added", { provider: "google", title: event.title })}
+          >
             Google Calendar
           </a>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <a href={outlookCalendarUrl(event)} target="_blank" rel="noreferrer">
+          <a
+            href={outlookCalendarUrl(event)}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => track("calendar_added", { provider: "outlook", title: event.title })}
+          >
             Outlook
           </a>
         </DropdownMenuItem>

@@ -195,6 +195,8 @@ const Header = () => {
             <InviteSisterDialog>
               <Button
                 size="sm"
+                data-analytics-event="invite_sister_opened"
+                data-analytics-location="header"
                 className="hidden sm:inline-flex bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs px-5"
               >
                 <Heart size={13} className="mr-2" /> Invite a sister
@@ -202,7 +204,11 @@ const Header = () => {
             </InviteSisterDialog>
           ) : (
             <Button size="sm" className="hidden sm:inline-flex bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs px-5" asChild>
-              <Link to="/join">Join Us</Link>
+              {/* Internal links aren't auto-captured (page_view covers them) —
+                  CTAs opt in explicitly so we can measure the funnel entry. */}
+              <Link to="/join" data-analytics-event="join_cta_click" data-analytics-location="header">
+                Join Us
+              </Link>
             </Button>
           )}
 
@@ -307,6 +313,8 @@ const Header = () => {
                   <InviteSisterDialog>
                     <Button
                       onClick={() => setOpen(false)}
+                      data-analytics-event="invite_sister_opened"
+                      data-analytics-location="mobile_menu"
                       className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full mt-2"
                     >
                       <Heart size={13} className="mr-2" aria-hidden="true" /> Invite a sister
@@ -314,7 +322,14 @@ const Header = () => {
                   </InviteSisterDialog>
                 ) : (
                   <Button className="bg-foreground text-primary-foreground hover:bg-foreground/90 font-body uppercase tracking-widest text-xs w-full mt-2" asChild>
-                    <Link to="/join" onClick={() => setOpen(false)}>Join Us</Link>
+                    <Link
+                      to="/join"
+                      onClick={() => setOpen(false)}
+                      data-analytics-event="join_cta_click"
+                      data-analytics-location="mobile_menu"
+                    >
+                      Join Us
+                    </Link>
                   </Button>
                 )}
               </nav>

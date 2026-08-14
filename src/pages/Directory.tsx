@@ -14,6 +14,7 @@ import type { MemberProfile } from "@/lib/memberProfile";
 import { Link } from "react-router-dom";
 import { useMemberProfile } from "@/hooks/useMemberProfile";
 import { logEngagement } from "@/lib/engagement";
+import { track } from "@/lib/analytics";
 import { PalmDivider, DuneWave, CrescentStar } from "@/components/GulfDecoratives";
 
 const Directory = () => {
@@ -53,7 +54,8 @@ const Directory = () => {
     const found = items.find((m) => m.user_id === memberId);
     if (found) {
       setSelected(found);
-      void logEngagement("directory_profile_viewed", found.user_id, { source: "digest" });
+      // `track` bridges this to engagement_events, so it still reaches Northstar.
+      track("directory_profile_viewed", { target_id: found.user_id, source: "digest" });
     }
   }, [items, searchParams, selected]);
 
@@ -119,7 +121,30 @@ const Directory = () => {
 
           {/* Filter bar — elevated card */}
           <div className="bg-card rounded-2xl shadow-sm border border-border p-4 md:p-5 mb-8">
-            <DirectoryFiltersBar filters={filters} onChange={setFilters} cities={cities} />
+            <DirectoryFiltersBar
+              filters={filters}
+              cities={cities}
+              onChange={(next) => {
+                const facetChanged =
+                  next.industry !== filters.industry ||
+                  next.city !== filters.city ||
+                  next.lookingFor !== filters.lookingFor;
+                // The search box calls onChange on every keystroke, so only
+                // report when a search starts or is cleared.
+                const searchToggled = !!next.search !== !!filters.search;
+                setFilters(next);
+                if (!facetChanged && !searchToggled) return;
+                // Which facets members actually use. The search *term* is often
+                // another member's name, so we report only whether one was
+                // typed — never the text itself.
+                track("directory_filter_applied", {
+                  has_search: !!next.search,
+                  industry: next.industry ?? "any",
+                  city: next.city ?? "any",
+                  looking_for: next.lookingFor ?? "any",
+                });
+              }}
+            />
           </div>
 
           {loading && items.length === 0 ? (
@@ -138,6 +163,8 @@ const Directory = () => {
                 initial="hidden"
                 animate="show"
                 variants={{ hidden: {}, show: { transition: { staggerChildren: 0.04 } } }}
+                // Members' names, photos and bios must not appear in replays.
+                data-clarity-mask="True"
                 className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
               >
                 {items.map(m => (
@@ -145,7 +172,7 @@ const Directory = () => {
                     key={m.id}
                     variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
                   >
-                    <MemberCard member={m} onClick={() => { setSelected(m); void logEngagement("directory_profile_viewed", m.user_id); }} />
+                    <MemberCard member={m} onClick={() => { setSelected(m); track("directory_profile_viewed", { target_id: m.user_id, source: "grid" }); }} />
                   </motion.div>
                 ))}
               </motion.div>

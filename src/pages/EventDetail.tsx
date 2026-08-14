@@ -25,6 +25,7 @@ import {
   validateGuests,
   type Guest,
 } from "@/lib/guests";
+import { track } from "@/lib/analytics";
 import { Minus, Plus } from "lucide-react";
 import {
   Loader2,
@@ -147,6 +148,26 @@ const EventDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, user, authLoading]);
 
+  // Top of the ticketing funnel: one `event_viewed` per event, with the
+  // dimensions we want to segment conversion by (price, seats, auth state).
+  useEffect(() => {
+    if (!event) return;
+    track("event_viewed", {
+      target_id: event.id,
+      slug: event.slug,
+      title: event.title,
+      is_free: event.price_cents === 0,
+      price_cents: event.price_cents,
+      currency: event.currency,
+      capacity: event.capacity,
+      seats_taken: confirmedCount,
+      status: event.status,
+      authenticated: !!user,
+      already_registered: !!myReg,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event?.id]);
+
   // Handle return from Ziina hosted checkout.
   useEffect(() => {
     const checkout = searchParams.get("checkout");
@@ -164,10 +185,21 @@ const EventDetail = () => {
           },
         });
         if (error) {
+          track("checkout_failed", {
+            target_id: event?.id,
+            stage: "verify",
+            reason: error.message,
+          });
           toast.error(error.message ?? "Could not verify payment");
         } else if (data?.paid) {
+          track("payment_succeeded", { target_id: event?.id, slug: event?.slug });
           toast.success("Payment confirmed — you're registered!");
         } else {
+          track("checkout_failed", {
+            target_id: event?.id,
+            stage: "verify",
+            reason: data?.payment_status ?? "unknown",
+          });
           toast.info(`Payment status: ${data?.payment_status ?? "unknown"}`);
         }
         searchParams.delete("checkout");
@@ -177,6 +209,7 @@ const EventDetail = () => {
         load();
       })();
     } else if (checkout === "cancelled") {
+      track("checkout_failed", { target_id: event?.id, stage: "return", reason: "cancelled" });
       toast.info("Checkout cancelled");
       searchParams.delete("checkout");
       searchParams.delete("payment_intent_id");
@@ -184,6 +217,7 @@ const EventDetail = () => {
       setSearchParams(searchParams, { replace: true });
       load();
     } else if (checkout === "failed") {
+      track("checkout_failed", { target_id: event?.id, stage: "return", reason: "payment_failed" });
       toast.error("Payment failed. You can try again whenever you're ready.");
       searchParams.delete("checkout");
       searchParams.delete("payment_intent_id");
@@ -207,7 +241,16 @@ const EventDetail = () => {
 
   const handleRegister = async () => {
     if (!event) return;
+    const funnel = {
+      target_id: event.id,
+      slug: event.slug,
+      is_free: event.price_cents === 0,
+      quantity,
+    };
+    track("event_register_started", { ...funnel, authenticated: !!user });
     if (!user) {
+      // Bounced to sign-in — the single biggest drop-off in this funnel.
+      track("event_register_failed", { ...funnel, reason: "not_authenticated" });
       navigate(`/auth?redirect=/events/${event.slug}`);
       return;
     }
@@ -215,6 +258,11 @@ const EventDetail = () => {
       const v = validateResponses(questions, responses);
       setResponseErrors(v.errors);
       if (!v.ok) {
+        track("event_register_failed", {
+          ...funnel,
+          reason: "questions_invalid",
+          fields: Object.keys(v.errors).join(","),
+        });
         toast.error("Please answer the required questions");
         return;
       }
@@ -223,10 +271,12 @@ const EventDetail = () => {
     const cleanGuests = sanitizeGuests(safeQty, guests);
     const guestErr = validateGuests(safeQty, cleanGuests);
     if (guestErr) {
+      track("event_register_failed", { ...funnel, reason: "guests_invalid" });
       toast.error(guestErr);
       return;
     }
     if (seatsLeft !== null && safeQty > seatsLeft) {
+      track("event_register_failed", { ...funnel, reason: "not_enough_seats", seats_left: seatsLeft });
       toast.error(`Only ${seatsLeft} seat${seatsLeft === 1 ? "" : "s"} left`);
       return;
     }
@@ -242,9 +292,13 @@ const EventDetail = () => {
       });
       setActing(false);
       if (error) {
+        track("event_register_failed", { ...funnel, reason: "rpc_error", message: error.message });
         toast.error(error.message);
         return;
       }
+      // Analytics only — the `event_rsvp` row in engagement_events is written
+      // by the registrations trigger, so we must not log it again here.
+      track("event_register_succeeded", { ...funnel, quantity: safeQty, guests: cleanGuests.length });
       toast.success("You're registered!");
 
       // Send confirmation email (free registrations)
@@ -284,6 +338,12 @@ const EventDetail = () => {
 
       load();
     } else {
+      track("checkout_started", {
+        ...funnel,
+        quantity: safeQty,
+        price_cents: event.price_cents,
+        currency: event.currency,
+      });
       const { data, error } = await supabase.functions.invoke("create-checkout-session", {
         body: {
           event_id: event.id,
@@ -295,7 +355,9 @@ const EventDetail = () => {
       });
       setActing(false);
       if (error || !data?.redirect_url) {
-        toast.error(error?.message ?? data?.error ?? "Could not start checkout");
+        const reason = error?.message ?? data?.error ?? "Could not start checkout";
+        track("checkout_failed", { ...funnel, reason });
+        toast.error(reason);
         return;
       }
       window.location.assign(data.redirect_url);
@@ -324,6 +386,7 @@ const EventDetail = () => {
       toast.error(error.message);
       return;
     }
+    track("waitlist_joined", { target_id: event.id, slug: event.slug, position });
     toast.success(`You're on the waitlist (position ${position})`);
     load();
   };
@@ -341,6 +404,7 @@ const EventDetail = () => {
       toast.error(error.message);
       return;
     }
+    track("waitlist_left", { target_id: event.id, slug: event.slug });
     toast.success("Removed from waitlist");
     load();
   };
