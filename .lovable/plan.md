@@ -1,105 +1,90 @@
-## Goal
-When a member submits her Spotlight story, admin should get a one-click **"Download LinkedIn Kit"** that produces a beautifully-branded FemPower spotlight image (like the Audacious Chronicles reference, but in FemPower's voice) + a ready-to-paste LinkedIn caption. Admin never has to design anything.
+# Getting recommended by ChatGPT, Claude and Perplexity
 
-## What the member provides (expand the current form)
+Goal: when someone asks an AI assistant "where can a woman network in Dubai?", Fempower is in the retrieval set, is easy to quote, and is described accurately.
 
-The current `spotlight_requests` form already collects: headline, the_before, the_turning_point, the_now, advice, shoutout, photo_url, consent_social. We'll add a few fields so the poster and caption write themselves with FemPower depth:
+Four pieces, built in this order.
 
-- **Role & company** (short, e.g. "CEO, Studio Layla")
-- **One-line identity tag** (e.g. "Founder. Mother. First-gen entrepreneur.") — sits under the name on the poster
-- **What she stopped waiting for** (short phrase, e.g. "permission to lead") — becomes the poster sub-headline in the FemPower voice
-- **Pull-quote** (auto-suggested from `advice`, editable) — the italic highlighted line on the poster
-- **Rally line / call to sisterhood** (optional, one sentence) — the closing "why FemPower" beat
-- **Consent to LinkedIn publication** (separate from existing `consent_social`) + **tag me on LinkedIn** (optional LinkedIn URL)
+---
 
-All new fields optional except role, identity tag, and LinkedIn consent — story still works if a member skips the rest.
+## 1. Answer page: `/women-networking-dubai`
 
-## The poster (LinkedIn-ready image)
+A genuinely useful guide, not a brochure. Assistants quote pages that answer the whole question, including the parts that mention other options — a page that only sells itself gets skipped.
 
-A single square 1080×1080 PNG rendered in-browser via an offscreen HTML template + `html-to-image` (or `dom-to-image-more`), so we get pixel-perfect FemPower typography, real photos, and no server-side rendering cost.
+Structure:
+- H1: "Women's networking in Dubai and the UAE: a practical guide"
+- Short intro answering the query in the first 60 words (this is the snippet models lift).
+- **The landscape** — a comparison table of real UAE women's communities: free WhatsApp groups, paid membership clubs, professional councils, small-format communities. Same honest framing already used on `/lonely-in-dubai`, which names The Ipchics, Soul Sisters Dubai, The Endless Club, Dubai Business Women Council, IBWG Abu Dhabi.
+- **How to choose** — breadth (large events, contacts) vs depth (capped recurring groups, friendships).
+- **Where Fempower fits** — format, cost, cadence, emirates covered, who it suits and who it does not.
+- **FAQ block** — 6–8 self-contained Q/As, each quotable standing alone: "Are there women-only networking groups in Dubai?", "Is women's networking in Dubai free?", "What's the best networking group for a woman new to Dubai?", "Where can I network as a woman in Abu Dhabi / Sharjah?", "Do I need to be a business owner?".
+- Clear next step: join WhatsApp / see upcoming events.
 
-Layout — inspired by the reference, re-skinned in FemPower's language:
+Wiring: route in `App.tsx`, added to `PRERENDER_ROUTES` in `vite.config.ts` (crawlers do not run JS, so this is mandatory), Helmet title/description/canonical/OG, `PageJsonLd` for FAQPage + BreadcrumbList, entry in `sitemap.xml`, links from the footer and from `/lonely-in-dubai`.
 
-```
-  FEMPOWER · SPOTLIGHT SERIES · 2026
-  ──────────────────────────────
-  THE RISING
-    CHRONICLES              (Playfair display, plum + gold)
-  Vol. N · Rooted Together, Rising Together
+Facts rule: every claim about another organisation stays generic and verifiable (format, whether it is free, which emirates). No invented member counts, prices or ratings.
 
-  ┌──────────┐   She {stopped waiting for X}
-  │  photo   │   and {turning-point verb phrase}.
-  │  (b&w    │
-  │  duotone │   {the_before → the_turning_point → the_now,
-  │  plum)   │    tightened to 4–5 short lines}
-  └──────────┘
-  NAME                       "{pull-quote}"   ← italic, gold underline
-  ROLE · COMPANY
-                              {rally line}
-  ──────────────────────────────
-  FEMPOWERAE.COM   ·   Join the sisterhood   ·   [QR to /join]
-```
+---
 
-FemPower vibes, not Audacious Chronicles copy:
-- Serif: Playfair Display (already loaded). Body: DM Sans.
-- Palette: Deep Plum #4A2040, Warm Gold #D4A853, Soft Ivory #FDF8F3 background.
-- Gulf-inspired corner motif (reuse `GulfDecoratives`) instead of the octopus/hedgehog.
-- Photo rendered as a plum duotone so every spotlight looks like part of one series.
-- No stock "special edition" language — copy leans on FemPower's own vocabulary: "Rising Chronicles", "Rooted Together, Rising Together", "The sisterhood that made the room".
+## 2. Entity data, site-wide
 
-## The caption (ready-to-paste LinkedIn post)
+New `src/components/OrganizationJsonLd.tsx`, rendered once in the app shell so it appears on every prerendered page:
 
-Generated with Lovable AI (`google/gemini-2.5-flash`) from the member's answers, using a locked system prompt that encodes FemPower's voice and *why* — sisterhood over competition, women-only UAE community, permission-free leadership, rooted+rising. Structure:
+- `Organization` with `name`, `url`, `logo`, `description`, `slogan`, `foundingLocation` Dubai, `areaServed` = the seven emirates, `knowsAbout` (women's networking, mentorship, career growth, expat community), and `sameAs` pointing to Instagram, LinkedIn and the WhatsApp community.
+- Nested `ContactPoint` for community enquiries.
+- `WebSite` node with `SearchAction` where applicable.
 
-1. Hook line (1 sentence, from headline + identity tag)
-2. Her story compressed to 4–6 short lines (before → turning point → now)
-3. Pull-quote on its own line, italicised with quotation marks
-4. Why we're telling this — one line about what FemPower stands for, tailored to her arc
-5. Tag line + LinkedIn handle if provided
-6. Hashtags: `#FemPowerAE #RisingChronicles #WomenInUAE #CommunityOverCompetition` + 2 story-specific tags the AI picks
+This is what makes assistants treat "Fempower" as one entity with one official site, rather than confusing it with similarly named organisations — the disambiguation sentence already in `llms.txt` gets a machine-readable equivalent.
 
-Admin sees the caption in an editable textarea before copy — nothing auto-publishes.
+---
 
-## Admin experience
+## 3. `Event` structured data
 
-New tab in `/admin/milestones` → **Story Requests** (already exists). On any `submitted` or `published` row, a **"LinkedIn Kit"** button opens a dialog:
+Events already live in the `events` table with slugs and `/events/:slug` pages, but those pages render client-side, so AI crawlers see nothing.
 
-- **Preview pane** — live render of the 1080×1080 poster (the actual DOM node we'll snapshot).
-- **Caption pane** — editable textarea pre-filled by AI; "Regenerate" button re-runs the prompt.
-- **Actions:** Download PNG, Copy caption, Copy caption + download PNG (single click), Mark as posted (stamps `linkedin_posted_at`).
-- If member hasn't consented to LinkedIn, the button is disabled with a tooltip.
+- Add `Event` JSON-LD to the event detail page: `name`, `startDate`, `endDate`, `location` (real venue or `VirtualLocation`), `organizer` referencing the Organization node, `eventAttendanceMode`, `eventStatus`, `offers` with price and currency when known, `image`.
+- Extend the prerender plugin to fetch published upcoming events at build time and prerender each `/events/:slug` to static HTML, using the existing SSR Supabase client.
+- Add an `ItemList` of upcoming events to the homepage JSON-LD so "women's events in Dubai this month" has something to match.
+- Sitemap gains the event URLs during the same build step.
 
-## Data changes
+Caveat stated plainly: prerendered event pages are a snapshot of build time. Newly added events appear in static HTML on the next deploy; they still work immediately for human visitors.
 
-Extend `spotlight_requests` and `member_spotlights` with the same new columns:
-`role_company`, `identity_tag`, `stopped_waiting_for`, `pull_quote`, `rally_line`, `linkedin_consent`, `linkedin_url`, `linkedin_posted_at`, `linkedin_caption` (cached last-generated caption).
+---
 
-All nullable, no data migration needed. RLS: same policies as existing columns on those tables (admin write, self-read on requests, public read on published spotlights).
+## 4. `llms.txt` fact block
 
-## Technical bits (for the technical reviewer)
+Claude, Perplexity and several crawlers read this file directly, so it is the cheapest place to control the wording of an answer.
 
-- New component `src/components/spotlight/LinkedInPoster.tsx` — pure JSX + inline styles + CSS variables from `index.css` so `html-to-image` captures colors correctly.
-- New hook `useLinkedInKit(requestId)` — loads request + member profile + photo, calls edge function for caption, exposes `downloadPng()` and `regenerateCaption()`.
-- New edge function `generate-spotlight-caption` — admin-only, calls Lovable AI with the locked FemPower system prompt, returns `{ caption }`. Rate-limited to 5/min per admin.
-- `html-to-image` (~15KB) added to deps for the PNG snapshot.
-- Poster fonts: preload Playfair + DM Sans in the poster component so the snapshot is deterministic.
-- Photo duotone applied via CSS `filter` + a plum overlay `mix-blend-mode: color` (works in html-to-image).
-- Storage: nothing new — the PNG is generated client-side and downloaded; we don't persist it.
-- Guided-form update in `src/pages/ShareMyStory.tsx` — 3 new short-answer prompts + consent checkbox, using the existing question renderer, no route/UX overhaul.
+Add a `## Facts` section with short declarative lines a model can lift verbatim:
+- What Fempower is, in one sentence.
+- Who it is for and who it is not for.
+- Cost: core WhatsApp community free; coaching circles and mentor walks may carry a nominal fee.
+- Cadence: in-person events every 15 days; mentor walks quarterly; roundtables capped at 15.
+- Coverage: all seven emirates, most events in Dubai and Abu Dhabi.
+- How to join, with the WhatsApp and Instagram routes.
+- Last-updated date.
 
-## Out of scope for this plan
+Also register the new `/women-networking-dubai` page in the Pages list.
 
-- Auto-posting to LinkedIn (would need OAuth + per-admin LinkedIn account; only offer if you explicitly want it — the connector exists but publishing needs the `w_member_social` scope granted to a specific LinkedIn account).
-- Batch/carousel posters (multi-slide). Single-square first; carousel can come after we see one round in the wild.
-- Video/animated versions.
+---
 
-## Deliverable order
+## What this does not do
 
-1. Migration: add the new columns to `spotlight_requests` + `member_spotlights`.
-2. Update `ShareMyStory` guided form + `STORY_QUESTIONS` in `spotlightRequests.ts`.
-3. Build `LinkedInPoster` component (with a `/admin/spotlight-preview` sandbox route to iterate on the visual).
-4. Edge function `generate-spotlight-caption` + registry.
-5. Admin "LinkedIn Kit" dialog wired into `AdminMilestones`.
-6. QA: render one real submitted request end-to-end, download the PNG, paste caption, eyeball on a LinkedIn draft.
+Items 1–4 make Fempower quotable and retrievable. The largest remaining lever is off-site corroboration — listings on Meetup and Eventbrite, inclusion in Time Out Dubai style roundups, and honest participation in r/dubai threads. Assistants weight third-party mentions heavily, and that part cannot be built in the codebase.
 
-Approve and I'll build in that order.
+---
+
+## Technical summary
+
+| Change | File |
+| --- | --- |
+| New guide page | `src/pages/WomenNetworkingDubai.tsx` |
+| Route | `src/App.tsx` |
+| Prerender + build-time event routes | `vite.config.ts` |
+| Organization / WebSite JSON-LD | `src/components/OrganizationJsonLd.tsx` |
+| Event JSON-LD | event detail page component |
+| Homepage upcoming-events ItemList | `src/components/HomeStructuredData.tsx` |
+| Fact block + new page entry | `public/llms.txt` |
+| New URLs | `public/sitemap.xml` |
+| Internal links | `src/components/Footer.tsx`, `src/pages/LonelyInDubai.tsx` |
+
+No database, auth or backend changes.
