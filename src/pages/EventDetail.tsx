@@ -401,6 +401,10 @@ const EventDetail = () => {
       if (event) navigate(`/auth?redirect=/events/${event.slug}`);
       return;
     }
+    if (!isMember) {
+      navigate(memberStatus === "none" ? "/account/profile" : "/pending-approval");
+      return;
+    }
     setActing(true);
     const { count } = await supabase
       .from("waitlist")
