@@ -16,6 +16,10 @@ const Footer = () => (
         Feeling lonely in Dubai
       </Link>
       <span aria-hidden="true">·</span>
+      <Link to="/women-networking-dubai" className="hover:text-foreground transition-colors">
+        Women's networking in Dubai
+      </Link>
+      <span aria-hidden="true">·</span>
       <Link to="/roundtables" className="hover:text-foreground transition-colors">
         Intimate roundtables
       </Link>

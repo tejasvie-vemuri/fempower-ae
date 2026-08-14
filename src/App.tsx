@@ -31,6 +31,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import LonelyInDubai from "./pages/LonelyInDubai";
 import Roundtables from "./pages/Roundtables";
+import WomenNetworkingDubai from "./pages/WomenNetworkingDubai";
 import Unsubscribe from "./pages/Unsubscribe";
 import PendingApproval from "./pages/PendingApproval";
 import Learn from "./pages/Learn";
@@ -85,6 +86,7 @@ const App = () => (
             {/* Public content pages — indexed and prerendered, see PRERENDER_ROUTES in vite.config.ts */}
             <Route path="/lonely-in-dubai" element={<LonelyInDubai />} />
             <Route path="/roundtables" element={<Roundtables />} />
+            <Route path="/women-networking-dubai" element={<WomenNetworkingDubai />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route
               path="/admin/events"
