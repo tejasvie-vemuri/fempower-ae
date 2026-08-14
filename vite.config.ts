@@ -18,6 +18,140 @@ const PRERENDER_ROUTES = [
   "/women-networking-dubai",
 ];
 
+const SITE = "https://fempowerae.com";
+
+type BuildEvent = {
+  slug: string;
+  title: string;
+  description: string | null;
+  location: string | null;
+  starts_at: string;
+  ends_at: string | null;
+  price_cents: number;
+  currency: string;
+  cover_image_url: string | null;
+  capacity: number;
+};
+
+function escapeHtml(s: string) {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * Writes dist/events/<slug>/index.html for every published, upcoming event.
+ *
+ * The body stays client-rendered — the SSR bundle has no database access —
+ * but the head carries a real title, description, canonical and schema.org
+ * Event markup, which is what search engines and AI assistants actually read
+ * when answering "what women's events are on in Dubai".
+ */
+async function writeEventShells(
+  distRoot: string,
+  template: string,
+  env: Record<string, string>,
+) {
+  const url = env.VITE_SUPABASE_URL;
+  const key = env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) {
+    console.warn("[prerender] no Supabase env — skipping event shells");
+    return;
+  }
+
+  let events: BuildEvent[] = [];
+  try {
+    const res = await fetch(
+      `${url}/rest/v1/events?select=slug,title,description,location,starts_at,ends_at,price_cents,currency,cover_image_url,capacity&status=eq.published&starts_at=gte.${new Date().toISOString()}&order=starts_at.asc&limit=100`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } },
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    events = (await res.json()) as BuildEvent[];
+  } catch (err) {
+    console.warn(
+      "[prerender] could not fetch events, skipping event shells:",
+      (err as Error).message,
+    );
+    return;
+  }
+
+  for (const ev of events) {
+    const canonical = `${SITE}/events/${ev.slug}`;
+    const description = (
+      ev.description?.replace(/\s+/g, " ").trim() ||
+      `${ev.title} — a Fempower gathering for women in the UAE${
+        ev.location ? ` at ${ev.location}` : ""
+      }. Open to Fempower members.`
+    ).slice(0, 155);
+    const title = `${ev.title} — Fempower event in the UAE`.slice(0, 60);
+
+    const jsonLd: Record<string, unknown> = {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      name: ev.title,
+      url: canonical,
+      startDate: ev.starts_at,
+      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+      eventStatus: "https://schema.org/EventScheduled",
+      description,
+      location: {
+        "@type": "Place",
+        name: ev.location || "United Arab Emirates",
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: ev.location || "Dubai",
+          addressCountry: "AE",
+        },
+      },
+      organizer: {
+        "@type": "Organization",
+        name: "Fempower",
+        url: SITE,
+        "@id": `${SITE}/#organization`,
+      },
+      isAccessibleForFree: ev.price_cents === 0,
+      inLanguage: "en-AE",
+      offers: {
+        "@type": "Offer",
+        url: canonical,
+        price: (ev.price_cents / 100).toFixed(2),
+        priceCurrency: ev.currency,
+        availability: "https://schema.org/InStock",
+        category: "Members only — Fempower membership required to register",
+      },
+    };
+    if (ev.ends_at) jsonLd.endDate = ev.ends_at;
+    if (ev.cover_image_url) jsonLd.image = [ev.cover_image_url];
+
+    const head = [
+      `<title>${escapeHtml(title)}</title>`,
+      `<meta name="description" content="${escapeHtml(description)}" />`,
+      `<link rel="canonical" href="${canonical}" />`,
+      `<meta property="og:type" content="article" />`,
+      `<meta property="og:title" content="${escapeHtml(ev.title)} — Fempower" />`,
+      `<meta property="og:description" content="${escapeHtml(description)}" />`,
+      `<meta name="twitter:card" content="summary_large_image" />`,
+      `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(
+        /</g,
+        "\\u003c",
+      )}</script>`,
+    ].join("\n    ");
+
+    const html = template
+      .replace(/<title>[\s\S]*?<\/title>/, "")
+      .replace(/<meta\s+name="description"[^>]*>/, "")
+      .replace(/<link\s+rel="canonical"[^>]*>/, "")
+      .replace("</head>", `    ${head}\n  </head>`);
+
+    const outPath = path.join(distRoot, "events", ev.slug, "index.html");
+    fs.mkdirSync(path.dirname(outPath), { recursive: true });
+    fs.writeFileSync(outPath, html, "utf-8");
+    console.log(`[prerender] wrote events/${ev.slug}/index.html`);
+  }
+}
+
 /**
  * Runs after the client build finishes. Programmatically kicks off a second
  * Vite build in SSR mode against src/entry-server.tsx, imports the resulting
@@ -25,7 +159,7 @@ const PRERENDER_ROUTES = [
  * inside dist/, then removes the SSR output. Uses an env flag to prevent
  * the nested SSR build from re-triggering this plugin recursively.
  */
-function prerenderPlugin(): Plugin {
+function prerenderPlugin(env: Record<string, string>): Plugin {
   return {
     name: "fempower-prerender",
     apply: "build",
