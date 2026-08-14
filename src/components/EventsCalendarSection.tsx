@@ -115,6 +115,12 @@ const EventsCalendarSection = () => {
 
   return (
     <section id="events-calendar" className="py-7 md:py-10">
+      {eventsItemListJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventsItemListJsonLd) }}
+        />
+      )}
       <PalmDivider className="mb-6" />
       <div className="container max-w-5xl">
         <motion.p
