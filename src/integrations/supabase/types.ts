@@ -668,6 +668,71 @@ export type Database = {
           },
         ]
       }
+      event_resources: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          event_id: string
+          external_url: string | null
+          file_name: string | null
+          file_size_bytes: number | null
+          id: string
+          is_published: boolean
+          kind: string
+          mime_type: string | null
+          sort_order: number
+          storage_path: string | null
+          title: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_id: string
+          external_url?: string | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          is_published?: boolean
+          kind?: string
+          mime_type?: string | null
+          sort_order?: number
+          storage_path?: string | null
+          title: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_id?: string
+          external_url?: string | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          is_published?: boolean
+          kind?: string
+          mime_type?: string | null
+          sort_order?: number
+          storage_path?: string | null
+          title?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_resources_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           attendee_questions: Json
@@ -2154,6 +2219,10 @@ export type Database = {
       }
     }
     Functions: {
+      can_view_event_resource: {
+        Args: { _resource_id: string; _user_id: string }
+        Returns: boolean
+      }
       confirm_free_registration: {
         Args: {
           _event_id: string
@@ -2233,6 +2302,23 @@ export type Database = {
       is_approved_member: { Args: { _user_id: string }; Returns: boolean }
       is_circle_banned: { Args: { _user_id: string }; Returns: boolean }
       is_circle_trusted: { Args: { _user_id: string }; Returns: boolean }
+      list_event_resources: {
+        Args: { _event_id: string }
+        Returns: {
+          description: string
+          external_url: string
+          file_name: string
+          file_size_bytes: number
+          id: string
+          kind: string
+          locked: boolean
+          mime_type: string
+          sort_order: number
+          storage_path: string
+          title: string
+          visibility: string
+        }[]
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
