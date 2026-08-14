@@ -105,6 +105,13 @@ function prerenderPlugin(): Plugin {
 
       const template = fs.readFileSync(clientIndex, "utf-8");
 
+      // Event pages: emit a static shell per published event with real head
+      // metadata and schema.org Event JSON-LD. We do not SSR the body (the
+      // SSR bundle has no database access), but crawlers and AI assistants
+      // read the head — which is what "women's events in Dubai" answers use.
+      await writeEventShells(distRoot, template, env);
+
+
       for (const route of PRERENDER_ROUTES) {
         let rendered: { html: string; headTags: string };
         try {
