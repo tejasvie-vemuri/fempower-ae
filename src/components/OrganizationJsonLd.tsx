@@ -51,7 +51,7 @@ const ORGANIZATION_JSONLD = {
     audienceType: "Women living in the United Arab Emirates",
     geographicArea: { "@type": "Country", name: "United Arab Emirates" },
   },
-  memberOf: undefined,
+  
 };
 
 const WEBSITE_JSONLD = {
