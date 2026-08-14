@@ -147,6 +147,18 @@ const EventDetail = () => {
         .eq("user_id", user.id)
         .maybeSingle();
       setOnWaitlist(!!wl);
+
+      const { data: profile } = await supabase
+        .from("member_profiles")
+        .select("status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      setMemberStatus(
+        (profile?.status as "pending" | "rejected" | "approved" | undefined) ??
+          "none",
+      );
+    } else {
+      setMemberStatus("unknown");
     }
     setLoading(false);
   };
