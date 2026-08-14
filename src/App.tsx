@@ -66,6 +66,7 @@ const App = () => (
       <AuthProvider>
         <ScrollToHash />
         <Analytics />
+        <OrganizationJsonLd />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthPage />} />
