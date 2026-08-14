@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import EventJsonLd from "@/components/EventJsonLd";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -87,6 +89,11 @@ const EventDetail = () => {
   const [responseErrors, setResponseErrors] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
   const [guests, setGuests] = useState<Guest[]>([]);
+  // Event sign-ups are members-only. "none" = signed in but no profile yet.
+  const [memberStatus, setMemberStatus] = useState<
+    "unknown" | "none" | "pending" | "rejected" | "approved"
+  >("unknown");
+  const isMember = memberStatus === "approved";
 
   const questions: AttendeeQuestion[] = useMemo(() => {
     // Per-event custom questions, skipping any that collide with default IDs.
@@ -140,6 +147,18 @@ const EventDetail = () => {
         .eq("user_id", user.id)
         .maybeSingle();
       setOnWaitlist(!!wl);
+
+      const { data: profile } = await supabase
+        .from("member_profiles")
+        .select("status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      setMemberStatus(
+        (profile?.status as "pending" | "rejected" | "approved" | undefined) ??
+          "none",
+      );
+    } else {
+      setMemberStatus("unknown");
     }
     setLoading(false);
   };
@@ -253,6 +272,17 @@ const EventDetail = () => {
       // Bounced to sign-in — the single biggest drop-off in this funnel.
       track("event_register_failed", { ...funnel, reason: "not_authenticated" });
       navigate(`/auth?redirect=/events/${event.slug}`);
+      return;
+    }
+    if (!isMember) {
+      // Members-only sign-ups. The database enforces this too; this branch
+      // just avoids a raw error toast.
+      track("event_register_failed", {
+        ...funnel,
+        reason: "not_a_member",
+        member_status: memberStatus,
+      });
+      navigate(memberStatus === "none" ? "/account/profile" : "/pending-approval");
       return;
     }
     if (questions.length) {
@@ -371,6 +401,10 @@ const EventDetail = () => {
       if (event) navigate(`/auth?redirect=/events/${event.slug}`);
       return;
     }
+    if (!isMember) {
+      navigate(memberStatus === "none" ? "/account/profile" : "/pending-approval");
+      return;
+    }
     setActing(true);
     const { count } = await supabase
       .from("waitlist")
@@ -450,8 +484,38 @@ const EventDetail = () => {
   const spotsLeft =
     event.capacity > 0 ? Math.max(event.capacity - confirmedCount, 0) : null;
 
+  const metaDescription = (
+    event.description?.replace(/\s+/g, " ").trim() ||
+    `${event.title} — a Fempower gathering for women in the UAE on ${fmtDate}${
+      event.location ? ` at ${event.location}` : ""
+    }. Open to Fempower members.`
+  ).slice(0, 155);
+
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{`${event.title} — Fempower event in the UAE`.slice(0, 60)}</title>
+        <meta name="description" content={metaDescription} />
+        <link rel="canonical" href={`https://fempowerae.com/events/${event.slug}`} />
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={`${event.title} — Fempower`} />
+        <meta property="og:description" content={metaDescription} />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Helmet>
+      <EventJsonLd
+        slug={event.slug}
+        title={event.title}
+        description={event.description}
+        location={event.location}
+        startsAt={event.starts_at}
+        endsAt={event.ends_at}
+        priceCents={event.price_cents}
+        currency={event.currency}
+        coverImageUrl={event.cover_image_url}
+        status={event.status}
+        capacity={event.capacity}
+        seatsTaken={confirmedCount}
+      />
       <div className="max-w-4xl mx-auto px-4 py-10">
         <HashLink
           to="/#events-calendar"
@@ -745,6 +809,31 @@ const EventDetail = () => {
                 ) : (
                   <div className="bg-muted text-sm rounded-md p-3">Sold out.</div>
                 )
+              ) : user && !isMember ? (
+                <>
+                  <div className="bg-muted text-sm rounded-md p-3">
+                    Fempower events are for members. {memberStatus === "none"
+                      ? "Complete your member profile to request access."
+                      : memberStatus === "pending"
+                        ? "Your membership is awaiting approval — we'll email you as soon as you're in."
+                        : "Your membership isn't active, so sign-ups are closed."}
+                  </div>
+                  {memberStatus !== "rejected" && (
+                    <Button asChild className="w-full" size="lg">
+                      <Link
+                        to={
+                          memberStatus === "none"
+                            ? "/account/profile"
+                            : "/pending-approval"
+                        }
+                      >
+                        {memberStatus === "none"
+                          ? "Complete my profile"
+                          : "Check my membership status"}
+                      </Link>
+                    </Button>
+                  )}
+                </>
               ) : (
                 <Button
                   className="w-full"
@@ -759,9 +848,11 @@ const EventDetail = () => {
 
               {!user && (
                 <p className="text-xs text-muted-foreground text-center">
-                  You'll need to sign in to register.
+                  Event sign-ups are for Fempower members — sign in or join to
+                  register.
                 </p>
               )}
+
 
               {!isFree && (
                 <div className="mt-4 pt-4 border-t border-border/60">

@@ -75,8 +75,52 @@ const EventsCalendarSection = () => {
   const priceLabel = (e: CalendarEvent) =>
     e.price_cents === 0 ? "Free" : `${e.currency} ${(e.price_cents / 100).toFixed(0)}`;
 
+  // ItemList of upcoming events so an assistant asked "what women's events are
+  // on in Dubai this month" can read the schedule off the homepage directly.
+  const eventsItemListJsonLd =
+    events.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: "Upcoming Fempower events in the UAE",
+          itemListElement: events.slice(0, 20).map((e, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            item: {
+              "@type": "Event",
+              name: e.title,
+              url: `https://fempowerae.com/events/${e.slug}`,
+              startDate: e.date.toISOString(),
+              eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+              eventStatus: "https://schema.org/EventScheduled",
+              isAccessibleForFree: e.price_cents === 0,
+              location: {
+                "@type": "Place",
+                name: e.location,
+                address: {
+                  "@type": "PostalAddress",
+                  addressLocality: e.location,
+                  addressCountry: "AE",
+                },
+              },
+              organizer: {
+                "@type": "Organization",
+                name: "Fempower",
+                "@id": "https://fempowerae.com/#organization",
+              },
+            },
+          })),
+        }
+      : null;
+
   return (
     <section id="events-calendar" className="py-7 md:py-10">
+      {eventsItemListJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventsItemListJsonLd) }}
+        />
+      )}
       <PalmDivider className="mb-6" />
       <div className="container max-w-5xl">
         <motion.p

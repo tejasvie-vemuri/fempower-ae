@@ -94,6 +94,23 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    // Event sign-ups are members-only. The free path is enforced inside
+    // confirm_free_registration; the paid path is enforced here, before any
+    // payment intent is created.
+    const { data: isMember, error: memberErr } = await supabaseAdmin.rpc(
+      "is_approved_member",
+      { _user_id: userId },
+    );
+    if (memberErr || !isMember) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "Fempower membership required to book events. Join the community first and we'll approve you.",
+        }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     const { data: ev, error: evErr } = await supabaseAdmin
       .from("events")
       .select("id, slug, title, price_cents, currency, capacity, status, waitlist_enabled")
