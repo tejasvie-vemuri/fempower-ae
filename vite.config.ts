@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin, build as viteBuild } from "vite";
+import { defineConfig, loadEnv, type Plugin, build as viteBuild } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import fs from "fs";
@@ -326,7 +326,9 @@ function prerenderPlugin(env: Record<string, string>): Plugin {
 }
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode, isSsrBuild }) => ({
+export default defineConfig(({ mode, isSsrBuild }) => {
+  const env = loadEnv(mode, __dirname, "");
+  return {
   server: {
     host: "::",
     port: 8080,
@@ -339,7 +341,7 @@ export default defineConfig(({ mode, isSsrBuild }) => ({
     mode === "development" && componentTagger(),
     // Only attach the prerender plugin to the client build. The nested SSR
     // build sets FEMPOWER_SSR_BUILD but we also guard here for clarity.
-    !isSsrBuild && prerenderPlugin(),
+    !isSsrBuild && prerenderPlugin(env),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -347,4 +349,5 @@ export default defineConfig(({ mode, isSsrBuild }) => ({
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime"],
   },
-}));
+  };
+});
