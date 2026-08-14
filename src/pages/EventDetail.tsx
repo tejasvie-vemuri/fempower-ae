@@ -89,6 +89,11 @@ const EventDetail = () => {
   const [responseErrors, setResponseErrors] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
   const [guests, setGuests] = useState<Guest[]>([]);
+  // Event sign-ups are members-only. "none" = signed in but no profile yet.
+  const [memberStatus, setMemberStatus] = useState<
+    "unknown" | "none" | "pending" | "rejected" | "approved"
+  >("unknown");
+  const isMember = memberStatus === "approved";
 
   const questions: AttendeeQuestion[] = useMemo(() => {
     // Per-event custom questions, skipping any that collide with default IDs.
