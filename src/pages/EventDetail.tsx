@@ -484,8 +484,38 @@ const EventDetail = () => {
   const spotsLeft =
     event.capacity > 0 ? Math.max(event.capacity - confirmedCount, 0) : null;
 
+  const metaDescription = (
+    event.description?.replace(/\s+/g, " ").trim() ||
+    `${event.title} — a Fempower gathering for women in the UAE on ${fmtDate}${
+      event.location ? ` at ${event.location}` : ""
+    }. Open to Fempower members.`
+  ).slice(0, 155);
+
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{`${event.title} — Fempower event in the UAE`.slice(0, 60)}</title>
+        <meta name="description" content={metaDescription} />
+        <link rel="canonical" href={`https://fempowerae.com/events/${event.slug}`} />
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={`${event.title} — Fempower`} />
+        <meta property="og:description" content={metaDescription} />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Helmet>
+      <EventJsonLd
+        slug={event.slug}
+        title={event.title}
+        description={event.description}
+        location={event.location}
+        startsAt={event.starts_at}
+        endsAt={event.ends_at}
+        priceCents={event.price_cents}
+        currency={event.currency}
+        coverImageUrl={event.cover_image_url}
+        status={event.status}
+        capacity={event.capacity}
+        seatsTaken={confirmedCount}
+      />
       <div className="max-w-4xl mx-auto px-4 py-10">
         <HashLink
           to="/#events-calendar"
