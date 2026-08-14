@@ -274,6 +274,17 @@ const EventDetail = () => {
       navigate(`/auth?redirect=/events/${event.slug}`);
       return;
     }
+    if (!isMember) {
+      // Members-only sign-ups. The database enforces this too; this branch
+      // just avoids a raw error toast.
+      track("event_register_failed", {
+        ...funnel,
+        reason: "not_a_member",
+        member_status: memberStatus,
+      });
+      navigate(memberStatus === "none" ? "/account/profile" : "/pending-approval");
+      return;
+    }
     if (questions.length) {
       const v = validateResponses(questions, responses);
       setResponseErrors(v.errors);
