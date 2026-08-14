@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import EventJsonLd from "@/components/EventJsonLd";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
