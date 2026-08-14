@@ -68,7 +68,9 @@ async function writeEventShells(
       { headers: { apikey: key, Authorization: `Bearer ${key}` } },
     );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    events = (await res.json()) as BuildEvent[];
+    const body: unknown = JSON.parse(await res.text());
+    if (!Array.isArray(body)) throw new Error("unexpected response shape");
+    events = body as BuildEvent[];
   } catch (err) {
     console.warn(
       "[prerender] could not fetch events, skipping event shells:",
