@@ -17,6 +17,7 @@ import {
 } from "@/lib/attendeeQuestions";
 
 import { AttendeeQuestionsForm } from "@/components/AttendeeQuestionsForm";
+import { EventResources } from "@/components/EventResources";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -528,6 +529,11 @@ const EventDetail = () => {
                 {event.description}
               </div>
             )}
+
+            <EventResources
+              eventId={event.id}
+              isRegistered={myReg?.status === "confirmed"}
+            />
 
             {questions.length > 0 &&
               (!myReg || myReg.status !== "confirmed") &&

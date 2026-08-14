@@ -29,7 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, Pencil, Plus, Trash2, ArrowLeft, Users, Images } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2, ArrowLeft, Users, Images, FileText } from "lucide-react";
 import {
   AttendeeQuestion,
   parseQuestions,
@@ -220,6 +220,11 @@ const AdminEvents = () => {
             <h1 className="font-heading text-3xl text-primary">Manage Events</h1>
           </div>
           <div className="flex items-center gap-2">
+            <Button asChild variant="outline">
+              <Link to="/admin/resources">
+                <FileText className="h-4 w-4 mr-2" /> Resources
+              </Link>
+            </Button>
             <Button asChild variant="outline">
               <Link to="/admin/registrations">
                 <Users className="h-4 w-4 mr-2" /> All registrations

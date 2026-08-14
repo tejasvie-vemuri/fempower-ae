@@ -12,6 +12,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Join from "./pages/Join";
 import AdminEvents from "./pages/AdminEvents";
 import AdminEventPhotos from "./pages/AdminEventPhotos";
+import AdminResources from "./pages/AdminResources";
 import AdminRegistrations from "./pages/AdminRegistrations";
 import AdminAllRegistrations from "./pages/AdminAllRegistrations";
 import AdminTestimonials from "./pages/AdminTestimonials";
@@ -106,6 +107,14 @@ const App = () => (
               element={
                 <AdminRoute>
                   <AdminEventPhotos />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/resources"
+              element={
+                <AdminRoute>
+                  <AdminResources />
                 </AdminRoute>
               }
             />
