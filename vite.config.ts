@@ -15,6 +15,7 @@ const PRERENDER_ROUTES = [
   // assistants, so prerendering them is not optional — crawlers do not run JS.
   "/lonely-in-dubai",
   "/roundtables",
+  "/women-networking-dubai",
 ];
 
 /**
