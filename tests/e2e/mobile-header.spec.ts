@@ -24,7 +24,7 @@ test.describe("Mobile header drawer", () => {
     await expect(toggle).toHaveAttribute("aria-haspopup", "dialog");
 
     // Desktop nav exists in the DOM but is hidden via Tailwind md:flex.
-    await expect(page.getByRole("link", { name: "About", exact: true })).toBeHidden();
+    await expect(page.getByRole("link", { name: "What We Do", exact: true })).toBeHidden();
   });
 
   test("opens the drawer and reveals all nav links", async ({ page }) => {
@@ -33,9 +33,15 @@ test.describe("Mobile header drawer", () => {
     const drawer = page.getByRole("dialog", { name: /main navigation/i });
     await expect(drawer).toBeVisible();
 
-    for (const label of ["About", "What We Do", "Programs", "Events", "Directory", "Learn"]) {
+    // The three primary nav items, plus "Learn" — the only entry in the
+    // Members section that is not member-only, so it is the only one a
+    // logged-out visitor sees.
+    for (const label of ["What We Do", "Events", "Directory", "Learn"]) {
       await expect(drawer.getByRole("link", { name: label, exact: true })).toBeVisible();
     }
+
+    // Member-only destinations must stay hidden from guests.
+    await expect(drawer.getByRole("link", { name: "The Pause", exact: true })).toBeHidden();
 
     // Auth CTAs stacked at the bottom of the drawer for logged-out visitors.
     await expect(drawer.getByRole("link", { name: /sign in/i })).toBeVisible();
@@ -47,8 +53,9 @@ test.describe("Mobile header drawer", () => {
     const drawer = page.getByRole("dialog", { name: /main navigation/i });
     await expect(drawer).toBeVisible();
 
-    // First focusable element inside the drawer should receive focus.
-    const firstLink = drawer.getByRole("link", { name: "About", exact: true });
+    // First focusable element inside the drawer should receive focus — see the
+    // onOpenAutoFocus handler in Header.tsx, which focuses the first nav link.
+    const firstLink = drawer.getByRole("link", { name: "What We Do", exact: true });
     await expect(firstLink).toBeFocused();
 
     // Radix Dialog scopes Tab to the drawer; focused element stays inside it.
@@ -81,7 +88,9 @@ test.describe("Mobile header drawer", () => {
   test("closes the drawer when a nav link is tapped", async ({ page }) => {
     await page.getByRole("button", { name: "Toggle menu" }).click();
     const drawer = page.getByRole("dialog", { name: /main navigation/i });
-    await drawer.getByRole("link", { name: "About", exact: true }).click();
+    // "Directory" is a plain route link, so the drawer close is not racing a
+    // same-page hash scroll the way the "/#offerings" links would.
+    await drawer.getByRole("link", { name: "Directory", exact: true }).click();
     await expect(drawer).toBeHidden();
   });
 });

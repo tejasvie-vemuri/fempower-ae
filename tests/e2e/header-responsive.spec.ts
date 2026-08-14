@@ -33,17 +33,18 @@ test.describe("Responsive header layout", () => {
     const isMobile = width < 768;
 
     const hamburger = header.getByRole("button", { name: "Toggle menu" });
-    const desktopAbout = header.getByRole("link", { name: "About", exact: true });
+    // First item of the primary nav in Header.tsx. The nav was trimmed to
+    // three items ("What We Do", "Events", "Directory"); there is no longer
+    // an "About" or "Programs" link.
+    const desktopNavLink = header.getByRole("link", { name: "What We Do", exact: true });
 
     if (isMobile) {
       await expect(hamburger).toBeVisible();
-      await expect(desktopAbout).toBeHidden();
+      // The desktop nav is still in the DOM, hidden by Tailwind's `md:flex`.
+      await expect(desktopNavLink).toBeHidden();
     } else {
       await expect(hamburger).toBeHidden();
-      // At least one of the desktop nav links is visible. Different links
-      // appear at md/lg/xl per the showFrom matrix, but "About" appears
-      // from md upwards and "Events" from md upwards.
-      await expect(desktopAbout).toBeVisible();
+      await expect(desktopNavLink).toBeVisible();
     }
 
     const file = path.join(
