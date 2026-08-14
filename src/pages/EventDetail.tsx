@@ -809,6 +809,31 @@ const EventDetail = () => {
                 ) : (
                   <div className="bg-muted text-sm rounded-md p-3">Sold out.</div>
                 )
+              ) : user && !isMember ? (
+                <>
+                  <div className="bg-muted text-sm rounded-md p-3">
+                    Fempower events are for members. {memberStatus === "none"
+                      ? "Complete your member profile to request access."
+                      : memberStatus === "pending"
+                        ? "Your membership is awaiting approval — we'll email you as soon as you're in."
+                        : "Your membership isn't active, so sign-ups are closed."}
+                  </div>
+                  {memberStatus !== "rejected" && (
+                    <Button asChild className="w-full" size="lg">
+                      <Link
+                        to={
+                          memberStatus === "none"
+                            ? "/account/profile"
+                            : "/pending-approval"
+                        }
+                      >
+                        {memberStatus === "none"
+                          ? "Complete my profile"
+                          : "Check my membership status"}
+                      </Link>
+                    </Button>
+                  )}
+                </>
               ) : (
                 <Button
                   className="w-full"
@@ -823,9 +848,11 @@ const EventDetail = () => {
 
               {!user && (
                 <p className="text-xs text-muted-foreground text-center">
-                  You'll need to sign in to register.
+                  Event sign-ups are for Fempower members — sign in or join to
+                  register.
                 </p>
               )}
+
 
               {!isFree && (
                 <div className="mt-4 pt-4 border-t border-border/60">
