@@ -166,9 +166,20 @@ const AuthPage = () => {
     if (!emailRes.success) errs.email = emailRes.error.issues[0].message;
     const pwRes = passwordSignUpSchema.safeParse(signUpData.password);
     if (!pwRes.success) errs.password = pwRes.error.issues[0].message;
+    const cityRes = citySchema.safeParse(signUpData.city);
+    if (!cityRes.success) errs.city = cityRes.error.issues[0].message;
+    const companyRes = companySchema.safeParse(signUpData.company);
+    if (!companyRes.success) errs.company = companyRes.error.issues[0].message;
+    const bioRes = bioSchema.safeParse(signUpData.bio);
+    if (!bioRes.success) errs.bio = bioRes.error.issues[0].message;
+    const liRes = linkedinSchema.safeParse(signUpData.linkedin_url);
+    if (!liRes.success) errs.linkedin_url = liRes.error.issues[0].message;
+    if (signUpData.looking_for.length === 0) errs.looking_for = "Pick at least one";
     setSignUpErrors(errs);
     if (Object.keys(errs).length) {
       track("sign_up_failed", { stage: "validation", fields: Object.keys(errs).join(",") });
+      const first = document.querySelector<HTMLElement>("[data-signup-error='true']");
+      first?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
@@ -179,9 +190,17 @@ const AuthPage = () => {
       password: pwRes.data!,
       options: {
         emailRedirectTo: window.location.origin + redirectTo,
-        data: { name: nameRes.data! },
+        data: {
+          name: nameRes.data!,
+          city: cityRes.data!,
+          company: companyRes.data!,
+          bio: bioRes.data!,
+          linkedin_url: liRes.data!,
+          looking_for: signUpData.looking_for,
+        },
       },
     });
+
     setSubmitting(false);
     if (error) {
       track("sign_up_failed", { stage: "server", method: "password", reason: error.message });
