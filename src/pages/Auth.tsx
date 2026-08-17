@@ -5,20 +5,33 @@ import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { z } from "zod";
 import { track } from "@/lib/analytics";
+import { LOOKING_FOR_OPTIONS } from "@/lib/memberProfile";
 import fempowerLogo from "@/assets/fempower-logo.png";
 
 const emailSchema = z.string().trim().min(1, "Email is required").email("Please enter a valid email address").max(255);
 const passwordSchema = z.string().min(1, "Password is required").max(72);
 const passwordSignUpSchema = z.string().min(6, "Password must be at least 6 characters").max(72);
-const nameSchema = z.string().trim().min(1, "Name is required").max(100);
+const nameSchema = z.string().trim().min(1, "Full name is required").max(100);
+const citySchema = z.string().trim().min(1, "City is required").max(100);
+const companySchema = z.string().trim().min(1, "Company is required").max(120);
+const bioSchema = z.string().trim().min(20, "Please write at least 20 characters").max(500, "Keep it under 500 characters");
+const linkedinSchema = z
+  .string()
+  .trim()
+  .min(1, "LinkedIn URL is required")
+  .max(255)
+  .refine((v) => /^https?:\/\/([a-z]{2,3}\.)?linkedin\.com\/.+/i.test(v), "Enter a full LinkedIn profile URL (https://linkedin.com/in/…)");
 
 type Errors = Record<string, string>;
+
+type SignUpField = "name" | "email" | "password" | "city" | "company" | "bio" | "linkedin_url" | "looking_for";
 
 const FieldError = ({ message }: { message?: string }) =>
   message ? <p className="mt-1 text-xs text-destructive">{message}</p> : null;
@@ -34,8 +47,18 @@ const AuthPage = () => {
   const [signInData, setSignInData] = useState({ email: "", password: "" });
   const [signInErrors, setSignInErrors] = useState<Errors>({});
 
-  const [signUpData, setSignUpData] = useState({ name: "", email: "", password: "" });
+  const [signUpData, setSignUpData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    city: "",
+    company: "",
+    bio: "",
+    linkedin_url: "",
+    looking_for: [] as string[],
+  });
   const [signUpErrors, setSignUpErrors] = useState<Errors>({});
+
 
   useEffect(() => {
     track("auth_page_viewed", { tab: defaultTab, redirect: redirectTo });
@@ -80,14 +103,28 @@ const AuthPage = () => {
     });
   };
 
-  const updateSignUp = (field: "name" | "email" | "password", value: string) => {
-    setSignUpData((d) => ({ ...d, [field]: value }));
+  const clearSignUpError = (field: SignUpField) =>
     setSignUpErrors((e) => {
       if (!e[field]) return e;
       const { [field]: _, ...rest } = e;
       return rest;
     });
+
+  const updateSignUp = (field: Exclude<SignUpField, "looking_for">, value: string) => {
+    setSignUpData((d) => ({ ...d, [field]: value }));
+    clearSignUpError(field);
   };
+
+  const toggleLookingFor = (opt: string) => {
+    setSignUpData((d) => ({
+      ...d,
+      looking_for: d.looking_for.includes(opt)
+        ? d.looking_for.filter((x) => x !== opt)
+        : [...d.looking_for, opt],
+    }));
+    clearSignUpError("looking_for");
+  };
+
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -129,9 +166,20 @@ const AuthPage = () => {
     if (!emailRes.success) errs.email = emailRes.error.issues[0].message;
     const pwRes = passwordSignUpSchema.safeParse(signUpData.password);
     if (!pwRes.success) errs.password = pwRes.error.issues[0].message;
+    const cityRes = citySchema.safeParse(signUpData.city);
+    if (!cityRes.success) errs.city = cityRes.error.issues[0].message;
+    const companyRes = companySchema.safeParse(signUpData.company);
+    if (!companyRes.success) errs.company = companyRes.error.issues[0].message;
+    const bioRes = bioSchema.safeParse(signUpData.bio);
+    if (!bioRes.success) errs.bio = bioRes.error.issues[0].message;
+    const liRes = linkedinSchema.safeParse(signUpData.linkedin_url);
+    if (!liRes.success) errs.linkedin_url = liRes.error.issues[0].message;
+    if (signUpData.looking_for.length === 0) errs.looking_for = "Pick at least one";
     setSignUpErrors(errs);
     if (Object.keys(errs).length) {
       track("sign_up_failed", { stage: "validation", fields: Object.keys(errs).join(",") });
+      const first = document.querySelector<HTMLElement>("[data-signup-error='true']");
+      first?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
@@ -142,9 +190,17 @@ const AuthPage = () => {
       password: pwRes.data!,
       options: {
         emailRedirectTo: window.location.origin + redirectTo,
-        data: { name: nameRes.data! },
+        data: {
+          name: nameRes.data!,
+          city: cityRes.data!,
+          company: companyRes.data!,
+          bio: bioRes.data!,
+          linkedin_url: liRes.data!,
+          looking_for: signUpData.looking_for,
+        },
       },
     });
+
     setSubmitting(false);
     if (error) {
       track("sign_up_failed", { stage: "server", method: "password", reason: error.message });
@@ -216,46 +272,135 @@ const AuthPage = () => {
 
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4" noValidate>
-                <div>
-                  <Label htmlFor="su-name">Name</Label>
+                <div data-signup-error={!!signUpErrors.name}>
+                  <Label htmlFor="su-name">Full name</Label>
                   <Input
                     id="su-name"
                     name="name"
                     type="text"
+                    autoComplete="name"
                     value={signUpData.name}
                     onChange={(e) => updateSignUp("name", e.target.value)}
                     aria-invalid={!!signUpErrors.name}
                   />
                   <FieldError message={signUpErrors.name} />
                 </div>
-                <div>
+                <div data-signup-error={!!signUpErrors.email}>
                   <Label htmlFor="su-email">Email</Label>
                   <Input
                     id="su-email"
                     name="email"
                     type="email"
+                    autoComplete="email"
                     value={signUpData.email}
                     onChange={(e) => updateSignUp("email", e.target.value)}
                     aria-invalid={!!signUpErrors.email}
                   />
                   <FieldError message={signUpErrors.email} />
                 </div>
-                <div>
+                <div data-signup-error={!!signUpErrors.password}>
                   <Label htmlFor="su-password">Password</Label>
                   <Input
                     id="su-password"
                     name="password"
                     type="password"
+                    autoComplete="new-password"
                     value={signUpData.password}
                     onChange={(e) => updateSignUp("password", e.target.value)}
                     aria-invalid={!!signUpErrors.password}
                   />
                   <FieldError message={signUpErrors.password} />
                 </div>
+                <div data-signup-error={!!signUpErrors.city}>
+                  <Label htmlFor="su-city">City</Label>
+                  <Input
+                    id="su-city"
+                    name="city"
+                    type="text"
+                    placeholder="Dubai"
+                    value={signUpData.city}
+                    onChange={(e) => updateSignUp("city", e.target.value)}
+                    aria-invalid={!!signUpErrors.city}
+                  />
+                  <FieldError message={signUpErrors.city} />
+                </div>
+                <div data-signup-error={!!signUpErrors.company}>
+                  <Label htmlFor="su-company">Company</Label>
+                  <Input
+                    id="su-company"
+                    name="company"
+                    type="text"
+                    placeholder="Where you work (or “Freelance”)"
+                    value={signUpData.company}
+                    onChange={(e) => updateSignUp("company", e.target.value)}
+                    aria-invalid={!!signUpErrors.company}
+                  />
+                  <FieldError message={signUpErrors.company} />
+                </div>
+                <div data-signup-error={!!signUpErrors.bio}>
+                  <Label htmlFor="su-bio">Short bio</Label>
+                  <Textarea
+                    id="su-bio"
+                    name="bio"
+                    rows={3}
+                    maxLength={500}
+                    placeholder="A couple of lines about you and what you do."
+                    value={signUpData.bio}
+                    onChange={(e) => updateSignUp("bio", e.target.value)}
+                    aria-invalid={!!signUpErrors.bio}
+                  />
+                  <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+                    <span>{signUpData.bio.trim().length}/500</span>
+                  </div>
+                  <FieldError message={signUpErrors.bio} />
+                </div>
+                <div data-signup-error={!!signUpErrors.linkedin_url}>
+                  <Label htmlFor="su-linkedin">LinkedIn URL</Label>
+                  <Input
+                    id="su-linkedin"
+                    name="linkedin_url"
+                    type="url"
+                    inputMode="url"
+                    placeholder="https://www.linkedin.com/in/yourname"
+                    value={signUpData.linkedin_url}
+                    onChange={(e) => updateSignUp("linkedin_url", e.target.value)}
+                    aria-invalid={!!signUpErrors.linkedin_url}
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">Used to verify you're a real member.</p>
+                  <FieldError message={signUpErrors.linkedin_url} />
+                </div>
+                <div data-signup-error={!!signUpErrors.looking_for}>
+                  <Label>What you're open to</Label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {LOOKING_FOR_OPTIONS.map((opt) => {
+                      const active = signUpData.looking_for.includes(opt);
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => toggleLookingFor(opt)}
+                          aria-pressed={active}
+                          className={`rounded-full border px-3 py-2 text-xs transition-colors min-h-[36px] ${
+                            active
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-background text-muted-foreground border-border hover:border-primary/50"
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <FieldError message={signUpErrors.looking_for} />
+                </div>
                 <Button type="submit" className="w-full" disabled={submitting}>
                   {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create account
                 </Button>
+                <p className="text-center text-xs text-muted-foreground">
+                  You can add a photo and more details after you sign up.
+                </p>
+
               </form>
             </TabsContent>
           </Tabs>
