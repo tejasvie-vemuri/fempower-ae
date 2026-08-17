@@ -5,20 +5,33 @@ import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { z } from "zod";
 import { track } from "@/lib/analytics";
+import { LOOKING_FOR_OPTIONS } from "@/lib/memberProfile";
 import fempowerLogo from "@/assets/fempower-logo.png";
 
 const emailSchema = z.string().trim().min(1, "Email is required").email("Please enter a valid email address").max(255);
 const passwordSchema = z.string().min(1, "Password is required").max(72);
 const passwordSignUpSchema = z.string().min(6, "Password must be at least 6 characters").max(72);
-const nameSchema = z.string().trim().min(1, "Name is required").max(100);
+const nameSchema = z.string().trim().min(1, "Full name is required").max(100);
+const citySchema = z.string().trim().min(1, "City is required").max(100);
+const companySchema = z.string().trim().min(1, "Company is required").max(120);
+const bioSchema = z.string().trim().min(20, "Please write at least 20 characters").max(500, "Keep it under 500 characters");
+const linkedinSchema = z
+  .string()
+  .trim()
+  .min(1, "LinkedIn URL is required")
+  .max(255)
+  .refine((v) => /^https?:\/\/([a-z]{2,3}\.)?linkedin\.com\/.+/i.test(v), "Enter a full LinkedIn profile URL (https://linkedin.com/in/…)");
 
 type Errors = Record<string, string>;
+
+type SignUpField = "name" | "email" | "password" | "city" | "company" | "bio" | "linkedin_url" | "looking_for";
 
 const FieldError = ({ message }: { message?: string }) =>
   message ? <p className="mt-1 text-xs text-destructive">{message}</p> : null;
@@ -34,8 +47,18 @@ const AuthPage = () => {
   const [signInData, setSignInData] = useState({ email: "", password: "" });
   const [signInErrors, setSignInErrors] = useState<Errors>({});
 
-  const [signUpData, setSignUpData] = useState({ name: "", email: "", password: "" });
+  const [signUpData, setSignUpData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    city: "",
+    company: "",
+    bio: "",
+    linkedin_url: "",
+    looking_for: [] as string[],
+  });
   const [signUpErrors, setSignUpErrors] = useState<Errors>({});
+
 
   useEffect(() => {
     track("auth_page_viewed", { tab: defaultTab, redirect: redirectTo });
