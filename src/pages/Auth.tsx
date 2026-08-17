@@ -272,46 +272,135 @@ const AuthPage = () => {
 
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4" noValidate>
-                <div>
-                  <Label htmlFor="su-name">Name</Label>
+                <div data-signup-error={!!signUpErrors.name}>
+                  <Label htmlFor="su-name">Full name</Label>
                   <Input
                     id="su-name"
                     name="name"
                     type="text"
+                    autoComplete="name"
                     value={signUpData.name}
                     onChange={(e) => updateSignUp("name", e.target.value)}
                     aria-invalid={!!signUpErrors.name}
                   />
                   <FieldError message={signUpErrors.name} />
                 </div>
-                <div>
+                <div data-signup-error={!!signUpErrors.email}>
                   <Label htmlFor="su-email">Email</Label>
                   <Input
                     id="su-email"
                     name="email"
                     type="email"
+                    autoComplete="email"
                     value={signUpData.email}
                     onChange={(e) => updateSignUp("email", e.target.value)}
                     aria-invalid={!!signUpErrors.email}
                   />
                   <FieldError message={signUpErrors.email} />
                 </div>
-                <div>
+                <div data-signup-error={!!signUpErrors.password}>
                   <Label htmlFor="su-password">Password</Label>
                   <Input
                     id="su-password"
                     name="password"
                     type="password"
+                    autoComplete="new-password"
                     value={signUpData.password}
                     onChange={(e) => updateSignUp("password", e.target.value)}
                     aria-invalid={!!signUpErrors.password}
                   />
                   <FieldError message={signUpErrors.password} />
                 </div>
+                <div data-signup-error={!!signUpErrors.city}>
+                  <Label htmlFor="su-city">City</Label>
+                  <Input
+                    id="su-city"
+                    name="city"
+                    type="text"
+                    placeholder="Dubai"
+                    value={signUpData.city}
+                    onChange={(e) => updateSignUp("city", e.target.value)}
+                    aria-invalid={!!signUpErrors.city}
+                  />
+                  <FieldError message={signUpErrors.city} />
+                </div>
+                <div data-signup-error={!!signUpErrors.company}>
+                  <Label htmlFor="su-company">Company</Label>
+                  <Input
+                    id="su-company"
+                    name="company"
+                    type="text"
+                    placeholder="Where you work (or “Freelance”)"
+                    value={signUpData.company}
+                    onChange={(e) => updateSignUp("company", e.target.value)}
+                    aria-invalid={!!signUpErrors.company}
+                  />
+                  <FieldError message={signUpErrors.company} />
+                </div>
+                <div data-signup-error={!!signUpErrors.bio}>
+                  <Label htmlFor="su-bio">Short bio</Label>
+                  <Textarea
+                    id="su-bio"
+                    name="bio"
+                    rows={3}
+                    maxLength={500}
+                    placeholder="A couple of lines about you and what you do."
+                    value={signUpData.bio}
+                    onChange={(e) => updateSignUp("bio", e.target.value)}
+                    aria-invalid={!!signUpErrors.bio}
+                  />
+                  <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+                    <span>{signUpData.bio.trim().length}/500</span>
+                  </div>
+                  <FieldError message={signUpErrors.bio} />
+                </div>
+                <div data-signup-error={!!signUpErrors.linkedin_url}>
+                  <Label htmlFor="su-linkedin">LinkedIn URL</Label>
+                  <Input
+                    id="su-linkedin"
+                    name="linkedin_url"
+                    type="url"
+                    inputMode="url"
+                    placeholder="https://www.linkedin.com/in/yourname"
+                    value={signUpData.linkedin_url}
+                    onChange={(e) => updateSignUp("linkedin_url", e.target.value)}
+                    aria-invalid={!!signUpErrors.linkedin_url}
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">Used to verify you're a real member.</p>
+                  <FieldError message={signUpErrors.linkedin_url} />
+                </div>
+                <div data-signup-error={!!signUpErrors.looking_for}>
+                  <Label>What you're open to</Label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {LOOKING_FOR_OPTIONS.map((opt) => {
+                      const active = signUpData.looking_for.includes(opt);
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => toggleLookingFor(opt)}
+                          aria-pressed={active}
+                          className={`rounded-full border px-3 py-2 text-xs transition-colors min-h-[36px] ${
+                            active
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-background text-muted-foreground border-border hover:border-primary/50"
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <FieldError message={signUpErrors.looking_for} />
+                </div>
                 <Button type="submit" className="w-full" disabled={submitting}>
                   {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create account
                 </Button>
+                <p className="text-center text-xs text-muted-foreground">
+                  You can add a photo and more details after you sign up.
+                </p>
+
               </form>
             </TabsContent>
           </Tabs>
