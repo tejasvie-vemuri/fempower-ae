@@ -103,14 +103,28 @@ const AuthPage = () => {
     });
   };
 
-  const updateSignUp = (field: "name" | "email" | "password", value: string) => {
-    setSignUpData((d) => ({ ...d, [field]: value }));
+  const clearSignUpError = (field: SignUpField) =>
     setSignUpErrors((e) => {
       if (!e[field]) return e;
       const { [field]: _, ...rest } = e;
       return rest;
     });
+
+  const updateSignUp = (field: Exclude<SignUpField, "looking_for">, value: string) => {
+    setSignUpData((d) => ({ ...d, [field]: value }));
+    clearSignUpError(field);
   };
+
+  const toggleLookingFor = (opt: string) => {
+    setSignUpData((d) => ({
+      ...d,
+      looking_for: d.looking_for.includes(opt)
+        ? d.looking_for.filter((x) => x !== opt)
+        : [...d.looking_for, opt],
+    }));
+    clearSignUpError("looking_for");
+  };
+
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
