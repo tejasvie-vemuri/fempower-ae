@@ -22,6 +22,7 @@ export async function streamChat({
   userProfile,
   checklistHistory,
   saveChecklists,
+  bucketKey,
   onDelta,
   onDone,
   onError,
@@ -30,6 +31,8 @@ export async function streamChat({
   userProfile?: UserProfile;
   checklistHistory?: ChecklistMemory[];
   saveChecklists?: boolean;
+  /** Sticky A/B bucket so one conversation stays on one style ruleset. */
+  bucketKey?: string;
   onDelta: (text: string) => void;
   onDone: () => void;
   onError: (err: string) => void;
@@ -40,7 +43,7 @@ export async function streamChat({
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
-    body: JSON.stringify({ messages, userProfile, checklistHistory, saveChecklists }),
+    body: JSON.stringify({ messages, userProfile, checklistHistory, saveChecklists, bucketKey }),
   });
 
   if (!resp.ok || !resp.body) {

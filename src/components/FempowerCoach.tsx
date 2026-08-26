@@ -184,6 +184,17 @@ const FempowerCoach = () => {
     return window.localStorage.getItem(SAVE_PREF_KEY) !== "false";
   });
   const [showPrivacy, setShowPrivacy] = useState(false);
+  // Sticky A/B bucket: one visitor stays on one style ruleset so a chat never
+  // changes voice mid-conversation.
+  const [abBucketKey] = useState<string>(() => {
+    if (typeof window === "undefined") return "ssr";
+    const existing = window.localStorage.getItem("zara_ab_bucket");
+    if (existing) return existing;
+    const fresh = Math.random().toString(36).slice(2, 12);
+    window.localStorage.setItem("zara_ab_bucket", fresh);
+    return fresh;
+  });
+
   const [checklistHistory, setChecklistHistory] = useState<ChecklistMemory[]>([]);
   const [showRating, setShowRating] = useState(false);
   const [ratingFromClose, setRatingFromClose] = useState(false);
@@ -434,6 +445,7 @@ const FempowerCoach = () => {
       userProfile: memberProfile ?? undefined,
       checklistHistory: user?.id && saveChecklists ? checklistHistory : undefined,
       saveChecklists: user?.id ? saveChecklists : false,
+      bucketKey: abBucketKey,
       onDelta: upsertAssistant,
       onDone: () => {
         setIsLoading(false);

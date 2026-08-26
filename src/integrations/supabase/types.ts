@@ -567,6 +567,101 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_slop_logs: {
+        Row: {
+          case_key: string | null
+          checks: Json
+          created_at: string
+          id: string
+          reply: string | null
+          ruleset_id: string | null
+          ruleset_slug: string | null
+          score: number
+          source: string
+          user_id: string | null
+          user_message: string | null
+          violations: Json
+        }
+        Insert: {
+          case_key?: string | null
+          checks?: Json
+          created_at?: string
+          id?: string
+          reply?: string | null
+          ruleset_id?: string | null
+          ruleset_slug?: string | null
+          score?: number
+          source?: string
+          user_id?: string | null
+          user_message?: string | null
+          violations?: Json
+        }
+        Update: {
+          case_key?: string | null
+          checks?: Json
+          created_at?: string
+          id?: string
+          reply?: string | null
+          ruleset_id?: string | null
+          ruleset_slug?: string | null
+          score?: number
+          source?: string
+          user_id?: string | null
+          user_message?: string | null
+          violations?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_slop_logs_ruleset_id_fkey"
+            columns: ["ruleset_id"]
+            isOneToOne: false
+            referencedRelation: "coach_style_rulesets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_style_rulesets: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          is_control: boolean
+          name: string
+          notes: string | null
+          rules: string
+          slug: string
+          traffic_weight: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          is_control?: boolean
+          name: string
+          notes?: string | null
+          rules?: string
+          slug: string
+          traffic_weight?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          is_control?: boolean
+          name?: string
+          notes?: string | null
+          rules?: string
+          slug?: string
+          traffic_weight?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string

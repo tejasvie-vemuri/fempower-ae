@@ -1,9 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+// ---------------------------------------------------------------------------
+// Zara's system prompt, the anti-slop scorer, the A/B ruleset loader and the
+// test-harness cases all live in this file so the function bundles standalone.
+// ---------------------------------------------------------------------------
 
 const SYSTEM_PROMPT = `You are Zara, Fempower's AI coach — embedded on fempowerae.com to support women across the UAE in their professional growth, personal wellbeing, and community journey.
 
@@ -200,11 +200,16 @@ Never begin a message with any of these, or a variant of them:
 "That's a great question", "That's such an important question", "It sounds like…", "I hear you", "I can hear how…", "Absolutely", "Of course", "Certainly", "Let's unpack that", "First, I want to acknowledge…", "Thank you for sharing that", "What a powerful thing to say".
 Your **first sentence must carry new information** — a reaction, an observation, a specific detail of hers, or a question. Never restate or summarise what she just said back to her. Empathy is shown by what you notice, not by announcing that you are listening.
 
-### 2. Length — match her, don't flood her
-- Default reply: **2–4 sentences.** That is the norm, not the floor.
-- **Register matching:** match her message length and formality, including mid-checklist. Formal message, cleaner register; casual message, casual register. Hard floor on length: if her message is under roughly 15 words, your reply is **one paragraph, three sentences maximum** — no exceptions, even when you have more to say. A long, raw paragraph from her earns a longer reply.
+### 2. Length and register — mirror her, don't flood her
+Before you write, count her words and read her register. Then match both.
+- **Length bands, hard limits, no exceptions — they apply mid-checklist too:**
+  - Under ~15 words → **one paragraph, three sentences maximum.**
+  - ~15–40 words → **five sentences maximum.**
+  - A long, raw paragraph from her → you may go longer, but never longer than she wrote.
+- **Formality mirroring:** copy the register she is using, never out-formal her. Lowercase, clipped, no punctuation from her → plain, clipped, contraction-heavy from you. Careful full sentences from her → clean full sentences from you. Voice-note-style rambling → loose and warm. If she swears, you may be blunt; if she is formal, do not go matey.
 - **Bullets are for options, scripts, and steps only.** Never bullet-point feelings, never bullet-point a reply to a one-line message. If it fits in two sentences, it is two sentences.
 - One question per message. Never stack two questions.
+
 
 ### 3. Banned phrase bank
 Never use: journey, navigate (as a metaphor), hold space, unpack, lean into, honour your feelings, sit with that (as a stock phrase), "that's so valid", "at the end of the day", "the truth is", "here's the thing", "I want you to know that", "you've got this", "sending you strength", "you are not alone in this", "it's not just X, it's Y", "it's not about X, it's about Y".
@@ -222,8 +227,10 @@ Ban closing summaries and closing affirmations. Do not wrap the message up, do n
 When she asks what she should do, give **one recommendation, the reason behind it, and the one caveat** — not a balanced menu of three options. Say "I'd do X, because Y — the risk is Z." You are allowed to be wrong; she can push back, and that is the conversation. A menu of equally-weighted options is a way of avoiding responsibility, and she can feel it.
 Do not hedge every claim. One clear opinion beats three safe ones.
 
-### 7. Specificity quota
-Every reply contains at least one concrete thing from **her** world — her emirate, her role, her manager's name, the number she gave you, the week she mentioned. Generic comfort is the smell of a machine. Specificity is the proof you were listening.
+### 7. Specificity quota — one concrete noun from her world, every single reply
+Every reply must name at least one **concrete noun that came from her**: her emirate or neighbourhood, her employer, her job title, her manager, her daughter's school, the visa step she is stuck on, the number she gave you, the deadline, the day of the week she mentioned. Her own words, echoed exactly — not a paraphrase, not a category ("your workplace", "your family"), not a generic noun you supplied.
+If she has given you nothing concrete yet, ask for one specific detail instead of writing generic comfort. A reply with no concrete noun from her is not finished — rewrite it before sending.
+
 
 ### 8. Casual is allowed — judgement is not
 You can be plain and colloquial: "that's rubbish", "yeah, that's a lot", "honestly, that sounds exhausting". Casual register is welcome.
@@ -467,6 +474,520 @@ Overall cadence: Fempower runs events roughly every 15 days across the UAE.
 
 When asked about something specific (a single event's exact date, price, RSVP link, or a specific member), use the LIVE UPCOMING EVENTS block (injected below when available) first. If the detail isn't there, say so honestly and point to fempowerae.com or @fempowerae — never invent specifics.`;
 
+
+/**
+ * Deterministic anti-slop scorer for Zara's replies.
+ *
+ * The system prompt tells the model how to write; this file checks whether it
+ * actually did. Every rule here maps 1:1 to a numbered Anti-Slop Rule in the
+ * fempower-coach system prompt, so a failure in production points straight at
+ * the rule that needs rewriting.
+ *
+ * Scoring is intentionally boring and regex-based: it has to run on every
+ * response without adding latency or another model call.
+ */
+
+export type SlopContext = {
+  /** The member's latest message. */
+  userMessage: string;
+  /** Zara's previous reply, used for the asymmetry check. */
+  prevAssistant?: string;
+  /** Profile fields we can require Zara to name concretely. */
+  profile?: {
+    name?: string | null;
+    city?: string | null;
+    role?: string | null;
+    company?: string | null;
+    industry?: string | null;
+  } | null;
+};
+
+export type Violation = {
+  rule: string;
+  label: string;
+  weight: number;
+  detail: string;
+};
+
+export type SlopResult = {
+  score: number;
+  violations: Violation[];
+  checks: Record<string, "pass" | "fail" | "na">;
+  meta: {
+    userWords: number;
+    replyWords: number;
+    replySentences: number;
+    questions: number;
+  };
+};
+
+const BANNED_OPENERS = [
+  "that's a great question",
+  "that is a great question",
+  "that's such an important question",
+  "great question",
+  "it sounds like",
+  "i hear you",
+  "i can hear how",
+  "i can hear that",
+  "absolutely",
+  "of course",
+  "certainly",
+  "let's unpack",
+  "first, i want to acknowledge",
+  "thank you for sharing",
+  "thanks for sharing",
+  "what a powerful",
+  "i'm so glad you asked",
+  "that's completely valid",
+  "that's so valid",
+];
+
+const BANNED_PHRASES = [
+  "journey",
+  "navigate",
+  "hold space",
+  "unpack",
+  "lean into",
+  "honour your feelings",
+  "honor your feelings",
+  "that's so valid",
+  "at the end of the day",
+  "the truth is",
+  "here's the thing",
+  "i want you to know that",
+  "you've got this",
+  "you got this",
+  "sending you strength",
+  "you are not alone in this",
+  "you're not alone in this",
+  "slay",
+  "queen",
+  "boss babe",
+  "good vibes",
+  "dive deep",
+  "delve",
+  "tapestry",
+  "in today's fast-paced",
+  "empower yourself",
+];
+
+const ANTITHESIS = [
+  /it'?s not just [^.?!]{1,60}?,?\s+(?:it'?s|but)\s/i,
+  /it'?s not about [^.?!]{1,60}?,?\s+it'?s about\s/i,
+  /this isn'?t (?:just )?(?:about )?[^.?!]{1,60}?,?\s+(?:it'?s|this is)\s/i,
+  /not (?:just )?a [^.?!]{1,40}? — (?:it'?s|but) a /i,
+];
+
+const CLOSING_BOW = [
+  /\byou'?(?:ve| have) got this\.?\s*$/i,
+  /\bbe (?:kind|gentle) (?:to|with) yourself\.?\s*$/i,
+  /\byou'?re doing (?:great|amazing|so well)[^.!?]*[.!]?\s*$/i,
+  /\bi'?m (?:here|rooting) for you[^.!?]*[.!]?\s*$/i,
+  /\b(?:in short|to sum up|in summary|all in all|ultimately)\b[^.!?]*[.!]\s*$/i,
+  /\bremember[,:][^.!?]{5,}[.!]\s*$/i,
+  /\bwhatever you (?:decide|choose)[^.!?]*[.!]\s*$/i,
+];
+
+const ADVICE_TRIGGERS = [
+  /\bshould i\b/i,
+  /\bwhat (?:do you think|would you do|should i)\b/i,
+  /\bany advice\b/i,
+  /\bwhich (?:one|option)\b/i,
+  /\bhow do i (?:decide|choose)\b/i,
+];
+
+const POSITION_MARKERS = [
+  /\bi'?d\b/i,
+  /\bi would\b/i,
+  /\bmy (?:take|view|advice|read)\b/i,
+  /\bgo with\b/i,
+  /\bdo (?:it|this|that) now\b/i,
+  /\bi'?d lean\b/i,
+];
+
+const JUDGEMENT = [
+  /\b(?:he|she|they|your (?:boss|manager|partner|husband|friend))\s+(?:is|are)\s+(?:clearly|obviously|definitely)\b/i,
+  /\btoxic\b/i,
+  /\bnarcissis/i,
+  /\bgaslight/i,
+  /\bthat'?s abuse\b/i,
+  /\bbad (?:boss|friend|partner|manager)\b/i,
+];
+
+const STOPWORDS = new Set(
+  ("a an the and or but if then so of to in on at for with about from into over after before my me i i'm im is are was were be been being do does did doing have has had " +
+    "it its this that these those he she they them her his their you your we us our not no yes just really very much more most some any all can could would should will " +
+    "what when where who why how which am as by out up down off again there here than too own same s t don now feel feels felt think thing things get got go going know like " +
+    "want need time day days week weeks year years lot")
+    .split(/\s+/),
+);
+
+function sentences(text: string): string[] {
+  return text
+    .replace(/\s+/g, " ")
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function words(text: string): string[] {
+  return text.trim().split(/\s+/).filter(Boolean);
+}
+
+function shapeOf(text: string): string {
+  const paras = text.split(/\n{2,}/).length;
+  const bullets = /^\s*[-*•]\s/m.test(text) ? 1 : 0;
+  const s = sentences(text).length;
+  const endsQ = text.trim().endsWith("?") ? 1 : 0;
+  const bucket = s <= 2 ? "s" : s <= 5 ? "m" : "l";
+  return `${paras}:${bullets}:${bucket}:${endsQ}`;
+}
+
+/** Concrete nouns the reply could reasonably echo back from her world. */
+function contextNouns(ctx: SlopContext): string[] {
+  const out: string[] = [];
+  const p = ctx.profile;
+  for (const v of [p?.name, p?.city, p?.role, p?.company, p?.industry]) {
+    if (v && typeof v === "string") out.push(...words(v).filter((w) => w.length > 2));
+  }
+  // Nouns-ish tokens from her own message: capitalised words, numbers, and
+  // longer non-stopword tokens.
+  const raw = ctx.userMessage ?? "";
+  for (const tok of raw.split(/[^A-Za-z0-9'’+-]+/)) {
+    const t = tok.trim();
+    if (!t) continue;
+    const lower = t.toLowerCase();
+    if (STOPWORDS.has(lower)) continue;
+    if (/^\d[\d,.]*$/.test(t)) { out.push(t); continue; }
+    if (t.length >= 5 || /^[A-Z]/.test(t)) out.push(t);
+  }
+  return Array.from(new Set(out.map((w) => w.toLowerCase().replace(/[^a-z0-9]/g, "")))).filter(
+    (w) => w.length >= 3,
+  );
+}
+
+export function scoreReply(reply: string, ctx: SlopContext): SlopResult {
+  const text = (reply ?? "").trim();
+  const lower = text.toLowerCase();
+  const userWords = words(ctx.userMessage ?? "").length;
+  const sents = sentences(text);
+  const violations: Violation[] = [];
+  const checks: Record<string, "pass" | "fail" | "na"> = {};
+
+  const fail = (rule: string, label: string, weight: number, detail: string) => {
+    checks[rule] = "fail";
+    violations.push({ rule, label, weight, detail });
+  };
+  const pass = (rule: string) => { if (!checks[rule]) checks[rule] = "pass"; };
+
+  // R1 — banned openers / restating her words back at her
+  const firstSentence = (sents[0] ?? "").toLowerCase();
+  const hitOpener = BANNED_OPENERS.find((o) => firstSentence.startsWith(o) || firstSentence.startsWith(`${o},`));
+  if (hitOpener) fail("R1_opener", "Banned opener", 20, `Opens with "${hitOpener}"`);
+  else pass("R1_opener");
+
+  // R2 — length / register matching
+  if (userWords > 0 && userWords < 15 && sents.length > 3) {
+    fail("R2_register_length", "Register: too long for a short message", 18,
+      `She wrote ${userWords} words; reply is ${sents.length} sentences (max 3).`);
+  } else if (userWords >= 15 && userWords < 40 && sents.length > 5) {
+    fail("R2_register_length", "Register: too long for a medium message", 12,
+      `She wrote ${userWords} words; reply is ${sents.length} sentences (max 5).`);
+  } else pass("R2_register_length");
+
+  // R2b — formality mirroring: she writes lowercase/clipped, Zara shouldn't lecture
+  const herLower = (ctx.userMessage ?? "").length > 0 &&
+    (ctx.userMessage ?? "") === (ctx.userMessage ?? "").toLowerCase();
+  if (herLower && userWords < 25 && words(text).length > userWords * 12) {
+    fail("R2b_formality", "Register: formality mismatch", 8,
+      `Casual ${userWords}-word message answered with ${words(text).length} words.`);
+  } else pass("R2b_formality");
+
+  // R2c — one question per message
+  const questions = (text.match(/\?/g) ?? []).length;
+  if (questions > 1) fail("R2c_one_question", "More than one question", 10, `${questions} question marks.`);
+  else pass("R2c_one_question");
+
+  // R3 — banned phrase bank
+  const hitPhrases = BANNED_PHRASES.filter((p) => lower.includes(p));
+  if (hitPhrases.length) {
+    fail("R3_banned_phrase", "Banned phrase", 6 * Math.min(hitPhrases.length, 3), hitPhrases.join(", "));
+  } else pass("R3_banned_phrase");
+
+  // R3b — the antithesis tell
+  const anti = ANTITHESIS.find((r) => r.test(text));
+  if (anti) fail("R3b_antithesis", '"Not just X, it\'s Y" construction', 15, anti.source.slice(0, 60));
+  else pass("R3b_antithesis");
+
+  // R4 — asymmetry vs previous reply
+  if (ctx.prevAssistant && ctx.prevAssistant.trim()) {
+    if (shapeOf(text) === shapeOf(ctx.prevAssistant)) {
+      fail("R4_asymmetry", "Same shape as previous reply", 8, `Shape ${shapeOf(text)} repeated.`);
+    } else pass("R4_asymmetry");
+  } else checks["R4_asymmetry"] = "na";
+
+  // R5 — no bow at the end
+  const bow = CLOSING_BOW.find((r) => r.test(text));
+  if (bow) fail("R5_closing_bow", "Closing summary or affirmation", 12, bow.source.slice(0, 60));
+  else pass("R5_closing_bow");
+
+  // R6 — take a position when asked for advice
+  if (ADVICE_TRIGGERS.some((r) => r.test(ctx.userMessage ?? ""))) {
+    if (POSITION_MARKERS.some((r) => r.test(text))) pass("R6_position");
+    else fail("R6_position", "No clear recommendation when asked", 14, "Advice question answered without a stated position.");
+  } else checks["R6_position"] = "na";
+
+  // R7 — specificity quota: one concrete noun from her world
+  const nouns = contextNouns(ctx);
+  if (nouns.length) {
+    const replyTokens = new Set(
+      lower.split(/[^a-z0-9]+/).filter(Boolean),
+    );
+    const matched = nouns.filter((n) => replyTokens.has(n) || lower.includes(n));
+    if (matched.length) pass("R7_specificity");
+    else fail("R7_specificity", "No concrete noun from her context", 16,
+      `None of: ${nouns.slice(0, 8).join(", ")}`);
+  } else checks["R7_specificity"] = "na";
+
+  // R8 — no judgement / verdicts on people in her life
+  const judge = JUDGEMENT.find((r) => r.test(text));
+  if (judge) fail("R8_judgement", "Verdict or label about a person", 14, judge.source.slice(0, 60));
+  else pass("R8_judgement");
+
+  // R10 — bullets on a short exchange
+  if (/^\s*[-*•]\s/m.test(text) && userWords < 25) {
+    fail("R10_bullets", "Bulleted reply to a short message", 10, `She wrote ${userWords} words.`);
+  } else pass("R10_bullets");
+
+  const score = Math.max(0, 100 - violations.reduce((a, v) => a + v.weight, 0));
+
+  return {
+    score,
+    violations,
+    checks,
+    meta: { userWords, replyWords: words(text).length, replySentences: sents.length, questions },
+  };
+}
+
+export const SLOP_RULE_LABELS: Record<string, string> = {
+  R1_opener: "Banned opener",
+  R2_register_length: "Length matches her message",
+  R2b_formality: "Formality mirrors hers",
+  R2c_one_question: "One question per message",
+  R3_banned_phrase: "Banned phrase bank",
+  R3b_antithesis: "No 'not just X, it's Y'",
+  R4_asymmetry: "Different shape from last reply",
+  R5_closing_bow: "No closing bow",
+  R6_position: "Takes a position",
+  R7_specificity: "Concrete noun from her context",
+  R8_judgement: "No verdicts on people",
+  R10_bullets: "No bullets on short messages",
+};
+
+
+/**
+ * Style-ruleset loading + A/B assignment + slop logging.
+ *
+ * Rulesets are rows the admin edits in /admin/zara-style. Active rows with a
+ * traffic weight above zero split live traffic; the assignment is sticky per
+ * conversation via a caller-supplied bucket key so a member does not flip
+ * variants mid-chat.
+ */
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+export type Ruleset = {
+  id: string;
+  name: string;
+  slug: string;
+  rules: string;
+  is_active: boolean;
+  traffic_weight: number;
+  is_control: boolean;
+};
+
+async function rest(path: string, init: RequestInit = {}): Promise<Response> {
+  return await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...init,
+    headers: {
+      apikey: SERVICE_KEY,
+      Authorization: `Bearer ${SERVICE_KEY}`,
+      "Content-Type": "application/json",
+      ...(init.headers ?? {}),
+    },
+  });
+}
+
+export async function loadRulesets(activeOnly = true): Promise<Ruleset[]> {
+  try {
+    const q = activeOnly ? "&is_active=eq.true" : "";
+    const res = await rest(`coach_style_rulesets?select=*${q}&order=created_at.asc`);
+    if (!res.ok) return [];
+    return (await res.json()) as Ruleset[];
+  } catch (_e) {
+    return [];
+  }
+}
+
+/** Stable 32-bit hash so a bucket key always lands in the same variant. */
+function hash(str: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return Math.abs(h);
+}
+
+export function pickRuleset(sets: Ruleset[], bucketKey: string): Ruleset | null {
+  const eligible = sets.filter((s) => s.is_active && s.traffic_weight > 0);
+  if (!eligible.length) return sets.find((s) => s.is_control) ?? null;
+  const total = eligible.reduce((a, s) => a + s.traffic_weight, 0);
+  let point = hash(bucketKey) % total;
+  for (const s of eligible) {
+    point -= s.traffic_weight;
+    if (point < 0) return s;
+  }
+  return eligible[0];
+}
+
+export async function logSlopResult(row: {
+  ruleset_id?: string | null;
+  ruleset_slug?: string | null;
+  source?: string;
+  case_key?: string | null;
+  user_id?: string | null;
+  user_message?: string | null;
+  reply?: string | null;
+  score: number;
+  violations: unknown;
+  checks: unknown;
+}): Promise<void> {
+  if (!SUPABASE_URL || !SERVICE_KEY) return;
+  try {
+    const res = await rest("coach_slop_logs", {
+      method: "POST",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({ source: "production", ...row }),
+    });
+    if (!res.ok) console.error("slop log insert failed", res.status, await res.text());
+  } catch (e) {
+    console.error("slop log error", e);
+  }
+}
+
+
+/**
+ * The anti-slop test harness: example chats that reliably tempt a model into
+ * sounding like an assistant instead of a person.
+ *
+ * Each case pins the trap it is testing so a regression points at a rule.
+ */
+
+export type SlopCase = {
+  key: string;
+  label: string;
+  /** What this case is designed to catch. */
+  trap: string;
+  /** Prior turns, oldest first. The last user turn is the one being scored. */
+  messages: { role: "user" | "assistant"; content: string }[];
+  profile?: {
+    name?: string;
+    city?: string;
+    role?: string;
+    company?: string;
+    industry?: string;
+  };
+};
+
+export const SLOP_CASES: SlopCase[] = [
+  {
+    key: "short_advice",
+    label: "One-line advice question",
+    trap: "Long balanced menu of options instead of one position; over-length reply.",
+    messages: [{ role: "user", content: "hey quick q - should i ask for a raise now or wait till jan?" }],
+    profile: { name: "Aisha", city: "Dubai", role: "Product Manager", industry: "Fintech" },
+  },
+  {
+    key: "venting_short",
+    label: "Short vent, high emotion",
+    trap: "Validation opener, 'I hear you', bulleted feelings, closing affirmation.",
+    messages: [{ role: "user", content: "my manager took credit for my work again today. i just sat there." }],
+    profile: { name: "Priya", city: "Abu Dhabi", role: "Data Analyst", company: "Etihad" },
+  },
+  {
+    key: "im_fine",
+    label: "The 'I'm fine' reflex",
+    trap: "Toxic positivity, 'hold space', therapy-speak.",
+    messages: [{ role: "user", content: "im fine honestly. just tired." }],
+    profile: { name: "Lina", city: "Sharjah" },
+  },
+  {
+    key: "long_raw",
+    label: "Long raw paragraph",
+    trap: "Restating her words back; a three-suggestion arc; a bow at the end.",
+    messages: [
+      {
+        role: "user",
+        content:
+          "I moved to Dubai in March with my husband and two kids and I have not stopped since. I did the visa runs, the Emirates ID appointments, three school tours, the Ejari, the DEWA account, and I started a new job in week two. My husband keeps saying I am doing amazingly but he has not made a single phone call about any of it. I am not even angry, I am just so tired that I cannot tell whether I like it here.",
+      },
+    ],
+    profile: { name: "Rania", city: "Dubai", role: "Marketing Director", industry: "Hospitality" },
+  },
+  {
+    key: "second_turn_shape",
+    label: "Second turn (shape repetition)",
+    trap: "Reusing the same reflect-then-question shape twice in a row.",
+    messages: [
+      { role: "user", content: "i keep saying yes to everything at work" },
+      {
+        role: "assistant",
+        content:
+          "Saying yes is cheap in the moment and expensive by Thursday. What was the last thing you agreed to that you wish you hadn't?",
+      },
+      { role: "user", content: "covering the quarterly report for someone on leave. again." },
+    ],
+    profile: { name: "Maryam", city: "Dubai", role: "Finance Lead", company: "Majid Al Futtaim" },
+  },
+  {
+    key: "judgement_bait",
+    label: "Judgement bait",
+    trap: "Labelling her boss toxic or her partner unfair; jumping to a conclusion.",
+    messages: [
+      {
+        role: "user",
+        content:
+          "my boss messages me at 11pm and gets annoyed if i reply in the morning. is that normal here?",
+      },
+    ],
+    profile: { name: "Sara", city: "Dubai", role: "Consultant", industry: "Professional services" },
+  },
+  {
+    key: "practical_uae",
+    label: "Practical UAE admin",
+    trap: "Invented fees and timelines; generic advice with no concrete noun.",
+    messages: [
+      { role: "user", content: "how do i get my daughter into a school in abu dhabi mid-year?" },
+    ],
+    profile: { name: "Noor", city: "Abu Dhabi" },
+  },
+  {
+    key: "meta_ai",
+    label: "Are you a real person?",
+    trap: "Performing humanity; hedging; a long philosophical answer.",
+    messages: [{ role: "user", content: "are you a real person?" }],
+  },
+];
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+
 // UAE is UTC+4 year-round (no DST).
 function uaeNowBlock(): string {
   const now = new Date();
@@ -580,7 +1101,57 @@ function checkRateLimit(key: string): boolean {
   return true
 }
 
+/** Verify the caller is a signed-in admin (used by the eval harness mode). */
+async function requireAdmin(
+  req: Request,
+): Promise<{ ok: true; userId: string } | { ok: false; status: number; error: string }> {
+  const auth = req.headers.get("Authorization") ?? "";
+  if (!auth) return { ok: false, status: 401, error: "Authentication required" };
+  const url = Deno.env.get("SUPABASE_URL") ?? "";
+  const anon = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+  const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const userRes = await fetch(`${url}/auth/v1/user`, { headers: { Authorization: auth, apikey: anon } });
+  if (!userRes.ok) return { ok: false, status: 401, error: "Authentication required" };
+  const user = await userRes.json();
+  if (!user?.id) return { ok: false, status: 401, error: "Authentication required" };
+  const roleRes = await fetch(
+    `${url}/rest/v1/user_roles?select=role&user_id=eq.${user.id}&role=eq.admin`,
+    { headers: { apikey: service, Authorization: `Bearer ${service}` } },
+  );
+  const roles = roleRes.ok ? await roleRes.json() : [];
+  if (!Array.isArray(roles) || !roles.length) return { ok: false, status: 403, error: "Admin only" };
+  return { ok: true, userId: user.id };
+}
+
+/** Run one harness case through the model and score the reply. */
+async function runEvalCase(apiKey: string, systemPrompt: string, c: SlopCase) {
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "google/gemini-3-flash-preview",
+      messages: [{ role: "system", content: systemPrompt }, ...c.messages],
+    }),
+  });
+  if (!res.ok) throw new Error(`gateway ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const json = await res.json();
+  const reply: string = json?.choices?.[0]?.message?.content ?? "";
+  const lastUser = [...c.messages].reverse().find((m) => m.role === "user");
+  const prevAssistant = [...c.messages].reverse().find((m) => m.role === "assistant");
+  const scored = scoreReply(reply, {
+    userMessage: lastUser?.content ?? "",
+    prevAssistant: prevAssistant?.content ?? "",
+    profile: c.profile ?? null,
+  });
+  return {
+    case_key: c.key, label: c.label, trap: c.trap,
+    user_message: lastUser?.content ?? "", reply,
+    score: scored.score, violations: scored.violations, checks: scored.checks,
+  };
+}
+
 serve(async (req) => {
+
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const ipKey = rateLimitKey(req)
@@ -592,13 +1163,77 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, userProfile, checklistHistory, saveChecklists } = await req.json();
+    const payload = await req.json();
+    const { messages, userProfile, checklistHistory, saveChecklists, bucketKey, rulesetSlug } = payload;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    // Admin-only test harness: run the example chats against one or more style
+    // rule sets, score every reply with the same scorer production uses, and
+    // persist the results so A/B comparisons survive a page refresh.
+    if (payload?.mode === "eval") {
+      const gate = await requireAdmin(req);
+      if (!gate.ok) {
+        return new Response(JSON.stringify({ error: gate.error }), {
+          status: gate.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const slugs: string[] = Array.isArray(payload.slugs) ? payload.slugs : [];
+      const caseKeys: string[] = Array.isArray(payload.caseKeys) ? payload.caseKeys : [];
+      const all = await loadRulesets(false);
+      const sets = slugs.length ? all.filter((s) => slugs.includes(s.slug)) : all.filter((s) => s.is_active);
+      if (!sets.length) {
+        return new Response(JSON.stringify({ error: "No matching rule sets" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const cases = caseKeys.length ? SLOP_CASES.filter((c) => caseKeys.includes(c.key)) : SLOP_CASES;
+      const results: Record<string, unknown[]> = {};
+      for (const set of sets) {
+        const systemPrompt = set.rules?.trim()
+          ? `${SYSTEM_PROMPT}\n\n---\n\n${set.rules.trim()}\n\nThese overlay rules win over anything above them.`
+          : SYSTEM_PROMPT;
+        const rows: unknown[] = [];
+        for (const c of cases) {
+          try {
+            const r = await runEvalCase(LOVABLE_API_KEY, systemPrompt, c);
+            rows.push(r);
+            await logSlopResult({
+              ruleset_id: set.id, ruleset_slug: set.slug, source: "eval", case_key: c.key,
+              user_id: gate.userId, user_message: r.user_message.slice(0, 2000),
+              reply: r.reply.slice(0, 6000), score: r.score,
+              violations: r.violations, checks: r.checks,
+            });
+          } catch (e) {
+            rows.push({
+              case_key: c.key, label: c.label, trap: c.trap, user_message: "",
+              reply: `ERROR: ${e instanceof Error ? e.message : String(e)}`,
+              score: 0, violations: [], checks: {},
+            });
+          }
+        }
+        results[set.slug] = rows;
+      }
+      return new Response(
+        JSON.stringify({ results, ruleLabels: SLOP_RULE_LABELS, ranAt: new Date().toISOString() }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+
+    // A/B: pick the style overlay this conversation runs on. Sticky per bucket
+    // key so a member never flips variant mid-chat.
+    const allSets = await loadRulesets(true);
+    const ruleset = rulesetSlug
+      ? (allSets.find((s) => s.slug === rulesetSlug) ?? null)
+      : pickRuleset(allSets, String(bucketKey ?? ipKey));
 
     const eventsBlock = await fetchUpcomingEvents();
     let systemContent = SYSTEM_PROMPT + uaeNowBlock() + eventsBlock;
+    if (ruleset?.rules?.trim()) {
+      systemContent += `\n\n---\n\n${ruleset.rules.trim()}\n\nThese overlay rules win over anything above them.`;
+    }
+
     if (userProfile && userProfile.name) {
       const lines = [
         `- Name: ${userProfile.name}`,
@@ -663,9 +1298,56 @@ serve(async (req) => {
       });
     }
 
-    return new Response(response.body, {
+    // Tee the stream so the member sees tokens immediately while we accumulate
+    // the full reply and score it against the anti-slop rules afterwards.
+    const lastUser = [...(messages ?? [])].reverse().find((m: { role: string }) => m.role === "user");
+    const prevAssistant = [...(messages ?? [])].reverse().find((m: { role: string }) => m.role === "assistant");
+    let captured = "";
+    const decoder = new TextDecoder();
+    const monitor = new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        controller.enqueue(chunk);
+        try {
+          for (const line of decoder.decode(chunk, { stream: true }).split("\n")) {
+            if (!line.startsWith("data: ")) continue;
+            const payload = line.slice(6).trim();
+            if (!payload || payload === "[DONE]") continue;
+            const delta = JSON.parse(payload)?.choices?.[0]?.delta?.content;
+            if (typeof delta === "string") captured += delta;
+          }
+        } catch (_e) { /* partial SSE frame — ignore */ }
+      },
+      flush() {
+        const clean = captured.replace(/\[\[CHECKLIST_SAVE:[\s\S]*?\]\]/g, "").trim();
+        if (!clean) return;
+        const result = scoreReply(clean, {
+          userMessage: lastUser?.content ?? "",
+          prevAssistant: prevAssistant?.content ?? "",
+          profile: userProfile ?? null,
+        });
+        console.log(
+          `[anti-slop] ruleset=${ruleset?.slug ?? "none"} score=${result.score} fired=${
+            result.violations.map((v) => v.rule).join(",") || "none"
+          }`,
+        );
+        logSlopResult({
+          ruleset_id: ruleset?.id ?? null,
+          ruleset_slug: ruleset?.slug ?? null,
+          source: "production",
+          user_id: userProfile?.user_id ?? null,
+          user_message: (lastUser?.content ?? "").slice(0, 2000),
+          reply: clean.slice(0, 6000),
+          score: result.score,
+          violations: result.violations,
+          checks: { ...result.checks, _meta: result.meta },
+        });
+      },
+    });
+
+    return new Response(response.body!.pipeThrough(monitor), {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
+
   } catch (e) {
     console.error("fempower-coach error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
