@@ -269,6 +269,11 @@ const EventsCalendarSection = () => {
                   <p className="text-muted-foreground font-body text-sm">
                     No upcoming events yet. Check back soon!
                   </p>
+                  {pastEventDates.length > 0 && (
+                    <p className="mt-2 text-muted-foreground/70 font-body text-xs">
+                      Past events are shown crossed-out on the calendar.
+                    </p>
+                  )}
                 </div>
               )}
             </div>
