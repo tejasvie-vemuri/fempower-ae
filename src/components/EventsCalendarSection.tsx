@@ -35,7 +35,6 @@ const EventsCalendarSection = () => {
           .from("events")
           .select("id, slug, title, starts_at, location, price_cents, currency")
           .in("status", ["published"])
-          .gte("starts_at", new Date().toISOString())
           .order("starts_at", { ascending: true });
         if (error) throw error;
         const parsed: CalendarEvent[] = (data ?? []).map((e) => {
