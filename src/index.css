@@ -31,6 +31,10 @@
     --blush-light: 350 50% 95%;
     --blush-dark: 350 40% 75%;
 
+    /* Brand Warm Gold (#D4A853) — used for highlighted event days on the calendar. */
+    --gold: 41 64% 58%;
+    --gold-foreground: 25 30% 18%;
+
     /* Lifestyle Manager (Zoya) + The Pause: warm, human, never corporate.
        Deliberately not another pastel pink/lavender "for her" palette. */
     --lm-ivory: 35 38% 97%;
