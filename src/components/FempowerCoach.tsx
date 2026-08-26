@@ -120,6 +120,32 @@ const FempowerCoach = () => {
     return () => window.removeEventListener("open-zara", handler);
   }, []);
 
+  // For signed-in members, load her profile so Zara can personalise the chat.
+  useEffect(() => {
+    if (!user?.id) {
+      setMemberProfile(null);
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .from("member_profiles")
+      .select("name, city, role, industry, looking_for")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled && data?.name) {
+          setMemberProfile({
+            name: data.name,
+            city: data.city ?? null,
+            role: data.role ?? null,
+            industry: data.industry ?? null,
+            looking_for: data.looking_for ?? [],
+          });
+        }
+      });
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
   const handleAcceptConsent = () => {
     if (!agreeTerms) return;
     window.localStorage.setItem(CONSENT_KEY, "true");
