@@ -18,7 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { CIRCLE_TOPICS, CIRCLE_REACTIONS, CRISIS_TOPICS, REPORT_REASONS, topicLabel, UAE_HELPLINES } from "@/lib/circle";
 import CrisisBanner from "@/components/circle/CrisisBanner";
-import IntroNudgeBanner from "@/components/IntroNudgeBanner";
+import FirstStepsNudge from "@/components/FirstStepsNudge";
 import { logEngagement } from "@/lib/engagement";
 
 type Post = {
@@ -321,7 +321,7 @@ const Circle = () => {
             <p className="text-muted-foreground font-body mt-2">Share anonymously or with your name. Replies are always from approved members and shown with their name.</p>
           </div>
 
-          <IntroNudgeBanner />
+          <FirstStepsNudge className="mb-6" />
 
           {showCrisisBanner && <div className="mb-6"><CrisisBanner /></div>}
 

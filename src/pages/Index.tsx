@@ -19,6 +19,7 @@ import SeoSummary from "@/components/SeoSummary";
 import HomeStructuredData from "@/components/HomeStructuredData";
 import CelebrationsStrip from "@/components/CelebrationsStrip";
 import SpotlightCard from "@/components/SpotlightCard";
+import FirstStepsNudge from "@/components/FirstStepsNudge";
 import StickyWhatsAppButton from "@/components/StickyWhatsAppButton";
 import { JoinGateProvider } from "@/components/JoinGate";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,6 +38,11 @@ const Index = () => {
         <SeoSummary />
         <HeroSection />
         <OfferingsSection />
+        {isAuthed && (
+          <div className="container max-w-3xl pt-6">
+            <FirstStepsNudge />
+          </div>
+        )}
         {isAuthed && <SpotlightCard />}
         {isAuthed && <CelebrationsStrip />}
         {isAuthed && <CircleTeaser />}
