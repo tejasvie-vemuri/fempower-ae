@@ -17,6 +17,12 @@ const PRERENDER_ROUTES = [
   "/roundtables",
   "/women-networking-dubai",
   "/ai-coach-for-women-uae",
+  // Shareable per-checklist landing pages — these are the links that go into
+  // WhatsApp statuses, IG stories and DMs, so they must render without JS.
+  "/try/invisible-labour-audit",
+  "/try/the-ask-checklist",
+  "/try/am-i-actually-fine",
+  "/try/relocation-load",
 ];
 
 const SITE = "https://fempowerae.com";
