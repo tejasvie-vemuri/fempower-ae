@@ -498,7 +498,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, userProfile } = await req.json();
+    const { messages, userProfile, checklistHistory, saveChecklists } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -516,6 +516,23 @@ serve(async (req) => {
           : null,
       ].filter(Boolean);
       systemContent += `\n\nSIGNED-IN MEMBER PROFILE (she is a logged-in Fempower member — use this naturally):\n${lines.join("\n")}\nGreet her by her first name once, early — not in every message. Tailor examples and suggestions to her city and industry. When her "open to" list matches something she's asking about (mentoring, collaborators, friends), weave it in. Never recite this profile back to her as a list.`;
+    }
+
+    // Checklist privacy + memory. The app decides what is saved; we only tell Zara
+    // the truth about it so she never over- or under-promises.
+    if (saveChecklists === false) {
+      systemContent += `\n\nCHECKLIST PRIVACY: She has turned OFF saving. Her checklist summaries stay in this conversation only and are erased when she closes the chat. If she asks, say exactly that, and mention she can turn saving on from the privacy toggle in the chat header. Still output the save marker — the app discards it.`;
+    } else if (saveChecklists === true) {
+      systemContent += `\n\nCHECKLIST PRIVACY: She has saving ON, so her checklist summaries (not the full conversation) are saved to her private member profile and only she can see them. She can turn this off, or delete saved results, from the privacy toggle in the chat header.`;
+    }
+
+    if (Array.isArray(checklistHistory) && checklistHistory.length) {
+      const hist = checklistHistory
+        .slice(0, 6)
+        .map((h: { label?: string; created_at?: string; summary?: string }) =>
+          `- ${h.label ?? "Checklist"} (${(h.created_at ?? "").slice(0, 10)}): ${h.summary ?? ""}`)
+        .join("\n");
+      systemContent += `\n\nSAVED CHECKLIST HISTORY (her own past results, most recent first — she chose to save these):\n${hist}\n\nHow to use it: reference it lightly and specifically, like a coach who remembers. "Last time you did the Invisible Labour Audit, the thing you wanted to hand over was the school run — did that ever move?" Compare then vs now when she repeats a checklist, and name any progress out loud. Never dump the history back at her, never open with it, and never assume nothing has changed — ask.`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
