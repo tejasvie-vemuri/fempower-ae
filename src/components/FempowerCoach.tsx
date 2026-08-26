@@ -420,10 +420,67 @@ const FempowerCoach = () => {
                   <span className="font-body text-[10px] uppercase tracking-widest text-white/70">Your Fempower Coach</span>
                 </div>
               </div>
-              <button onClick={() => setOpen(false)} className="text-white/70 hover:text-white transition-colors">
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setShowPrivacy((v) => !v)}
+                  className="text-white/70 hover:text-white transition-colors p-1"
+                  aria-label="Checklist privacy settings"
+                  aria-expanded={showPrivacy}
+                >
+                  <ShieldCheck size={18} />
+                </button>
+                <button onClick={handleClose} className="text-white/70 hover:text-white transition-colors p-1" aria-label="Close chat">
+                  <X size={20} />
+                </button>
+              </div>
             </div>
+
+            {/* Checklist privacy panel */}
+            <AnimatePresence>
+              {showPrivacy && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden border-b"
+                  style={{ background: "#F6EFE8", borderColor: "#4A204020" }}
+                >
+                  <div className="px-4 py-3 space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-body font-semibold" style={{ color: "#4A2040" }}>
+                          Save my checklist results
+                        </p>
+                        <p className="text-[11px] font-body leading-snug" style={{ color: "#4A204090" }}>
+                          {saveChecklists
+                            ? "Your checklist summaries are saved privately to your profile, so Zara can pick up where you left off."
+                            : "Nothing is stored. Your checklist summaries stay in this conversation only."}
+                        </p>
+                      </div>
+                      <Switch
+                        checked={saveChecklists}
+                        onCheckedChange={(v) => void updateSavePreference(v)}
+                        aria-label="Save checklist results"
+                      />
+                    </div>
+                    {!user && (
+                      <p className="text-[11px] font-body" style={{ color: "#4A204080" }}>
+                        Sign in to save results across sessions.
+                      </p>
+                    )}
+                    {user && checklistHistory.length > 0 && (
+                      <button
+                        onClick={() => void deleteSavedResults()}
+                        className="text-[11px] font-body underline underline-offset-2"
+                        style={{ color: "#a32a2a" }}
+                      >
+                        Delete my {checklistHistory.length} saved result{checklistHistory.length === 1 ? "" : "s"}
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Messages */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
