@@ -163,6 +163,7 @@ const FempowerCoach = () => {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [checklistHistory, setChecklistHistory] = useState<ChecklistMemory[]>([]);
   const [showRating, setShowRating] = useState(false);
+  const [ratingFromClose, setRatingFromClose] = useState(false);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [ratingFeedback, setRatingFeedback] = useState("");
