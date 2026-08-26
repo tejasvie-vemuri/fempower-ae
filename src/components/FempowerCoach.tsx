@@ -169,13 +169,32 @@ const FempowerCoach = () => {
   const [ratingFeedback, setRatingFeedback] = useState("");
   const [hasRated, setHasRated] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  /** Checklist queued by a deep link, sent once the widget is open and consented. */
+  const [pendingStart, setPendingStart] = useState<string | null>(null);
 
-  // Allow other components (e.g. HeroSection) to open Zara via a global event
+  // Allow other components (e.g. HeroSection, the /ai-coach-for-women-uae page)
+  // to open Zara, optionally starting a named checklist straight away.
   useEffect(() => {
-    const handler = () => setOpen(true);
+    const handler = (e: Event) => {
+      const start = (e as CustomEvent<{ start?: string } | undefined>).detail?.start;
+      if (start && CHECKLIST_LABELS[start]) setPendingStart(start);
+      setOpen(true);
+    };
     window.addEventListener("open-zara", handler);
     return () => window.removeEventListener("open-zara", handler);
   }, []);
+
+  // ?start=<checklist-id> opens the flow directly, so a link cited by an AI
+  // assistant or shared on social lands the reader inside the right checklist.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const start = new URLSearchParams(window.location.search).get("start");
+    if (start && CHECKLIST_LABELS[start]) {
+      setPendingStart(start);
+      setOpen(true);
+    }
+  }, []);
+
 
   // For signed-in members, load her profile so Zara can personalise the chat.
   useEffect(() => {
