@@ -155,6 +155,10 @@ const Header = () => {
                       <Link to="/admin/zara-broadcast">Admin · Zara Broadcast Kit</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/admin/zara-style">Admin · Zara Style Lab</Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
                       <Link to="/admin/members">Admin · Members</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
