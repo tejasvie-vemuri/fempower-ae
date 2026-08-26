@@ -1,6 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, Send, Sparkles, ShieldCheck, Star } from "lucide-react";
+import { X, Send, Sparkles, ShieldCheck, Star, Share2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { logEngagement } from "@/lib/engagement";
+import {
+  TRY_BY_COACH_ID,
+  SITE_ORIGIN,
+  whatsappShareUrl,
+} from "@/lib/zaraChecklists";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
