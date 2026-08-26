@@ -114,7 +114,7 @@ const TryChecklistPage = () => {
             onClick={start}
             className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-7 py-4 text-sm font-body font-medium text-primary-foreground transition-opacity hover:opacity-90"
           >
-            Start the {checklist.label} <ArrowRight size={16} />
+            Start with Zara <ArrowRight size={16} />
           </button>
           <button
             type="button"
