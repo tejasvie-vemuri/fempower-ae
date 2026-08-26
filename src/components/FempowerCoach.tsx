@@ -376,6 +376,16 @@ const FempowerCoach = () => {
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
     const userMsg: Msg = { role: "user", content: text.trim() };
+    // Remember which checklist this conversation is about, so "send to a
+    // friend" shares the page for the flow she actually just did.
+    const startedFlow = CHECKLISTS.find((c) => c.full === text.trim());
+    if (startedFlow) {
+      setActiveChecklist(startedFlow.id);
+      void logEngagement("zara_checklist_started", null, {
+        checklist: startedFlow.id,
+        source: "zara_widget",
+      });
+    }
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
