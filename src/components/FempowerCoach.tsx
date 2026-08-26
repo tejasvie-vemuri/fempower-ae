@@ -154,6 +154,17 @@ const FempowerCoach = () => {
   });
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [newsletterOptIn, setNewsletterOptIn] = useState(false);
+  const [saveChecklists, setSaveChecklists] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return window.localStorage.getItem(SAVE_PREF_KEY) !== "false";
+  });
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [checklistHistory, setChecklistHistory] = useState<ChecklistMemory[]>([]);
+  const [showRating, setShowRating] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [ratingFeedback, setRatingFeedback] = useState("");
+  const [hasRated, setHasRated] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Allow other components (e.g. HeroSection) to open Zara via a global event
@@ -167,16 +178,18 @@ const FempowerCoach = () => {
   useEffect(() => {
     if (!user?.id) {
       setMemberProfile(null);
+      setChecklistHistory([]);
       return;
     }
     let cancelled = false;
     supabase
       .from("member_profiles")
-      .select("name, city, role, industry, looking_for")
+      .select("name, city, role, industry, looking_for, coach_save_checklists")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (!cancelled && data?.name) {
+        if (cancelled || !data) return;
+        if (data.name) {
           setMemberProfile({
             name: data.name,
             city: data.city ?? null,
@@ -185,9 +198,49 @@ const FempowerCoach = () => {
             looking_for: data.looking_for ?? [],
           });
         }
+        setSaveChecklists(data.coach_save_checklists !== false);
       });
     return () => { cancelled = true; };
   }, [user?.id]);
+
+  // Her saved checklist results, so Zara can reference them in future sessions.
+  const loadChecklistHistory = useCallback(async () => {
+    if (!user?.id) return;
+    const { data } = await supabase
+      .from("coach_checklist_results")
+      .select("checklist_key, checklist_label, summary, created_at")
+      .order("created_at", { ascending: false })
+      .limit(6);
+    setChecklistHistory(
+      (data ?? []).map((r) => ({
+        key: r.checklist_key,
+        label: r.checklist_label,
+        summary: r.summary,
+        created_at: r.created_at,
+      })),
+    );
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (user?.id && saveChecklists) void loadChecklistHistory();
+  }, [user?.id, saveChecklists, loadChecklistHistory]);
+
+  const updateSavePreference = async (next: boolean) => {
+    setSaveChecklists(next);
+    window.localStorage.setItem(SAVE_PREF_KEY, next ? "true" : "false");
+    if (!user?.id) return;
+    await supabase
+      .from("member_profiles")
+      .update({ coach_save_checklists: next })
+      .eq("user_id", user.id);
+    if (!next) setChecklistHistory([]);
+  };
+
+  const deleteSavedResults = async () => {
+    if (!user?.id) return;
+    await supabase.from("coach_checklist_results").delete().eq("user_id", user.id);
+    setChecklistHistory([]);
+  };
 
   const handleAcceptConsent = () => {
     if (!agreeTerms) return;
@@ -211,6 +264,47 @@ const FempowerCoach = () => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
+  /** Persists a checklist summary when she has opted in and is signed in. */
+  const persistChecklistResult = useCallback(async (raw: string) => {
+    const match = raw.match(CHECKLIST_MARKER);
+    if (!match) return;
+    if (!user?.id || !saveChecklists) return;
+    let parsed: { key?: string; summary?: string };
+    try {
+      parsed = JSON.parse(match[1]);
+    } catch {
+      return;
+    }
+    if (!parsed.key || !parsed.summary) return;
+    await supabase.from("coach_checklist_results").insert({
+      user_id: user.id,
+      checklist_key: parsed.key,
+      checklist_label: CHECKLIST_LABELS[parsed.key] ?? "Checklist",
+      summary: parsed.summary,
+    });
+    void loadChecklistHistory();
+  }, [user?.id, saveChecklists, loadChecklistHistory]);
+
+  const submitRating = async (value: number) => {
+    setHasRated(true);
+    setShowRating(false);
+    await supabase.from("coach_ratings").insert({
+      user_id: user?.id ?? null,
+      rating: value,
+      feedback: ratingFeedback.trim() || null,
+      message_count: messages.length,
+    });
+    setRatingFeedback("");
+  };
+
+  const handleClose = () => {
+    if (!hasRated && messages.filter((m) => m.role === "user").length >= 2) {
+      setShowRating(true);
+      return;
+    }
+    setOpen(false);
+  };
+
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
     const userMsg: Msg = { role: "user", content: text.trim() };
@@ -233,8 +327,13 @@ const FempowerCoach = () => {
     await streamChat({
       messages: [...messages, userMsg],
       userProfile: memberProfile ?? undefined,
+      checklistHistory: user?.id && saveChecklists ? checklistHistory : undefined,
+      saveChecklists: user?.id ? saveChecklists : false,
       onDelta: upsertAssistant,
-      onDone: () => setIsLoading(false),
+      onDone: () => {
+        setIsLoading(false);
+        void persistChecklistResult(assistantSoFar);
+      },
       onError: (err) => {
         setMessages((prev) => [...prev, { role: "assistant", content: `Sorry, something went wrong: ${err}` }]);
         setIsLoading(false);
