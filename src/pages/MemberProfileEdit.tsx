@@ -254,7 +254,10 @@ const MemberProfileEdit = () => {
                 Status: <Badge variant={profile.status === "approved" ? "default" : "outline"}>{STATUS_LABELS[profile.status]}</Badge>
               </p>
             </div>
-            <Button variant="outline" asChild><Link to="/directory">Back to directory</Link></Button>
+            <div className="flex gap-2">
+              <Button variant="outline" asChild><Link to="/account/checklists">Checklist history</Link></Button>
+              <Button variant="outline" asChild><Link to="/directory">Back to directory</Link></Button>
+            </div>
           </div>
 
           {/* Completeness meter */}
