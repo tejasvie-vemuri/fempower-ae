@@ -228,12 +228,12 @@ const EventsCalendarSection = () => {
                     No events on this date. Try selecting a highlighted date!
                   </p>
                 </div>
-              ) : events.length > 0 ? (
+              ) : upcomingEvents.length > 0 ? (
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground font-body font-medium mb-3">
                     All upcoming events:
                   </p>
-                  {events.map((event) => (
+                  {upcomingEvents.map((event) => (
                     <Link
                       key={event.id}
                       to={`/events/${event.slug}`}
