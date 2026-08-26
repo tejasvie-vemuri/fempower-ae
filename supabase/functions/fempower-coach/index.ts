@@ -1113,10 +1113,63 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, userProfile, checklistHistory, saveChecklists, bucketKey, rulesetSlug } =
-      await req.json();
+    const payload = await req.json();
+    const { messages, userProfile, checklistHistory, saveChecklists, bucketKey, rulesetSlug } = payload;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+    // Admin-only test harness: run the example chats against one or more style
+    // rule sets, score every reply with the same scorer production uses, and
+    // persist the results so A/B comparisons survive a page refresh.
+    if (payload?.mode === "eval") {
+      const gate = await requireAdmin(req);
+      if (!gate.ok) {
+        return new Response(JSON.stringify({ error: gate.error }), {
+          status: gate.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const slugs: string[] = Array.isArray(payload.slugs) ? payload.slugs : [];
+      const caseKeys: string[] = Array.isArray(payload.caseKeys) ? payload.caseKeys : [];
+      const all = await loadRulesets(false);
+      const sets = slugs.length ? all.filter((s) => slugs.includes(s.slug)) : all.filter((s) => s.is_active);
+      if (!sets.length) {
+        return new Response(JSON.stringify({ error: "No matching rule sets" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const cases = caseKeys.length ? SLOP_CASES.filter((c) => caseKeys.includes(c.key)) : SLOP_CASES;
+      const results: Record<string, unknown[]> = {};
+      for (const set of sets) {
+        const systemPrompt = set.rules?.trim()
+          ? `${SYSTEM_PROMPT}\n\n---\n\n${set.rules.trim()}\n\nThese overlay rules win over anything above them.`
+          : SYSTEM_PROMPT;
+        const rows: unknown[] = [];
+        for (const c of cases) {
+          try {
+            const r = await runEvalCase(LOVABLE_API_KEY, systemPrompt, c);
+            rows.push(r);
+            await logSlopResult({
+              ruleset_id: set.id, ruleset_slug: set.slug, source: "eval", case_key: c.key,
+              user_id: gate.userId, user_message: r.user_message.slice(0, 2000),
+              reply: r.reply.slice(0, 6000), score: r.score,
+              violations: r.violations, checks: r.checks,
+            });
+          } catch (e) {
+            rows.push({
+              case_key: c.key, label: c.label, trap: c.trap, user_message: "",
+              reply: `ERROR: ${e instanceof Error ? e.message : String(e)}`,
+              score: 0, violations: [], checks: {},
+            });
+          }
+        }
+        results[set.slug] = rows;
+      }
+      return new Response(
+        JSON.stringify({ results, ruleLabels: SLOP_RULE_LABELS, ranAt: new Date().toISOString() }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
 
     // A/B: pick the style overlay this conversation runs on. Sticky per bucket
     // key so a member never flips variant mid-chat.
