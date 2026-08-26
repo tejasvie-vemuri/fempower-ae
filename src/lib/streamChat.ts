@@ -10,15 +10,26 @@ interface UserProfile {
   looking_for?: string[];
 }
 
+export type ChecklistMemory = {
+  key: string;
+  label: string;
+  summary: string;
+  created_at: string;
+};
+
 export async function streamChat({
   messages,
   userProfile,
+  checklistHistory,
+  saveChecklists,
   onDelta,
   onDone,
   onError,
 }: {
   messages: Msg[];
   userProfile?: UserProfile;
+  checklistHistory?: ChecklistMemory[];
+  saveChecklists?: boolean;
   onDelta: (text: string) => void;
   onDone: () => void;
   onError: (err: string) => void;
@@ -29,7 +40,7 @@ export async function streamChat({
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
-    body: JSON.stringify({ messages, userProfile }),
+    body: JSON.stringify({ messages, userProfile, checklistHistory, saveChecklists }),
   });
 
   if (!resp.ok || !resp.body) {

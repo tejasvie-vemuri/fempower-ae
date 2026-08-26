@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, Send, Sparkles } from "lucide-react";
+import { X, Send, Sparkles, ShieldCheck, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
-import { streamChat, type Msg } from "@/lib/streamChat";
+import { streamChat, type Msg, type ChecklistMemory } from "@/lib/streamChat";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -118,6 +120,20 @@ const CHECKLISTS: { id: string; label: string; full: string }[] = [
   },
 ];
 
+const CHECKLIST_LABELS: Record<string, string> = Object.fromEntries(
+  CHECKLISTS.map((c) => [c.id, c.label]),
+);
+
+const SAVE_PREF_KEY = "fempower-coach-save-checklists-v1";
+const CHECKLIST_MARKER = /\[\[CHECKLIST_SAVE:\s*(\{[\s\S]*?\})\s*\]\]/;
+
+/** Removes the machine-readable save marker before anything is shown to her. */
+function stripMarker(content: string): string {
+  return content.replace(CHECKLIST_MARKER, "").replace(/\n{3,}/g, "\n\n").trimEnd();
+}
+
+
+
 
 
 const FempowerCoach = () => {
@@ -140,6 +156,18 @@ const FempowerCoach = () => {
   });
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [newsletterOptIn, setNewsletterOptIn] = useState(false);
+  const [saveChecklists, setSaveChecklists] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return window.localStorage.getItem(SAVE_PREF_KEY) !== "false";
+  });
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [checklistHistory, setChecklistHistory] = useState<ChecklistMemory[]>([]);
+  const [showRating, setShowRating] = useState(false);
+  const [ratingFromClose, setRatingFromClose] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [ratingFeedback, setRatingFeedback] = useState("");
+  const [hasRated, setHasRated] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Allow other components (e.g. HeroSection) to open Zara via a global event
@@ -153,16 +181,18 @@ const FempowerCoach = () => {
   useEffect(() => {
     if (!user?.id) {
       setMemberProfile(null);
+      setChecklistHistory([]);
       return;
     }
     let cancelled = false;
     supabase
       .from("member_profiles")
-      .select("name, city, role, industry, looking_for")
+      .select("name, city, role, industry, looking_for, coach_save_checklists")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (!cancelled && data?.name) {
+        if (cancelled || !data) return;
+        if (data.name) {
           setMemberProfile({
             name: data.name,
             city: data.city ?? null,
@@ -171,9 +201,49 @@ const FempowerCoach = () => {
             looking_for: data.looking_for ?? [],
           });
         }
+        setSaveChecklists(data.coach_save_checklists !== false);
       });
     return () => { cancelled = true; };
   }, [user?.id]);
+
+  // Her saved checklist results, so Zara can reference them in future sessions.
+  const loadChecklistHistory = useCallback(async () => {
+    if (!user?.id) return;
+    const { data } = await supabase
+      .from("coach_checklist_results")
+      .select("checklist_key, checklist_label, summary, created_at")
+      .order("created_at", { ascending: false })
+      .limit(6);
+    setChecklistHistory(
+      (data ?? []).map((r) => ({
+        key: r.checklist_key,
+        label: r.checklist_label,
+        summary: r.summary,
+        created_at: r.created_at,
+      })),
+    );
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (user?.id && saveChecklists) void loadChecklistHistory();
+  }, [user?.id, saveChecklists, loadChecklistHistory]);
+
+  const updateSavePreference = async (next: boolean) => {
+    setSaveChecklists(next);
+    window.localStorage.setItem(SAVE_PREF_KEY, next ? "true" : "false");
+    if (!user?.id) return;
+    await supabase
+      .from("member_profiles")
+      .update({ coach_save_checklists: next })
+      .eq("user_id", user.id);
+    if (!next) setChecklistHistory([]);
+  };
+
+  const deleteSavedResults = async () => {
+    if (!user?.id) return;
+    await supabase.from("coach_checklist_results").delete().eq("user_id", user.id);
+    setChecklistHistory([]);
+  };
 
   const handleAcceptConsent = () => {
     if (!agreeTerms) return;
@@ -197,6 +267,59 @@ const FempowerCoach = () => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
+  /** Persists a checklist summary when she has opted in and is signed in. */
+  const persistChecklistResult = useCallback(async (raw: string) => {
+    const match = raw.match(CHECKLIST_MARKER);
+    if (!match) return;
+    if (!user?.id || !saveChecklists) return;
+    let parsed: { key?: string; summary?: string };
+    try {
+      parsed = JSON.parse(match[1]);
+    } catch {
+      return;
+    }
+    if (!parsed.key || !parsed.summary) return;
+    await supabase.from("coach_checklist_results").insert({
+      user_id: user.id,
+      checklist_key: parsed.key,
+      checklist_label: CHECKLIST_LABELS[parsed.key] ?? "Checklist",
+      summary: parsed.summary,
+    });
+    void loadChecklistHistory();
+  }, [user?.id, saveChecklists, loadChecklistHistory]);
+
+  const submitRating = async (value: number) => {
+    const closeAfter = ratingFromClose;
+    setHasRated(true);
+    setShowRating(false);
+    setRatingFromClose(false);
+    await supabase.from("coach_ratings").insert({
+      user_id: user?.id ?? null,
+      rating: value,
+      feedback: ratingFeedback.trim() || null,
+      message_count: messages.length,
+    });
+    setRatingFeedback("");
+    if (closeAfter) setOpen(false);
+  };
+
+  const dismissRating = () => {
+    const closeAfter = ratingFromClose;
+    setHasRated(true);
+    setShowRating(false);
+    setRatingFromClose(false);
+    if (closeAfter) setOpen(false);
+  };
+
+  const handleClose = () => {
+    if (!hasRated && messages.filter((m) => m.role === "user").length >= 2) {
+      setRatingFromClose(true);
+      setShowRating(true);
+      return;
+    }
+    setOpen(false);
+  };
+
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
     const userMsg: Msg = { role: "user", content: text.trim() };
@@ -219,8 +342,13 @@ const FempowerCoach = () => {
     await streamChat({
       messages: [...messages, userMsg],
       userProfile: memberProfile ?? undefined,
+      checklistHistory: user?.id && saveChecklists ? checklistHistory : undefined,
+      saveChecklists: user?.id ? saveChecklists : false,
       onDelta: upsertAssistant,
-      onDone: () => setIsLoading(false),
+      onDone: () => {
+        setIsLoading(false);
+        void persistChecklistResult(assistantSoFar);
+      },
       onError: (err) => {
         setMessages((prev) => [...prev, { role: "assistant", content: `Sorry, something went wrong: ${err}` }]);
         setIsLoading(false);
@@ -305,10 +433,67 @@ const FempowerCoach = () => {
                   <span className="font-body text-[10px] uppercase tracking-widest text-white/70">Your Fempower Coach</span>
                 </div>
               </div>
-              <button onClick={() => setOpen(false)} className="text-white/70 hover:text-white transition-colors">
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setShowPrivacy((v) => !v)}
+                  className="text-white/70 hover:text-white transition-colors p-1"
+                  aria-label="Checklist privacy settings"
+                  aria-expanded={showPrivacy}
+                >
+                  <ShieldCheck size={18} />
+                </button>
+                <button onClick={handleClose} className="text-white/70 hover:text-white transition-colors p-1" aria-label="Close chat">
+                  <X size={20} />
+                </button>
+              </div>
             </div>
+
+            {/* Checklist privacy panel */}
+            <AnimatePresence>
+              {showPrivacy && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden border-b"
+                  style={{ background: "#F6EFE8", borderColor: "#4A204020" }}
+                >
+                  <div className="px-4 py-3 space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-body font-semibold" style={{ color: "#4A2040" }}>
+                          Save my checklist results
+                        </p>
+                        <p className="text-[11px] font-body leading-snug" style={{ color: "#4A204090" }}>
+                          {saveChecklists
+                            ? "Your checklist summaries are saved privately to your profile, so Zara can pick up where you left off."
+                            : "Nothing is stored. Your checklist summaries stay in this conversation only."}
+                        </p>
+                      </div>
+                      <Switch
+                        checked={saveChecklists}
+                        onCheckedChange={(v) => void updateSavePreference(v)}
+                        aria-label="Save checklist results"
+                      />
+                    </div>
+                    {!user && (
+                      <p className="text-[11px] font-body" style={{ color: "#4A204080" }}>
+                        Sign in to save results across sessions.
+                      </p>
+                    )}
+                    {user && checklistHistory.length > 0 && (
+                      <button
+                        onClick={() => void deleteSavedResults()}
+                        className="text-[11px] font-body underline underline-offset-2"
+                        style={{ color: "#a32a2a" }}
+                      >
+                        Delete my {checklistHistory.length} saved result{checklistHistory.length === 1 ? "" : "s"}
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Messages */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
@@ -407,7 +592,7 @@ const FempowerCoach = () => {
                       ))}
                     </div>
                     <p className="text-[11px] font-body leading-snug" style={{ color: "#4A204080" }}>
-                      One question at a time, then a summary. Inspired by Harnidh Kaur's <em>The Girls Are Not Fine</em>.
+                      One question at a time, then a summary. These are Fempower's own questions, inspired by the themes in Harnidh Kaur's <em>The Girls Are Not Fine</em> — not quoted from it.
                     </p>
                   </div>
 
@@ -427,7 +612,7 @@ const FempowerCoach = () => {
                   >
                     {msg.role === "assistant" ? (
                       <div className="prose prose-sm max-w-none [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5 [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm [&_strong]:font-semibold">
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        <ReactMarkdown>{stripMarker(msg.content)}</ReactMarkdown>
                       </div>
                     ) : (
                       msg.content
@@ -477,8 +662,89 @@ const FempowerCoach = () => {
               </form>
               <p className="text-[10px] text-center mt-1.5 font-body" style={{ color: "#4A204060" }}>
                 Powered by Fempower UAE
+                {messages.length > 0 && !hasRated && (
+                  <>
+                    {" · "}
+                    <button
+                      onClick={() => setShowRating(true)}
+                      className="underline underline-offset-2"
+                      style={{ color: "#4A204090" }}
+                    >
+                      Rate this chat
+                    </button>
+                  </>
+                )}
               </p>
             </div>
+
+            {/* Rating */}
+            <AnimatePresence>
+              {showRating && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 z-10 flex items-end"
+                  style={{ background: "#2d1a2880" }}
+                >
+                  <motion.div
+                    initial={{ y: 40 }}
+                    animate={{ y: 0 }}
+                    exit={{ y: 40 }}
+                    className="w-full rounded-t-2xl p-4 space-y-3"
+                    style={{ background: "#FDF8F3" }}
+                  >
+                    <p className="font-heading text-base font-semibold" style={{ color: "#4A2040" }}>
+                      How was this conversation with Zara?
+                    </p>
+                    <div className="flex items-center gap-1.5">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <button
+                          key={n}
+                          onMouseEnter={() => setHoverRating(n)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          onClick={() => setRating(n)}
+                          aria-label={`${n} star${n === 1 ? "" : "s"}`}
+                          className="p-1"
+                        >
+                          <Star
+                            size={28}
+                            style={{ color: "#D4A853" }}
+                            fill={(hoverRating || rating) >= n ? "#D4A853" : "transparent"}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    <Textarea
+                      value={ratingFeedback}
+                      onChange={(e) => setRatingFeedback(e.target.value)}
+                      placeholder="Anything you'd want Zara to do differently? (optional)"
+                      rows={2}
+                      className="text-sm font-body"
+                      style={{ borderColor: "#4A204030" }}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => void submitRating(rating)}
+                        disabled={rating === 0}
+                        className="flex-1 rounded-full text-white"
+                        style={{ background: rating ? "#4A2040" : "#4A204060" }}
+                      >
+                        Send rating
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={dismissRating}
+                        className="rounded-full text-sm font-body"
+                        style={{ color: "#4A204090" }}
+                      >
+                        Not now
+                      </Button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
