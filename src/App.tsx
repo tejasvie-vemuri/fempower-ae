@@ -96,6 +96,8 @@ const App = () => (
             <Route path="/roundtables" element={<Roundtables />} />
             <Route path="/women-networking-dubai" element={<WomenNetworkingDubai />} />
             <Route path="/ai-coach-for-women-uae" element={<AiCoachForWomen />} />
+            <Route path="/try/:slug" element={<TryChecklist />} />
+            <Route path="/admin/zara-broadcast" element={<AdminRoute><AdminZaraBroadcast /></AdminRoute>} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route
               path="/admin/events"
