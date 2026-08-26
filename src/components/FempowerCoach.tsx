@@ -186,6 +186,8 @@ const FempowerCoach = () => {
   const [ratingFeedback, setRatingFeedback] = useState("");
   const [feedbackQuestion, setFeedbackQuestion] = useState(pickFeedbackQuestion);
   const [hasRated, setHasRated] = useState(false);
+  /** The checklist this conversation is about, if any — drives the share link. */
+  const [activeChecklist, setActiveChecklist] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   /** Checklist queued by a deep link, sent once the widget is open and consented. */
   const [pendingStart, setPendingStart] = useState<string | null>(null);
