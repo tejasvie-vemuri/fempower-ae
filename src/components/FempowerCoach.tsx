@@ -118,6 +118,20 @@ const CHECKLISTS: { id: string; label: string; full: string }[] = [
   },
 ];
 
+const CHECKLIST_LABELS: Record<string, string> = Object.fromEntries(
+  CHECKLISTS.map((c) => [c.id, c.label]),
+);
+
+const SAVE_PREF_KEY = "fempower-coach-save-checklists-v1";
+const CHECKLIST_MARKER = /\[\[CHECKLIST_SAVE:\s*(\{[\s\S]*?\})\s*\]\]/;
+
+/** Removes the machine-readable save marker before anything is shown to her. */
+function stripMarker(content: string): string {
+  return content.replace(CHECKLIST_MARKER, "").replace(/\n{3,}/g, "\n\n").trimEnd();
+}
+
+
+
 
 
 const FempowerCoach = () => {
