@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageJsonLd, { type Faq } from "@/components/PageJsonLd";
+import FempowerCoach from "@/components/FempowerCoach";
 
 const UPDATED = "26 August 2026";
 const CANONICAL = "https://fempowerae.com/ai-coach-for-women-uae";
@@ -349,6 +350,8 @@ const AiCoachForWomen = () => (
     </main>
 
     <Footer />
+    {/* Zara herself — this page is the one place a visitor arrives expecting her. */}
+    <FempowerCoach />
   </div>
 );
 
