@@ -21,6 +21,7 @@ import EventDetail from "./pages/EventDetail";
 import MyTickets from "./pages/MyTickets";
 import Directory from "./pages/Directory";
 import MemberProfileEdit from "./pages/MemberProfileEdit";
+import CoachHistory from "./pages/CoachHistory";
 import AdminMembers from "./pages/AdminMembers";
 import AdminImages from "./pages/AdminImages";
 import Circle from "./pages/Circle";
@@ -78,6 +79,8 @@ const App = () => (
             <Route path="/account/saved" element={<Saved />} />
             <Route path="/directory" element={<ProtectedRoute><Directory /></ProtectedRoute>} />
             <Route path="/account/profile" element={<ProtectedRoute allowPending><MemberProfileEdit /></ProtectedRoute>} />
+            <Route path="/account/checklists" element={<ProtectedRoute allowPending><CoachHistory /></ProtectedRoute>} />
+
             <Route path="/pending-approval" element={<ProtectedRoute allowPending><PendingApproval /></ProtectedRoute>} />
             <Route path="/admin/members" element={<AdminRoute><AdminMembers /></AdminRoute>} />
             <Route path="/admin/images" element={<AdminRoute><AdminImages /></AdminRoute>} />

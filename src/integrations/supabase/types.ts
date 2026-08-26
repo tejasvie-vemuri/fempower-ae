@@ -538,25 +538,31 @@ export type Database = {
         Row: {
           created_at: string
           feedback: string | null
+          feedback_question: string | null
           id: string
           message_count: number | null
           rating: number
+          transcript: Json | null
           user_id: string | null
         }
         Insert: {
           created_at?: string
           feedback?: string | null
+          feedback_question?: string | null
           id?: string
           message_count?: number | null
           rating: number
+          transcript?: Json | null
           user_id?: string | null
         }
         Update: {
           created_at?: string
           feedback?: string | null
+          feedback_question?: string | null
           id?: string
           message_count?: number | null
           rating?: number
+          transcript?: Json | null
           user_id?: string | null
         }
         Relationships: []
