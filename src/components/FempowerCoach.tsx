@@ -649,8 +649,89 @@ const FempowerCoach = () => {
               </form>
               <p className="text-[10px] text-center mt-1.5 font-body" style={{ color: "#4A204060" }}>
                 Powered by Fempower UAE
+                {messages.length > 0 && !hasRated && (
+                  <>
+                    {" · "}
+                    <button
+                      onClick={() => setShowRating(true)}
+                      className="underline underline-offset-2"
+                      style={{ color: "#4A204090" }}
+                    >
+                      Rate this chat
+                    </button>
+                  </>
+                )}
               </p>
             </div>
+
+            {/* Rating */}
+            <AnimatePresence>
+              {showRating && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 z-10 flex items-end"
+                  style={{ background: "#2d1a2880" }}
+                >
+                  <motion.div
+                    initial={{ y: 40 }}
+                    animate={{ y: 0 }}
+                    exit={{ y: 40 }}
+                    className="w-full rounded-t-2xl p-4 space-y-3"
+                    style={{ background: "#FDF8F3" }}
+                  >
+                    <p className="font-heading text-base font-semibold" style={{ color: "#4A2040" }}>
+                      How was this conversation with Zara?
+                    </p>
+                    <div className="flex items-center gap-1.5">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <button
+                          key={n}
+                          onMouseEnter={() => setHoverRating(n)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          onClick={() => setRating(n)}
+                          aria-label={`${n} star${n === 1 ? "" : "s"}`}
+                          className="p-1"
+                        >
+                          <Star
+                            size={28}
+                            style={{ color: "#D4A853" }}
+                            fill={(hoverRating || rating) >= n ? "#D4A853" : "transparent"}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    <Textarea
+                      value={ratingFeedback}
+                      onChange={(e) => setRatingFeedback(e.target.value)}
+                      placeholder="Anything you'd want Zara to do differently? (optional)"
+                      rows={2}
+                      className="text-sm font-body"
+                      style={{ borderColor: "#4A204030" }}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => void submitRating(rating)}
+                        disabled={rating === 0}
+                        className="flex-1 rounded-full text-white"
+                        style={{ background: rating ? "#4A2040" : "#4A204060" }}
+                      >
+                        Send rating
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => { setHasRated(true); setShowRating(false); setOpen(false); }}
+                        className="rounded-full text-sm font-body"
+                        style={{ color: "#4A204090" }}
+                      >
+                        Not now
+                      </Button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
