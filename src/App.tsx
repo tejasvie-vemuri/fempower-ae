@@ -21,6 +21,7 @@ import EventDetail from "./pages/EventDetail";
 import MyTickets from "./pages/MyTickets";
 import Directory from "./pages/Directory";
 import MemberProfileEdit from "./pages/MemberProfileEdit";
+import CoachHistory from "./pages/CoachHistory";
 import AdminMembers from "./pages/AdminMembers";
 import AdminImages from "./pages/AdminImages";
 import Circle from "./pages/Circle";
