@@ -339,6 +339,17 @@ const FempowerCoach = () => {
     setOpen(false);
   };
 
+  // Fire a deep-linked checklist once she is past the consent gate and the
+  // conversation is still empty (never interrupt one already in progress).
+  useEffect(() => {
+    if (!pendingStart || !open || !hasConsented || isLoading || messages.length > 0) return;
+    const flow = CHECKLISTS.find((c) => c.id === pendingStart);
+    setPendingStart(null);
+    if (flow) void sendMessage(flow.full);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingStart, open, hasConsented, isLoading, messages.length]);
+
+
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
     const userMsg: Msg = { role: "user", content: text.trim() };
