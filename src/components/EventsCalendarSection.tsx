@@ -171,9 +171,15 @@ const EventsCalendarSection = () => {
                 onSelect={setSelectedDate}
                 modifiers={{ event: eventDates, pastEvent: pastEventDates }}
                 modifiersClassNames={{
-                  event: "bg-accent text-accent-foreground font-bold rounded-full",
+                  event: "bg-gold text-gold-foreground font-bold rounded-full",
                   pastEvent:
                     "bg-muted text-muted-foreground font-medium rounded-full line-through decoration-muted-foreground/50",
+                }}
+                classNames={{
+                  // Today = subtle outline ring (no fill) so it stays distinct
+                  // from the gold event-day fill, even when today has an event.
+                  day_today:
+                    "ring-2 ring-inset ring-foreground/70 font-semibold",
                 }}
                 className="rounded-xl border border-border bg-card shadow-sm p-4"
               />
