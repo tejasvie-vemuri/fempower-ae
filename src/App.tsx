@@ -34,6 +34,8 @@ import LonelyInDubai from "./pages/LonelyInDubai";
 import Roundtables from "./pages/Roundtables";
 import WomenNetworkingDubai from "./pages/WomenNetworkingDubai";
 import AiCoachForWomen from "./pages/AiCoachForWomen";
+import TryChecklist from "./pages/TryChecklist";
+import AdminZaraBroadcast from "./pages/AdminZaraBroadcast";
 import Unsubscribe from "./pages/Unsubscribe";
 import PendingApproval from "./pages/PendingApproval";
 import Learn from "./pages/Learn";
