@@ -389,6 +389,28 @@ const FempowerCoach = () => {
                   >
                     Show me different options
                   </button>
+
+                  <div className="pt-2 mt-1 border-t space-y-2" style={{ borderColor: "#4A204015" }}>
+                    <p className="text-xs font-body uppercase tracking-widest" style={{ color: "#4A204090" }}>
+                      Or walk through a checklist
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {CHECKLISTS.map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => sendMessage(c.full)}
+                          className="text-xs font-body px-3 py-2 rounded-full border transition-colors hover:bg-[#D4A853]/15"
+                          style={{ borderColor: "#D4A853", color: "#4A2040", background: "#D4A85315" }}
+                        >
+                          {c.label}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[11px] font-body leading-snug" style={{ color: "#4A204080" }}>
+                      One question at a time, then a summary. Inspired by Harnidh Kaur's <em>The Girls Are Not Fine</em>.
+                    </p>
+                  </div>
+
                 </div>
               )}
               {messages.map((msg, i) => (
