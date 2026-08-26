@@ -125,6 +125,23 @@ const CHECKLIST_LABELS: Record<string, string> = Object.fromEntries(
 );
 
 const SAVE_PREF_KEY = "fempower-coach-save-checklists-v1";
+
+/**
+ * One short, answerable question per rating — a single specific prompt gets far
+ * more usable feedback than an open "any comments?" box. Picked at random when
+ * the rating panel opens, and stored alongside the answer so we always know
+ * which question a piece of feedback was answering.
+ */
+const FEEDBACK_QUESTIONS = [
+  "What is the one thing Zara could have done better here?",
+  "What did you come here hoping for that you did not get?",
+  "Which part of this chat was actually useful?",
+  "What would have made this feel more like talking to a real person?",
+  "What would you want Zara to remember for next time?",
+];
+
+const pickFeedbackQuestion = () =>
+  FEEDBACK_QUESTIONS[Math.floor(Math.random() * FEEDBACK_QUESTIONS.length)];
 const CHECKLIST_MARKER = /\[\[CHECKLIST_SAVE:\s*(\{[\s\S]*?\})\s*\]\]/;
 
 /** Removes the machine-readable save marker before anything is shown to her. */
@@ -167,6 +184,7 @@ const FempowerCoach = () => {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [ratingFeedback, setRatingFeedback] = useState("");
+  const [feedbackQuestion, setFeedbackQuestion] = useState(pickFeedbackQuestion);
   const [hasRated, setHasRated] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   /** Checklist queued by a deep link, sent once the widget is open and consented. */
@@ -316,6 +334,10 @@ const FempowerCoach = () => {
       user_id: user?.id ?? null,
       rating: value,
       feedback: ratingFeedback.trim() || null,
+      feedback_question: feedbackQuestion,
+      // The chat the rating refers to — without it a 2-star score is unreadable.
+      // Markers are already stripped from what we keep.
+      transcript: messages.map((m) => ({ role: m.role, content: m.content })),
       message_count: messages.length,
     });
     setRatingFeedback("");
@@ -332,6 +354,7 @@ const FempowerCoach = () => {
 
   const handleClose = () => {
     if (!hasRated && messages.filter((m) => m.role === "user").length >= 2) {
+      setFeedbackQuestion(pickFeedbackQuestion());
       setRatingFromClose(true);
       setShowRating(true);
       return;
@@ -745,10 +768,19 @@ const FempowerCoach = () => {
                         </button>
                       ))}
                     </div>
+                    <label
+                      htmlFor="zara-feedback"
+                      className="block font-body text-sm"
+                      style={{ color: "#4A2040" }}
+                    >
+                      {feedbackQuestion}{" "}
+                      <span style={{ color: "#4A204080" }}>(optional)</span>
+                    </label>
                     <Textarea
+                      id="zara-feedback"
                       value={ratingFeedback}
                       onChange={(e) => setRatingFeedback(e.target.value)}
-                      placeholder="Anything you'd want Zara to do differently? (optional)"
+                      placeholder="A sentence is plenty."
                       rows={2}
                       className="text-sm font-body"
                       style={{ borderColor: "#4A204030" }}
