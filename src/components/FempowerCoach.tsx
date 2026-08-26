@@ -723,6 +723,19 @@ const FempowerCoach = () => {
               )}
             </div>
 
+            {/* Send to a friend — every satisfied user is a distribution channel */}
+            {messages.length >= 2 && !isLoading && (
+              <button
+                type="button"
+                onClick={shareWithFriend}
+                className="flex items-center justify-center gap-2 border-t px-4 py-2.5 text-[11px] font-body transition-colors hover:bg-[#D4A853]/15"
+                style={{ borderColor: "#4A204015", color: "#4A2040", background: "#D4A85310" }}
+              >
+                <Share2 size={13} />
+                Found this useful? Send it to a woman who'd benefit.
+              </button>
+            )}
+
             {/* Input */}
             <div className="p-3 border-t" style={{ borderColor: "#4A204015" }}>
               <form
