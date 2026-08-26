@@ -91,6 +91,35 @@ function pickStarters(): Starter[] {
   return arr;
 }
 
+/**
+ * Guided checklists — conversational flows Zara runs one question at a time.
+ * Inspired by the themes in Harnidh Kaur's "The Girls Are Not Fine".
+ */
+const CHECKLISTS: { id: string; label: string; full: string }[] = [
+  {
+    id: "invisible-labour",
+    label: "Invisible Labour Audit",
+    full: "I'd like to do the Invisible Labour Audit with you. Please walk me through it one question at a time.",
+  },
+  {
+    id: "the-ask",
+    label: "The Ask Checklist",
+    full: "I'd like to do The Ask Checklist with you — I want to ask for something at work. Please walk me through it one question at a time.",
+  },
+  {
+    id: "actually-fine",
+    label: "Am I Actually Fine?",
+    full: "I'd like to do the Am I Actually Fine? check-in with you. Please walk me through it one question at a time.",
+  },
+  {
+    id: "relocation-load",
+    label: "Relocation Load",
+    full: "I'd like to do the Relocation Load checklist with you. Please walk me through it one question at a time.",
+  },
+];
+
+
+
 const FempowerCoach = () => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -360,6 +389,28 @@ const FempowerCoach = () => {
                   >
                     Show me different options
                   </button>
+
+                  <div className="pt-2 mt-1 border-t space-y-2" style={{ borderColor: "#4A204015" }}>
+                    <p className="text-xs font-body uppercase tracking-widest" style={{ color: "#4A204090" }}>
+                      Or walk through a checklist
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {CHECKLISTS.map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => sendMessage(c.full)}
+                          className="text-xs font-body px-3 py-2 rounded-full border transition-colors hover:bg-[#D4A853]/15"
+                          style={{ borderColor: "#D4A853", color: "#4A2040", background: "#D4A85315" }}
+                        >
+                          {c.label}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[11px] font-body leading-snug" style={{ color: "#4A204080" }}>
+                      One question at a time, then a summary. Inspired by Harnidh Kaur's <em>The Girls Are Not Fine</em>.
+                    </p>
+                  </div>
+
                 </div>
               )}
               {messages.map((msg, i) => (
