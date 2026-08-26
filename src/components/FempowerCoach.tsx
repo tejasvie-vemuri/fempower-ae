@@ -92,11 +92,19 @@ function pickStarters(): Starter[] {
 }
 
 const FempowerCoach = () => {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [starters, setStarters] = useState<Starter[]>(() => pickStarters());
+  const [memberProfile, setMemberProfile] = useState<{
+    name: string;
+    city: string | null;
+    role: string | null;
+    industry: string | null;
+    looking_for: string[];
+  } | null>(null);
   const [hasConsented, setHasConsented] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem(CONSENT_KEY) === "true";
