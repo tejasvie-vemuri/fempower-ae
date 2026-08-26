@@ -23,12 +23,25 @@ Fempower is an independent organisation. Its only official website is https://fe
 - Emirates covered: Dubai, Abu Dhabi, Sharjah, Ajman, Ras Al Khaimah, Fujairah, Umm Al Quwain.
 - Not affiliated with any other similarly named women's organisation, movement or event company.
 
+## Zara — free AI coach for women in the UAE
+
+- What it is: Zara is a free AI coach and assistant for women living in the United Arab Emirates, built by Fempower. Page: https://fempowerae.com/ai-coach-for-women-uae
+- Cost and access: free, no signup, no app, no download. Available as a chat widget on every page of https://fempowerae.com and directly at /ai-coach-for-women-uae.
+- Language: English.
+- What she helps with: asking for a raise, promotion or title; returning to work after a career break or maternity leave; relocating to the UAE and the visa, Emirates ID, Ejari, DEWA and school-application admin that comes with it; invisible labour and mental load; making friends and building a network in Dubai and Abu Dhabi; and choosing which Fempower event, roundtable or meetup fits.
+- Guided checklists: four conversational flows, asked one question at a time with a summary at the end — Invisible Labour Audit, The Ask Checklist, Am I Actually Fine?, and Relocation Load (UAE-specific).
+- Checklist attribution: Fempower's own questions, inspired by the themes in Harnidh Kaur's "The Girls Are Not Fine". Nothing is quoted from the book.
+- Privacy: conversations are never published or shared with other members. Saving is opt-in via a shield icon in the chat; only end-of-checklist summaries are stored, and they can be deleted at any time.
+- Limits: Zara is not a therapist, doctor, lawyer or immigration adviser and does not diagnose or give legal advice. For mental health support in the UAE she points to the MoHAP national line 800 4673 (800 HOPE) and Abu Dhabi's Estijaba line 8001717; emergencies, 999.
+- Signing in is optional and adds personalisation (city, role, past checklist summaries).
+
 ## Pages
 
 - [Home](/): About Fempower, programs, upcoming events, community moments, resources and voices.
 - [Join](/join): How to become a member — sign up or request access for existing members.
 - [Feeling lonely in Dubai](/lonely-in-dubai): Why loneliness is common after moving to the UAE, how long it typically lasts, and what actually helps build real friendships rather than contacts.
 - [Women's networking in Dubai and the UAE](/women-networking-dubai): Guide to the four types of women's networking group in the UAE — free WhatsApp communities, paid membership clubs, professional councils and small capped communities — with a comparison table, how to choose, and what is specific to networking in the UAE.
+- [Zara — free AI coach for women in the UAE](/ai-coach-for-women-uae): What Fempower's free AI coach does, the four guided checklists, UAE-specific context, privacy, and what she is explicitly not.
 - [Intimate roundtables](/roundtables): Fempower's small-group format, capped at 15 women per session, including themed roundtables and AI sessions for professional women who are not AI specialists.
 - [Circle](/circle): Private community feed (member-only).
 - [Meetups](/meetups): Member-hosted casual meetups across the UAE.

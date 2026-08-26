@@ -32,6 +32,7 @@ import Terms from "./pages/Terms";
 import LonelyInDubai from "./pages/LonelyInDubai";
 import Roundtables from "./pages/Roundtables";
 import WomenNetworkingDubai from "./pages/WomenNetworkingDubai";
+import AiCoachForWomen from "./pages/AiCoachForWomen";
 import Unsubscribe from "./pages/Unsubscribe";
 import PendingApproval from "./pages/PendingApproval";
 import Learn from "./pages/Learn";
@@ -89,6 +90,7 @@ const App = () => (
             <Route path="/lonely-in-dubai" element={<LonelyInDubai />} />
             <Route path="/roundtables" element={<Roundtables />} />
             <Route path="/women-networking-dubai" element={<WomenNetworkingDubai />} />
+            <Route path="/ai-coach-for-women-uae" element={<AiCoachForWomen />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route
               path="/admin/events"

@@ -23,6 +23,10 @@ const Footer = () => (
       <Link to="/roundtables" className="hover:text-foreground transition-colors">
         Intimate roundtables
       </Link>
+      <span aria-hidden="true">·</span>
+      <Link to="/ai-coach-for-women-uae" className="hover:text-foreground transition-colors">
+        Zara — free AI coach for women
+      </Link>
     </nav>
 
     <div className="container flex flex-col md:flex-row items-center justify-between gap-6">
