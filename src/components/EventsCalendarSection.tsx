@@ -35,7 +35,6 @@ const EventsCalendarSection = () => {
           .from("events")
           .select("id, slug, title, starts_at, location, price_cents, currency")
           .in("status", ["published"])
-          .gte("starts_at", new Date().toISOString())
           .order("starts_at", { ascending: true });
         if (error) throw error;
         const parsed: CalendarEvent[] = (data ?? []).map((e) => {
@@ -61,7 +60,11 @@ const EventsCalendarSection = () => {
     fetchEvents();
   }, []);
 
-  const eventDates = events.map((e) => e.date);
+  const now = new Date();
+  const isPast = (e: CalendarEvent) => e.date.getTime() < now.getTime();
+  const upcomingEvents = events.filter((e) => !isPast(e));
+  const eventDates = upcomingEvents.map((e) => e.date);
+  const pastEventDates = events.filter(isPast).map((e) => e.date);
 
   const eventsForDate = selectedDate
     ? events.filter(
@@ -78,12 +81,12 @@ const EventsCalendarSection = () => {
   // ItemList of upcoming events so an assistant asked "what women's events are
   // on in Dubai this month" can read the schedule off the homepage directly.
   const eventsItemListJsonLd =
-    events.length > 0
+    upcomingEvents.length > 0
       ? {
           "@context": "https://schema.org",
           "@type": "ItemList",
           name: "Upcoming Fempower events in the UAE",
-          itemListElement: events.slice(0, 20).map((e, i) => ({
+          itemListElement: upcomingEvents.slice(0, 20).map((e, i) => ({
             "@type": "ListItem",
             position: i + 1,
             item: {
@@ -166,9 +169,11 @@ const EventsCalendarSection = () => {
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
-                modifiers={{ event: eventDates }}
+                modifiers={{ event: eventDates, pastEvent: pastEventDates }}
                 modifiersClassNames={{
                   event: "bg-accent text-accent-foreground font-bold rounded-full",
+                  pastEvent:
+                    "bg-muted text-muted-foreground font-medium rounded-full line-through decoration-muted-foreground/50",
                 }}
                 className="rounded-xl border border-border bg-card shadow-sm p-4"
               />
@@ -203,9 +208,15 @@ const EventsCalendarSection = () => {
                           <span className="text-xs font-body font-semibold uppercase tracking-widest-xl text-primary">
                             {priceLabel(event)}
                           </span>
-                          <span className="inline-flex items-center gap-1 text-xs font-body font-semibold uppercase tracking-widest-xl text-blush-dark">
-                            Register <ArrowRight size={12} />
-                          </span>
+                          {isPast(event) ? (
+                            <span className="inline-flex items-center gap-1 text-xs font-body font-semibold uppercase tracking-widest-xl text-muted-foreground">
+                              Past event
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-xs font-body font-semibold uppercase tracking-widest-xl text-blush-dark">
+                              Register <ArrowRight size={12} />
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -217,12 +228,12 @@ const EventsCalendarSection = () => {
                     No events on this date. Try selecting a highlighted date!
                   </p>
                 </div>
-              ) : events.length > 0 ? (
+              ) : upcomingEvents.length > 0 ? (
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground font-body font-medium mb-3">
                     All upcoming events:
                   </p>
-                  {events.map((event) => (
+                  {upcomingEvents.map((event) => (
                     <Link
                       key={event.id}
                       to={`/events/${event.slug}`}
@@ -258,6 +269,11 @@ const EventsCalendarSection = () => {
                   <p className="text-muted-foreground font-body text-sm">
                     No upcoming events yet. Check back soon!
                   </p>
+                  {pastEventDates.length > 0 && (
+                    <p className="mt-2 text-muted-foreground/70 font-body text-xs">
+                      Past events are shown crossed-out on the calendar.
+                    </p>
+                  )}
                 </div>
               )}
             </div>
