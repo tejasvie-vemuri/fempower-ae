@@ -288,8 +288,10 @@ const FempowerCoach = () => {
   }, [user?.id, saveChecklists, loadChecklistHistory]);
 
   const submitRating = async (value: number) => {
+    const closeAfter = ratingFromClose;
     setHasRated(true);
     setShowRating(false);
+    setRatingFromClose(false);
     await supabase.from("coach_ratings").insert({
       user_id: user?.id ?? null,
       rating: value,
@@ -297,10 +299,20 @@ const FempowerCoach = () => {
       message_count: messages.length,
     });
     setRatingFeedback("");
+    if (closeAfter) setOpen(false);
+  };
+
+  const dismissRating = () => {
+    const closeAfter = ratingFromClose;
+    setHasRated(true);
+    setShowRating(false);
+    setRatingFromClose(false);
+    if (closeAfter) setOpen(false);
   };
 
   const handleClose = () => {
     if (!hasRated && messages.filter((m) => m.role === "user").length >= 2) {
+      setRatingFromClose(true);
       setShowRating(true);
       return;
     }
