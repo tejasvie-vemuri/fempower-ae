@@ -169,9 +169,11 @@ const EventsCalendarSection = () => {
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
-                modifiers={{ event: eventDates }}
+                modifiers={{ event: eventDates, pastEvent: pastEventDates }}
                 modifiersClassNames={{
                   event: "bg-accent text-accent-foreground font-bold rounded-full",
+                  pastEvent:
+                    "bg-muted text-muted-foreground font-medium rounded-full line-through decoration-muted-foreground/50",
                 }}
                 className="rounded-xl border border-border bg-card shadow-sm p-4"
               />
