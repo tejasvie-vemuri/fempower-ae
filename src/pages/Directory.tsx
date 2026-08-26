@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
+import FirstStepsNudge from "@/components/FirstStepsNudge";
 import Footer from "@/components/Footer";
 import { MemberCard } from "@/components/directory/MemberCard";
 import { MemberDrawer } from "@/components/directory/MemberDrawer";
@@ -103,6 +104,7 @@ const Directory = () => {
       <main className="bg-secondary pb-20">
         <PalmDivider className="pt-10 pb-2" />
         <div className="container max-w-6xl pt-6">
+          <FirstStepsNudge className="mb-8" />
           {profile && profile.status !== "approved" && (
             <div className="rounded-xl border border-blush-dark/30 bg-blush-light/60 p-4 mb-8 text-sm font-body flex items-start gap-3">
               <Sparkles size={16} className="text-blush-dark mt-0.5 flex-shrink-0" />

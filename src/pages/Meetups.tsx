@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
 import Header from "@/components/Header";
+import FirstStepsNudge from "@/components/FirstStepsNudge";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -264,6 +265,7 @@ const Meetups = () => {
 
       <main className="pt-24 pb-20 min-h-screen bg-background">
         <div className="container max-w-3xl">
+          <FirstStepsNudge className="mb-6" />
           <div className="mb-6">
             <p className="text-xs font-body font-medium uppercase tracking-widest-xl text-blush-dark mb-2">Pop-up Meetups</p>
             <h1 className="font-heading text-3xl md:text-4xl text-foreground">Coffee, walks, study sessions — spontaneously.</h1>
