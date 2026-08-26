@@ -1,6 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, Send, Sparkles, ShieldCheck, Star } from "lucide-react";
+import { X, Send, Sparkles, ShieldCheck, Star, Share2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { logEngagement } from "@/lib/engagement";
+import {
+  TRY_BY_COACH_ID,
+  SITE_ORIGIN,
+  whatsappShareUrl,
+} from "@/lib/zaraChecklists";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -186,6 +192,8 @@ const FempowerCoach = () => {
   const [ratingFeedback, setRatingFeedback] = useState("");
   const [feedbackQuestion, setFeedbackQuestion] = useState(pickFeedbackQuestion);
   const [hasRated, setHasRated] = useState(false);
+  /** The checklist this conversation is about, if any — drives the share link. */
+  const [activeChecklist, setActiveChecklist] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   /** Checklist queued by a deep link, sent once the widget is open and consented. */
   const [pendingStart, setPendingStart] = useState<string | null>(null);
@@ -352,6 +360,25 @@ const FempowerCoach = () => {
     if (closeAfter) setOpen(false);
   };
 
+  /**
+   * Turns a satisfied user into a distribution channel: opens WhatsApp with a
+   * pre-filled message pointing at the /try page for the flow she just did
+   * (or Zara's own page when the chat was not a checklist).
+   */
+  const shareWithFriend = () => {
+    const flow = activeChecklist ? TRY_BY_COACH_ID[activeChecklist] : undefined;
+    void logEngagement("zara_share_click", null, {
+      checklist: activeChecklist,
+      source: "zara_widget",
+    });
+    const url = flow
+      ? whatsappShareUrl(flow, "zara-chat")
+      : `https://wa.me/?text=${encodeURIComponent(
+          `Found this useful — Zara is a free, private coach for women in the UAE. Five minutes, no signup: ${SITE_ORIGIN}/ai-coach-for-women-uae?ref=zara-chat`,
+        )}`;
+    window.open(url, "_blank", "noopener");
+  };
+
   const handleClose = () => {
     if (!hasRated && messages.filter((m) => m.role === "user").length >= 2) {
       setFeedbackQuestion(pickFeedbackQuestion());
@@ -376,6 +403,16 @@ const FempowerCoach = () => {
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
     const userMsg: Msg = { role: "user", content: text.trim() };
+    // Remember which checklist this conversation is about, so "send to a
+    // friend" shares the page for the flow she actually just did.
+    const startedFlow = CHECKLISTS.find((c) => c.full === text.trim());
+    if (startedFlow) {
+      setActiveChecklist(startedFlow.id);
+      void logEngagement("zara_checklist_started", null, {
+        checklist: startedFlow.id,
+        source: "zara_widget",
+      });
+    }
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
@@ -685,6 +722,19 @@ const FempowerCoach = () => {
                 </div>
               )}
             </div>
+
+            {/* Send to a friend — every satisfied user is a distribution channel */}
+            {messages.length >= 2 && !isLoading && (
+              <button
+                type="button"
+                onClick={shareWithFriend}
+                className="flex items-center justify-center gap-2 border-t px-4 py-2.5 text-[11px] font-body transition-colors hover:bg-[#D4A853]/15"
+                style={{ borderColor: "#4A204015", color: "#4A2040", background: "#D4A85310" }}
+              >
+                <Share2 size={13} />
+                Found this useful? Send it to a woman who'd benefit.
+              </button>
+            )}
 
             {/* Input */}
             <div className="p-3 border-t" style={{ borderColor: "#4A204015" }}>

@@ -10,12 +10,16 @@ export type EngagementEventType =
   | "directory_profile_viewed"
   | "whatsapp_cta_click"
   | "digest_click"
-  | "intro_posted";
+  | "intro_posted"
+  | "zara_checklist_started"
+  | "zara_share_click";
 
 /** Event types that can be logged without an authenticated member (top-of-funnel). */
 const ANONYMOUS_ALLOWED: ReadonlySet<EngagementEventType> = new Set([
   "whatsapp_cta_click",
   "digest_click",
+  "zara_checklist_started",
+  "zara_share_click",
 ]);
 
 /**
