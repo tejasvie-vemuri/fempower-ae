@@ -139,8 +139,8 @@ const AdminZaraStyle = () => {
   const runHarness = async (slugs?: string[]) => {
     setRunning(true);
     setResults(null);
-    const { data, error } = await supabase.functions.invoke("coach-slop-eval", {
-      body: { slugs: slugs ?? sets.filter((s) => s.is_active).map((s) => s.slug) },
+    const { data, error } = await supabase.functions.invoke("fempower-coach", {
+      body: { mode: "eval", slugs: slugs ?? sets.filter((s) => s.is_active).map((s) => s.slug) },
     });
     setRunning(false);
     if (error) { toast.error(error.message); return; }
