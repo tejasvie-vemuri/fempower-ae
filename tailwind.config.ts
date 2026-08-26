@@ -55,6 +55,10 @@ export default {
           light: "hsl(var(--blush-light))",
           dark: "hsl(var(--blush-dark))",
         },
+        gold: {
+          DEFAULT: "hsl(var(--gold))",
+          foreground: "hsl(var(--gold-foreground))",
+        },
         lifestyle: {
           ivory: "hsl(var(--lm-ivory))",
           terracotta: "hsl(var(--lm-terracotta))",
