@@ -311,40 +311,89 @@ Overall cadence: Fempower runs events roughly every 15 days across the UAE.
 
 When asked about something specific (a single event's exact date, price, RSVP link, or a specific member), use the LIVE UPCOMING EVENTS block (injected below when available) first. If the detail isn't there, say so honestly and point to fempowerae.com or @fempowerae — never invent specifics.`;
 
+// UAE is UTC+4 year-round (no DST).
+function uaeNowBlock(): string {
+  const now = new Date();
+  const date = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dubai" }).format(now);
+  const weekday = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Dubai", weekday: "long" }).format(now);
+  return `\n\nTODAY IN THE UAE: ${date} (${weekday}), Gulf Standard Time (UTC+4). The UAE weekend is Saturday–Sunday — resolve "this weekend", "next week" etc. against this date, never from memory. Be seasonally aware: Ramadan and Eid reshape working hours and social energy, summer (June–September) is quieter with many families travelling, and September–December / January–April are peak hiring and events seasons.`;
+}
+
+function fmtUaeDateTime(iso: string): string {
+  const d = new Date(iso);
+  const date = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Dubai", weekday: "short", day: "numeric", month: "short" }).format(d);
+  const time = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Dubai", hour: "numeric", minute: "2-digit" }).format(d);
+  return `${date}, ${time} GST`;
+}
+
+// Live events from the Fempower database (source of truth for fempowerae.com/events).
+async function fetchEventsFromDb(): Promise<string[]> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!supabaseUrl || !anonKey) return [];
+  const now = new Date().toISOString();
+  const headers = { apikey: anonKey, Authorization: `Bearer ${anonKey}` };
+  const [evRes, muRes] = await Promise.all([
+    fetch(`${supabaseUrl}/rest/v1/events?select=title,location,starts_at,price_cents,currency&status=eq.published&starts_at=gte.${encodeURIComponent(now)}&order=starts_at.asc&limit=6`, { headers }),
+    fetch(`${supabaseUrl}/rest/v1/meetups_public?select=title,place,emirate,starts_at&starts_at=gte.${encodeURIComponent(now)}&order=starts_at.asc&limit=4`, { headers }),
+  ]);
+  const lines: string[] = [];
+  if (evRes.ok) {
+    const events = await evRes.json() as Array<{ title: string; location: string | null; starts_at: string; price_cents: number | null; currency: string | null }>;
+    for (const e of events) {
+      const price = !e.price_cents ? "Free" : `${e.currency ?? "AED"} ${(e.price_cents / 100).toFixed(0)}`;
+      lines.push(`- ${e.title} — ${fmtUaeDateTime(e.starts_at)}${e.location ? ` · ${e.location}` : ""} · ${price}`);
+    }
+  }
+  if (muRes.ok) {
+    const meetups = await muRes.json() as Array<{ title: string; place: string | null; emirate: string | null; starts_at: string }>;
+    for (const m of meetups) {
+      lines.push(`- ${m.title} (member meetup) — ${fmtUaeDateTime(m.starts_at)}${m.place ? ` · ${m.place}` : ""}${m.emirate ? `, ${m.emirate}` : ""}`);
+    }
+  }
+  return lines;
+}
+
+// Legacy fallback: the community Google Sheet, in case the DB has nothing published.
+async function fetchEventsFromSheet(): Promise<string[]> {
+  const sheetId = Deno.env.get("EVENTS_SHEET_ID");
+  if (!sheetId) return [];
+  const res = await fetch(
+    `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&_=${Date.now()}`,
+    { cache: "no-store", redirect: "follow" }
+  );
+  if (!res.ok) return [];
+  const csv = await res.text();
+  const lines = csv.split("\n").filter((l) => l.trim()).slice(1);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  return lines
+    .map((line) => {
+      const cells: string[] = [];
+      let cur = "", inQ = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === '"') { if (inQ && line[i + 1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
+        else if (c === "," && !inQ) { cells.push(cur.trim()); cur = ""; }
+        else cur += c;
+      }
+      cells.push(cur.trim());
+      const [title, date, time, location] = cells.map((s) => s.replace(/^"|"$/g, ""));
+      const [d, m, y] = (date || "").split("/");
+      const iso = y && m && d ? `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}` : "";
+      return { title, iso, time, location };
+    })
+    .filter((e) => e.title && e.iso && new Date(e.iso) >= today)
+    .sort((a, b) => a.iso.localeCompare(b.iso))
+    .slice(0, 8)
+    .map((e) => `- ${e.title} — ${e.iso}${e.time ? " at " + e.time : ""}${e.location ? " · " + e.location : ""}`);
+}
+
 async function fetchUpcomingEvents(): Promise<string> {
   try {
-    const sheetId = Deno.env.get("EVENTS_SHEET_ID");
-    if (!sheetId) return "";
-    const res = await fetch(
-      `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&_=${Date.now()}`,
-      { cache: "no-store", redirect: "follow" }
-    );
-    if (!res.ok) return "";
-    const csv = await res.text();
-    const lines = csv.split("\n").filter((l) => l.trim()).slice(1);
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const parsed = lines
-      .map((line) => {
-        const cells: string[] = [];
-        let cur = "", inQ = false;
-        for (let i = 0; i < line.length; i++) {
-          const c = line[i];
-          if (c === '"') { if (inQ && line[i + 1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
-          else if (c === "," && !inQ) { cells.push(cur.trim()); cur = ""; }
-          else cur += c;
-        }
-        cells.push(cur.trim());
-        const [title, date, time, location] = cells.map((s) => s.replace(/^"|"$/g, ""));
-        const [d, m, y] = (date || "").split("/");
-        const iso = y && m && d ? `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}` : "";
-        return { title, iso, time, location };
-      })
-      .filter((e) => e.title && e.iso && new Date(e.iso) >= today)
-      .sort((a, b) => a.iso.localeCompare(b.iso))
-      .slice(0, 8);
-    if (!parsed.length) return "\n\nUPCOMING EVENTS: (none currently published — point her to fempowerae.com or @fempowerae for the latest)";
-    return "\n\nUPCOMING EVENTS (live from fempowerae.com):\n" +
-      parsed.map((e) => `- ${e.title} — ${e.iso}${e.time ? " at " + e.time : ""}${e.location ? " · " + e.location : ""}`).join("\n");
+    let lines = await fetchEventsFromDb();
+    if (!lines.length) lines = await fetchEventsFromSheet();
+    if (!lines.length) return "\n\nUPCOMING EVENTS: (none currently published — point her to fempowerae.com or @fempowerae for the latest)";
+    return "\n\nUPCOMING EVENTS (live from fempowerae.com — recommend these by name when relevant, and close event chats by pointing to the matching one):\n" + lines.join("\n");
   } catch (_e) {
     return "";
   }
