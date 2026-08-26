@@ -1101,7 +1101,57 @@ function checkRateLimit(key: string): boolean {
   return true
 }
 
+/** Verify the caller is a signed-in admin (used by the eval harness mode). */
+async function requireAdmin(
+  req: Request,
+): Promise<{ ok: true; userId: string } | { ok: false; status: number; error: string }> {
+  const auth = req.headers.get("Authorization") ?? "";
+  if (!auth) return { ok: false, status: 401, error: "Authentication required" };
+  const url = Deno.env.get("SUPABASE_URL") ?? "";
+  const anon = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+  const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const userRes = await fetch(`${url}/auth/v1/user`, { headers: { Authorization: auth, apikey: anon } });
+  if (!userRes.ok) return { ok: false, status: 401, error: "Authentication required" };
+  const user = await userRes.json();
+  if (!user?.id) return { ok: false, status: 401, error: "Authentication required" };
+  const roleRes = await fetch(
+    `${url}/rest/v1/user_roles?select=role&user_id=eq.${user.id}&role=eq.admin`,
+    { headers: { apikey: service, Authorization: `Bearer ${service}` } },
+  );
+  const roles = roleRes.ok ? await roleRes.json() : [];
+  if (!Array.isArray(roles) || !roles.length) return { ok: false, status: 403, error: "Admin only" };
+  return { ok: true, userId: user.id };
+}
+
+/** Run one harness case through the model and score the reply. */
+async function runEvalCase(apiKey: string, systemPrompt: string, c: SlopCase) {
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "google/gemini-3-flash-preview",
+      messages: [{ role: "system", content: systemPrompt }, ...c.messages],
+    }),
+  });
+  if (!res.ok) throw new Error(`gateway ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const json = await res.json();
+  const reply: string = json?.choices?.[0]?.message?.content ?? "";
+  const lastUser = [...c.messages].reverse().find((m) => m.role === "user");
+  const prevAssistant = [...c.messages].reverse().find((m) => m.role === "assistant");
+  const scored = scoreReply(reply, {
+    userMessage: lastUser?.content ?? "",
+    prevAssistant: prevAssistant?.content ?? "",
+    profile: c.profile ?? null,
+  });
+  return {
+    case_key: c.key, label: c.label, trap: c.trap,
+    user_message: lastUser?.content ?? "", reply,
+    score: scored.score, violations: scored.violations, checks: scored.checks,
+  };
+}
+
 serve(async (req) => {
+
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const ipKey = rateLimitKey(req)
