@@ -37,6 +37,7 @@ import AiCoachForWomen from "./pages/AiCoachForWomen";
 import TryChecklist from "./pages/TryChecklist";
 import AdminZaraBroadcast from "./pages/AdminZaraBroadcast";
 import AdminZaraStyle from "./pages/AdminZaraStyle";
+import OAuthConsent from "./pages/OAuthConsent";
 import Unsubscribe from "./pages/Unsubscribe";
 import PendingApproval from "./pages/PendingApproval";
 import Learn from "./pages/Learn";
@@ -100,6 +101,7 @@ const App = () => (
             <Route path="/try/:slug" element={<TryChecklist />} />
             <Route path="/admin/zara-broadcast" element={<AdminRoute><AdminZaraBroadcast /></AdminRoute>} />
             <Route path="/admin/zara-style" element={<AdminRoute><AdminZaraStyle /></AdminRoute>} />
+            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route
               path="/admin/events"

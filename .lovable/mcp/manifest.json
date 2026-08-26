@@ -1,0 +1,178 @@
+{
+  "version": 1,
+  "sdk_version": "0.28.0",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://uaiymunelgvvnznkxeik.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "fempower-landing",
+      "version": "0.1.0",
+      "title": "FEmpower Landing"
+    },
+    "tools": [
+      {
+        "name": "list_upcoming_events",
+        "title": "List upcoming Fempower events",
+        "description": "List published, upcoming Fempower events in the UAE with date, location, price and registration link.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 25,
+              "description": "How many events to return. Defaults to 10."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_meetups",
+        "title": "List member meetups",
+        "description": "List published member-hosted meetups across the UAE. Host identity is masked according to each host's chosen visibility.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "emirate": {
+              "type": "string",
+              "description": "Filter to one emirate, e.g. 'Dubai' or 'Abu Dhabi'."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 25,
+              "description": "Max results. Defaults to 10."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "rsvp_to_meetup",
+        "title": "RSVP to a meetup",
+        "description": "RSVP the signed-in member to a published member meetup. Use list_meetups first to get the meetup id.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "meetup_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The meetup id returned by list_meetups."
+            }
+          },
+          "required": [
+            "meetup_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_my_registrations",
+        "title": "Get my event registrations",
+        "description": "List the signed-in member's Fempower event registrations, including ticket code, status and event date.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "upcoming_only": {
+              "type": "boolean",
+              "description": "Only return registrations for events that have not happened yet. Defaults to true."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "search_members",
+        "title": "Search the member directory",
+        "description": "Search approved Fempower members by name, role, company, city, industry, expertise or interests. Returns only what the member chose to publish.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 2,
+              "description": "Free-text search, e.g. 'fintech Dubai' or 'coach'."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 25,
+              "description": "Max results. Defaults to 10."
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_my_checklists",
+        "title": "Get my saved Zara checklist results",
+        "description": "Return the signed-in member's saved coaching checklist summaries (Invisible Labour Audit, The Ask, Am I Actually Fine?, Relocation Load).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "description": "Max summaries. Defaults to 5."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

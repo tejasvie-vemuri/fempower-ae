@@ -4,6 +4,7 @@ import path from "path";
 import fs from "fs";
 import { pathToFileURL } from "url";
 import { componentTagger } from "lovable-tagger";
+import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
 
 const PRERENDER_ROUTES = [
   "/",
@@ -348,6 +349,7 @@ export default defineConfig(({ mode, isSsrBuild }) => {
   plugins: [
     react(),
     mode === "development" && componentTagger(),
+    mcpPlugin(),
     // Only attach the prerender plugin to the client build. The nested SSR
     // build sets FEMPOWER_SSR_BUILD but we also guard here for clarity.
     !isSsrBuild && prerenderPlugin(env),
