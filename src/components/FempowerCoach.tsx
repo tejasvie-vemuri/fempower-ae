@@ -599,7 +599,7 @@ const FempowerCoach = () => {
                   >
                     {msg.role === "assistant" ? (
                       <div className="prose prose-sm max-w-none [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5 [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm [&_strong]:font-semibold">
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        <ReactMarkdown>{stripMarker(msg.content)}</ReactMarkdown>
                       </div>
                     ) : (
                       msg.content
