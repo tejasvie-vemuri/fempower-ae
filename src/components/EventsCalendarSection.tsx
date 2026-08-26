@@ -81,12 +81,12 @@ const EventsCalendarSection = () => {
   // ItemList of upcoming events so an assistant asked "what women's events are
   // on in Dubai this month" can read the schedule off the homepage directly.
   const eventsItemListJsonLd =
-    events.length > 0
+    upcomingEvents.length > 0
       ? {
           "@context": "https://schema.org",
           "@type": "ItemList",
           name: "Upcoming Fempower events in the UAE",
-          itemListElement: events.slice(0, 20).map((e, i) => ({
+          itemListElement: upcomingEvents.slice(0, 20).map((e, i) => ({
             "@type": "ListItem",
             position: i + 1,
             item: {
