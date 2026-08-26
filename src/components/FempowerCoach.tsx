@@ -360,6 +360,25 @@ const FempowerCoach = () => {
     if (closeAfter) setOpen(false);
   };
 
+  /**
+   * Turns a satisfied user into a distribution channel: opens WhatsApp with a
+   * pre-filled message pointing at the /try page for the flow she just did
+   * (or Zara's own page when the chat was not a checklist).
+   */
+  const shareWithFriend = () => {
+    const flow = activeChecklist ? TRY_BY_COACH_ID[activeChecklist] : undefined;
+    void logEngagement("zara_share_click", null, {
+      checklist: activeChecklist,
+      source: "zara_widget",
+    });
+    const url = flow
+      ? whatsappShareUrl(flow, "zara-chat")
+      : `https://wa.me/?text=${encodeURIComponent(
+          `Found this useful — Zara is a free, private coach for women in the UAE. Five minutes, no signup: ${SITE_ORIGIN}/ai-coach-for-women-uae?ref=zara-chat`,
+        )}`;
+    window.open(url, "_blank", "noopener");
+  };
+
   const handleClose = () => {
     if (!hasRated && messages.filter((m) => m.role === "user").length >= 2) {
       setFeedbackQuestion(pickFeedbackQuestion());
