@@ -592,7 +592,7 @@ const FempowerCoach = () => {
                       ))}
                     </div>
                     <p className="text-[11px] font-body leading-snug" style={{ color: "#4A204080" }}>
-                      One question at a time, then a summary. Inspired by Harnidh Kaur's <em>The Girls Are Not Fine</em>.
+                      One question at a time, then a summary. These are Fempower's own questions, inspired by the themes in Harnidh Kaur's <em>The Girls Are Not Fine</em> — not quoted from it.
                     </p>
                   </div>
 
@@ -734,7 +734,7 @@ const FempowerCoach = () => {
                       </Button>
                       <Button
                         variant="ghost"
-                        onClick={() => { setHasRated(true); setShowRating(false); setOpen(false); }}
+                        onClick={dismissRating}
                         className="rounded-full text-sm font-body"
                         style={{ color: "#4A204090" }}
                       >
