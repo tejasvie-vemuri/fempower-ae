@@ -7,6 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
 import { streamChat, type Msg } from "@/lib/streamChat";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import butterflyIcon from "@/assets/butterfly-icon.png";
 
@@ -90,11 +92,19 @@ function pickStarters(): Starter[] {
 }
 
 const FempowerCoach = () => {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [starters, setStarters] = useState<Starter[]>(() => pickStarters());
+  const [memberProfile, setMemberProfile] = useState<{
+    name: string;
+    city: string | null;
+    role: string | null;
+    industry: string | null;
+    looking_for: string[];
+  } | null>(null);
   const [hasConsented, setHasConsented] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem(CONSENT_KEY) === "true";
@@ -109,6 +119,32 @@ const FempowerCoach = () => {
     window.addEventListener("open-zara", handler);
     return () => window.removeEventListener("open-zara", handler);
   }, []);
+
+  // For signed-in members, load her profile so Zara can personalise the chat.
+  useEffect(() => {
+    if (!user?.id) {
+      setMemberProfile(null);
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .from("member_profiles")
+      .select("name, city, role, industry, looking_for")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled && data?.name) {
+          setMemberProfile({
+            name: data.name,
+            city: data.city ?? null,
+            role: data.role ?? null,
+            industry: data.industry ?? null,
+            looking_for: data.looking_for ?? [],
+          });
+        }
+      });
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   const handleAcceptConsent = () => {
     if (!agreeTerms) return;
@@ -153,6 +189,7 @@ const FempowerCoach = () => {
 
     await streamChat({
       messages: [...messages, userMsg],
+      userProfile: memberProfile ?? undefined,
       onDelta: upsertAssistant,
       onDone: () => setIsLoading(false),
       onError: (err) => {

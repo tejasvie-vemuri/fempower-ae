@@ -4,9 +4,10 @@ export type Msg = { role: "user" | "assistant"; content: string };
 
 interface UserProfile {
   name: string;
-  role_industry?: string;
-  experience_level?: string;
-  growth_area?: string;
+  city?: string | null;
+  role?: string | null;
+  industry?: string | null;
+  looking_for?: string[];
 }
 
 export async function streamChat({
