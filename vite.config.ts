@@ -16,6 +16,7 @@ const PRERENDER_ROUTES = [
   "/lonely-in-dubai",
   "/roundtables",
   "/women-networking-dubai",
+  "/ai-coach-for-women-uae",
 ];
 
 const SITE = "https://fempowerae.com";
