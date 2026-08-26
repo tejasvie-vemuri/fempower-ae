@@ -60,7 +60,11 @@ const EventsCalendarSection = () => {
     fetchEvents();
   }, []);
 
-  const eventDates = events.map((e) => e.date);
+  const now = new Date();
+  const isPast = (e: CalendarEvent) => e.date.getTime() < now.getTime();
+  const upcomingEvents = events.filter((e) => !isPast(e));
+  const eventDates = upcomingEvents.map((e) => e.date);
+  const pastEventDates = events.filter(isPast).map((e) => e.date);
 
   const eventsForDate = selectedDate
     ? events.filter(
