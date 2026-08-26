@@ -189,6 +189,7 @@ const FempowerCoach = () => {
 
     await streamChat({
       messages: [...messages, userMsg],
+      userProfile: memberProfile ?? undefined,
       onDelta: upsertAssistant,
       onDone: () => setIsLoading(false),
       onError: (err) => {
