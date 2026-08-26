@@ -719,7 +719,7 @@ const FempowerCoach = () => {
                   <>
                     {" · "}
                     <button
-                      onClick={() => setShowRating(true)}
+                      onClick={() => { setFeedbackQuestion(pickFeedbackQuestion()); setShowRating(true); }}
                       className="underline underline-offset-2"
                       style={{ color: "#4A204090" }}
                     >
