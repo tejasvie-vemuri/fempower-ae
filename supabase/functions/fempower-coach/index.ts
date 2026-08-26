@@ -442,9 +442,18 @@ serve(async (req) => {
 
 
     const eventsBlock = await fetchUpcomingEvents();
-    let systemContent = SYSTEM_PROMPT + eventsBlock;
-    if (userProfile) {
-      systemContent += `\n\nUSER PROFILE:\n- Name: ${userProfile.name}\n- Role/Industry: ${userProfile.role_industry || 'Not specified'}\n- Experience: ${userProfile.experience_level || 'Not specified'}\n- Growth Area: ${userProfile.growth_area || 'Not specified'}`;
+    let systemContent = SYSTEM_PROMPT + uaeNowBlock() + eventsBlock;
+    if (userProfile && userProfile.name) {
+      const lines = [
+        `- Name: ${userProfile.name}`,
+        userProfile.city ? `- City: ${userProfile.city}` : null,
+        userProfile.role ? `- Role: ${userProfile.role}` : null,
+        userProfile.industry ? `- Industry: ${userProfile.industry}` : null,
+        Array.isArray(userProfile.looking_for) && userProfile.looking_for.length
+          ? `- She's open to: ${userProfile.looking_for.join(", ")}`
+          : null,
+      ].filter(Boolean);
+      systemContent += `\n\nSIGNED-IN MEMBER PROFILE (she is a logged-in Fempower member — use this naturally):\n${lines.join("\n")}\nGreet her by her first name once, early — not in every message. Tailor examples and suggestions to her city and industry. When her "open to" list matches something she's asking about (mentoring, collaborators, friends), weave it in. Never recite this profile back to her as a list.`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
