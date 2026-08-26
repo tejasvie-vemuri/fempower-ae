@@ -91,6 +91,35 @@ function pickStarters(): Starter[] {
   return arr;
 }
 
+/**
+ * Guided checklists — conversational flows Zara runs one question at a time.
+ * Inspired by the themes in Harnidh Kaur's "The Girls Are Not Fine".
+ */
+const CHECKLISTS: { id: string; label: string; full: string }[] = [
+  {
+    id: "invisible-labour",
+    label: "Invisible Labour Audit",
+    full: "I'd like to do the Invisible Labour Audit with you. Please walk me through it one question at a time.",
+  },
+  {
+    id: "the-ask",
+    label: "The Ask Checklist",
+    full: "I'd like to do The Ask Checklist with you — I want to ask for something at work. Please walk me through it one question at a time.",
+  },
+  {
+    id: "actually-fine",
+    label: "Am I Actually Fine?",
+    full: "I'd like to do the Am I Actually Fine? check-in with you. Please walk me through it one question at a time.",
+  },
+  {
+    id: "relocation-load",
+    label: "Relocation Load",
+    full: "I'd like to do the Relocation Load checklist with you. Please walk me through it one question at a time.",
+  },
+];
+
+
+
 const FempowerCoach = () => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
