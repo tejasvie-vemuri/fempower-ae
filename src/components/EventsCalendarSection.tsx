@@ -208,9 +208,15 @@ const EventsCalendarSection = () => {
                           <span className="text-xs font-body font-semibold uppercase tracking-widest-xl text-primary">
                             {priceLabel(event)}
                           </span>
-                          <span className="inline-flex items-center gap-1 text-xs font-body font-semibold uppercase tracking-widest-xl text-blush-dark">
-                            Register <ArrowRight size={12} />
-                          </span>
+                          {isPast(event) ? (
+                            <span className="inline-flex items-center gap-1 text-xs font-body font-semibold uppercase tracking-widest-xl text-muted-foreground">
+                              Past event
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-xs font-body font-semibold uppercase tracking-widest-xl text-blush-dark">
+                              Register <ArrowRight size={12} />
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
