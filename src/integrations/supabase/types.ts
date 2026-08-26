@@ -415,6 +415,33 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_checklist_results: {
+        Row: {
+          checklist_key: string
+          checklist_label: string
+          created_at: string
+          id: string
+          summary: string
+          user_id: string
+        }
+        Insert: {
+          checklist_key: string
+          checklist_label: string
+          created_at?: string
+          id?: string
+          summary: string
+          user_id: string
+        }
+        Update: {
+          checklist_key?: string
+          checklist_label?: string
+          created_at?: string
+          id?: string
+          summary?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       coach_conversations: {
         Row: {
           created_at: string
@@ -504,6 +531,33 @@ export type Database = {
           role_industry?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      coach_ratings: {
+        Row: {
+          created_at: string
+          feedback: string | null
+          id: string
+          message_count: number | null
+          rating: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          message_count?: number | null
+          rating: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          message_count?: number | null
+          rating?: number
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1384,6 +1438,7 @@ export type Database = {
           approved_by: string | null
           bio: string | null
           city: string | null
+          coach_save_checklists: boolean
           company: string | null
           created_at: string
           digest_opt_out: boolean
@@ -1413,6 +1468,7 @@ export type Database = {
           approved_by?: string | null
           bio?: string | null
           city?: string | null
+          coach_save_checklists?: boolean
           company?: string | null
           created_at?: string
           digest_opt_out?: boolean
@@ -1442,6 +1498,7 @@ export type Database = {
           approved_by?: string | null
           bio?: string | null
           city?: string | null
+          coach_save_checklists?: boolean
           company?: string | null
           created_at?: string
           digest_opt_out?: boolean
