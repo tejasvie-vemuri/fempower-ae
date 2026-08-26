@@ -79,6 +79,8 @@ const App = () => (
             <Route path="/account/saved" element={<Saved />} />
             <Route path="/directory" element={<ProtectedRoute><Directory /></ProtectedRoute>} />
             <Route path="/account/profile" element={<ProtectedRoute allowPending><MemberProfileEdit /></ProtectedRoute>} />
+            <Route path="/account/checklists" element={<ProtectedRoute allowPending><CoachHistory /></ProtectedRoute>} />
+
             <Route path="/pending-approval" element={<ProtectedRoute allowPending><PendingApproval /></ProtectedRoute>} />
             <Route path="/admin/members" element={<AdminRoute><AdminMembers /></AdminRoute>} />
             <Route path="/admin/images" element={<AdminRoute><AdminImages /></AdminRoute>} />
