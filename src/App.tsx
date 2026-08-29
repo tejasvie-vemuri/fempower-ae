@@ -16,6 +16,7 @@ import AdminResources from "./pages/AdminResources";
 import AdminRegistrations from "./pages/AdminRegistrations";
 import AdminAllRegistrations from "./pages/AdminAllRegistrations";
 import AdminTestimonials from "./pages/AdminTestimonials";
+import AdminEmails from "./pages/AdminEmails";
 
 import EventDetail from "./pages/EventDetail";
 import MyTickets from "./pages/MyTickets";
