@@ -16,6 +16,7 @@ import AdminResources from "./pages/AdminResources";
 import AdminRegistrations from "./pages/AdminRegistrations";
 import AdminAllRegistrations from "./pages/AdminAllRegistrations";
 import AdminTestimonials from "./pages/AdminTestimonials";
+import AdminEmails from "./pages/AdminEmails";
 
 import EventDetail from "./pages/EventDetail";
 import MyTickets from "./pages/MyTickets";
@@ -88,7 +89,9 @@ const App = () => (
             <Route path="/pending-approval" element={<ProtectedRoute allowPending><PendingApproval /></ProtectedRoute>} />
             <Route path="/admin/members" element={<AdminRoute><AdminMembers /></AdminRoute>} />
             <Route path="/admin/images" element={<AdminRoute><AdminImages /></AdminRoute>} />
+            <Route path="/admin/emails" element={<AdminRoute><AdminEmails /></AdminRoute>} />
             <Route path="/circle" element={<Circle />} />
+
             <Route path="/admin/circle" element={<AdminRoute><AdminCircle /></AdminRoute>} />
             <Route path="/meetups" element={<Meetups />} />
             <Route path="/privacy" element={<Privacy />} />
