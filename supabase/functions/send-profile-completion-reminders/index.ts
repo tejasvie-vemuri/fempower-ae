@@ -75,21 +75,38 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+  // Optional one-time backfill mode: nudge ALL approved members whose
+  // profile is still incomplete, regardless of approval date or whether
+  // they were already reminded once. Uses a distinct idempotency suffix so
+  // previously-reminded members still receive this nudge.
+  let backfill = false
+  try {
+    const body = await req.json()
+    backfill = body?.backfill === true
+  } catch {
+    // no body — normal cron mode
+  }
 
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
   // Find candidates
-  const { data: candidates, error: queryError } = await supabase
+  let query = supabase
     .from('member_profiles')
     .select(
       'user_id, name, photo_url, role, city, bio, expertise_tags, industry',
     )
     .eq('status', 'approved')
-    .is('profile_completion_email_sent_at', null)
     .lte('approved_at', oneHourAgo)
-    .gte('approved_at', sevenDaysAgo)
     .limit(50)
+
+  if (!backfill) {
+    query = query
+      .is('profile_completion_email_sent_at', null)
+      .gte('approved_at', sevenDaysAgo)
+  }
+
+  const { data: candidates, error: queryError } = await query
 
   if (queryError) {
     console.error('[profile-completion-reminders] query failed', queryError)
@@ -142,10 +159,11 @@ Deno.serve(async (req) => {
     const { error: sendError } = await supabase.functions.invoke(
       'send-transactional-email',
       {
+        headers: { Authorization: `Bearer ${supabaseServiceKey}` },
         body: {
           templateName: 'profile-completion-reminder',
           recipientEmail: recipient,
-          idempotencyKey: `profile-completion-${m.user_id}`,
+          idempotencyKey: `profile-completion-${m.user_id}${backfill ? '-nudge' : ''}`,
           templateData: {
             name: m.name || profile?.name || '',
             siteUrl: 'https://fempowerae.com',
@@ -159,6 +177,9 @@ Deno.serve(async (req) => {
         },
       },
     )
+
+    // Pace sends to stay under the function-invoke rate limit (~30/min)
+    await new Promise((r) => setTimeout(r, 2100))
 
     if (sendError) {
       console.error(
