@@ -76,6 +76,20 @@ const emptyForm = {
   attendee_questions: [] as AttendeeQuestion[],
 };
 
+const TIMEZONES = [
+  { value: "Asia/Dubai", label: "Asia/Dubai (GST, UTC+4)" },
+  { value: "Asia/Riyadh", label: "Asia/Riyadh (UTC+3)" },
+  { value: "Asia/Qatar", label: "Asia/Qatar (UTC+3)" },
+  { value: "Asia/Kuwait", label: "Asia/Kuwait (UTC+3)" },
+  { value: "Asia/Muscat", label: "Asia/Muscat (UTC+4)" },
+  { value: "Asia/Karachi", label: "Asia/Karachi (UTC+5)" },
+  { value: "Asia/Kolkata", label: "Asia/Kolkata (UTC+5:30)" },
+  { value: "Europe/London", label: "Europe/London (UTC+0/+1)" },
+  { value: "Europe/Berlin", label: "Europe/Berlin (UTC+1/+2)" },
+  { value: "America/New_York", label: "America/New_York (UTC-5/-4)" },
+  { value: "UTC", label: "UTC" },
+];
+
 const slugify = (s: string) =>
   s
     .toLowerCase()
@@ -295,6 +309,27 @@ const AdminEvents = () => {
                       onChange={(e) => setForm((f) => ({ ...f, ends_at: e.target.value }))}
                     />
                   </div>
+                </div>
+                <div>
+                  <Label htmlFor="timezone">Timezone *</Label>
+                  <Select
+                    value={form.timezone}
+                    onValueChange={(v) => setForm((f) => ({ ...f, timezone: v }))}
+                  >
+                    <SelectTrigger id="timezone">
+                      <SelectValue placeholder="Select timezone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TIMEZONES.map((tz) => (
+                        <SelectItem key={tz.value} value={tz.value}>
+                          {tz.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    The start/end times above are interpreted and displayed in this timezone.
+                  </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
