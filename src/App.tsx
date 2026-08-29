@@ -89,7 +89,9 @@ const App = () => (
             <Route path="/pending-approval" element={<ProtectedRoute allowPending><PendingApproval /></ProtectedRoute>} />
             <Route path="/admin/members" element={<AdminRoute><AdminMembers /></AdminRoute>} />
             <Route path="/admin/images" element={<AdminRoute><AdminImages /></AdminRoute>} />
+            <Route path="/admin/emails" element={<AdminRoute><AdminEmails /></AdminRoute>} />
             <Route path="/circle" element={<Circle />} />
+
             <Route path="/admin/circle" element={<AdminRoute><AdminCircle /></AdminRoute>} />
             <Route path="/meetups" element={<Meetups />} />
             <Route path="/privacy" element={<Privacy />} />
