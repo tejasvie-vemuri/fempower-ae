@@ -150,8 +150,22 @@ Deno.serve(async (req) => {
   const callerSub = (claims?.sub as string | undefined) ?? null
   const callerEmail = ((claims?.email as string | undefined) ?? '').toLowerCase()
 
-  if (!claims || callerRole === 'anon') {
-    logDiag('error_unauthorized', { reason: 'anon_or_no_jwt' }, true)
+  // With signing keys, edge-to-edge calls authenticate with the new-style
+  // (non-JWT) service role secret, so a JWT role claim may be absent even
+  // for privileged callers. Treat an exact match on the service key as
+  // service_role regardless of JWT decodability.
+  const serviceRoleSecret = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  const isServiceRole =
+    callerRole === 'service_role' ||
+    (serviceRoleSecret !== '' && callerToken === serviceRoleSecret)
+
+  if (!isServiceRole && (!claims || callerRole === 'anon')) {
+    logDiag('error_unauthorized', {
+      reason: 'anon_or_no_jwt',
+      hasToken: callerToken !== '',
+      tokenLen: callerToken.length,
+      keyMatch: serviceRoleSecret !== '' && callerToken === serviceRoleSecret,
+    }, true)
     return new Response(
       JSON.stringify({ error: 'Unauthorized' }),
       { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
@@ -159,7 +173,7 @@ Deno.serve(async (req) => {
   }
 
   let callerIsAdmin = false
-  if (callerRole !== 'service_role' && callerSub) {
+  if (!isServiceRole && callerSub) {
     try {
       const supaCheck = createClient(supabaseUrl, supabaseServiceKey)
       const { data: isAdmin } = await supaCheck.rpc('has_role', {
@@ -219,7 +233,7 @@ Deno.serve(async (req) => {
   }
 
   // Per-template authorization for non-privileged callers.
-  if (callerRole !== 'service_role' && !callerIsAdmin) {
+  if (!isServiceRole && !callerIsAdmin) {
     if (!SELF_TEMPLATES.has(templateName)) {
       logDiag('error_forbidden_template', { templateName, callerRole }, true)
       return new Response(
