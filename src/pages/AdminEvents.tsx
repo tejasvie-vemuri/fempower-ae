@@ -494,7 +494,10 @@ const AdminEvents = () => {
                 {events.map((e) => (
                   <TableRow key={e.id}>
                     <TableCell className="font-medium">{e.title}</TableCell>
-                    <TableCell>{fmtDate(e.starts_at)}</TableCell>
+                    <TableCell>
+                      {fmtDate(e.starts_at)}
+                      <span className="block text-xs text-muted-foreground">{e.timezone}</span>
+                    </TableCell>
                     <TableCell>
                       {e.price_cents === 0
                         ? "Free"
