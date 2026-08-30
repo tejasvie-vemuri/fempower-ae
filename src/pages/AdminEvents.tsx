@@ -37,6 +37,7 @@ import {
 } from "@/lib/attendeeQuestions";
 
 import { AttendeeQuestionsEditor } from "@/components/admin/AttendeeQuestionsEditor";
+import EventCoverUpload from "@/components/admin/EventCoverUpload";
 
 type EventStatus = "draft" | "published" | "cancelled" | "completed";
 
@@ -331,25 +332,20 @@ const AdminEvents = () => {
                     The start/end times above are interpreted and displayed in this timezone.
                   </p>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="location">Location</Label>
-                    <Input
-                      id="location"
-                      value={form.location}
-                      onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="cover">Cover image URL</Label>
-                    <Input
-                      id="cover"
-                      value={form.cover_image_url}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, cover_image_url: e.target.value }))
-                      }
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="location">Location</Label>
+                  <Input
+                    id="location"
+                    value={form.location}
+                    onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label>Cover image</Label>
+                  <EventCoverUpload
+                    value={form.cover_image_url}
+                    onChange={(url) => setForm((f) => ({ ...f, cover_image_url: url }))}
+                  />
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
