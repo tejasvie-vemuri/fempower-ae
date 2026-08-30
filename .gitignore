@@ -26,3 +26,8 @@ dist-ssr
 # Playwright
 playwright-report/
 test-results/
+
+# Local env files (keys, tokens) - never commit
+.env
+.env.*
+!.env.example
