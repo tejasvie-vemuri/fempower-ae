@@ -5,8 +5,8 @@ import { decode, Image } from 'https://deno.land/x/imagescript@1.2.17/mod.ts';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const BUCKET = 'event-covers';
-const TARGET_WIDTH = 1600;
-const TARGET_HEIGHT = 700;
+const TARGET_WIDTH = 1080;
+const TARGET_HEIGHT = 1080;
 const TARGET_RATIO = TARGET_WIDTH / TARGET_HEIGHT;
 const RATIO_TOLERANCE = 0.1;
 
@@ -63,13 +63,13 @@ Deno.serve(async (req) => {
       await admin.storage.from(BUCKET).remove([rawPath]);
       return json(
         {
-          error: `Cover must be close to 16:7. Yours is ${img.width}×${img.height} (${ratio.toFixed(2)}:1). Please upload a wide 1600×700 image.`,
+          error: `Cover must be close to square (1:1). Yours is ${img.width}×${img.height} (${ratio.toFixed(2)}:1). Please upload a 1080×1080 Instagram post image.`,
         },
         400,
       );
     }
 
-    // Centre-crop to an exact 16:7 frame, then resize to 1600×700.
+    // Centre-crop to an exact square, then resize to 1080×1080.
     const cropWidth = ratio > TARGET_RATIO ? Math.round(img.height * TARGET_RATIO) : img.width;
     const cropHeight = ratio > TARGET_RATIO ? img.height : Math.round(img.width / TARGET_RATIO);
     img.crop(
