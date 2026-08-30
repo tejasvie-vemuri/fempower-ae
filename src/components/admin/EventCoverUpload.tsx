@@ -49,11 +49,11 @@ const EventCoverUpload = ({ value, onChange }: Props) => {
   return (
     <div className="space-y-2">
       {value ? (
-        <div className="relative rounded-lg overflow-hidden border border-border bg-muted">
+        <div className="relative rounded-lg overflow-hidden border border-border bg-muted mx-auto w-full max-w-[288px]">
           <img
             src={value}
             alt="Event cover preview"
-            className="w-full h-36 object-cover"
+            className="w-full aspect-square object-cover"
           />
           <div className="absolute top-2 right-2 flex gap-1.5">
             <Button
@@ -89,7 +89,9 @@ const EventCoverUpload = ({ value, onChange }: Props) => {
             <>
               <ImagePlus className="h-5 w-5" />
               <span className="text-xs font-medium">Upload cover image</span>
-              <span className="text-[10px]">JPG, PNG, WebP or AVIF · max 10 MB</span>
+              <span className="text-[10px] text-center px-2">
+                Square 1:1 · 1080 × 1080 (Instagram grid) · JPG, PNG, WebP or AVIF · max 10 MB
+              </span>
             </>
           )}
         </button>
