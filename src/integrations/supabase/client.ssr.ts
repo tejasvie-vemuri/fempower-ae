@@ -7,6 +7,13 @@
  */
 type Any = any;
 
+// Kept in sync with the real client so SSR-imported modules can read them.
+export const SUPABASE_URL =
+  import.meta.env.VITE_SUPABASE_URL ?? "https://uaiymunelgvvnznkxeik.supabase.co";
+export const SUPABASE_PUBLISHABLE_KEY =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhaXltdW5lbGd2dm56bmt4ZWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1MzQ2NzUsImV4cCI6MjA4ODExMDY3NX0.sL1kcUsg10yNj5YVjUNUhoHlVafpdFnDHH1RsJyIesU";
+
 const noopSubscription = { unsubscribe: () => {} };
 
 const asyncQuery = new Proxy(function () {}, {

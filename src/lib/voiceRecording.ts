@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
 
 let mediaRecorder: MediaRecorder | null = null;
 let chunks: Blob[] = [];
@@ -55,7 +55,7 @@ export async function transcribeAudio(blob: Blob): Promise<string> {
   const form = new FormData();
   form.append("audio", blob, "recording.webm");
 
-  const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-audio`, {
+  const resp = await fetch(`${SUPABASE_URL}/functions/v1/transcribe-audio`, {
     method: "POST",
     headers: { Authorization: `Bearer ${session.access_token}` },
     body: form,

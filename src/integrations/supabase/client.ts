@@ -3,8 +3,16 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 import { brokeredPreviewStorage } from './previewAuthStorage';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+// Public project values (safe for the browser). Fall back to these when the
+// build-time env vars are missing so the client never fails to initialize.
+const SUPABASE_URL =
+  import.meta.env.VITE_SUPABASE_URL ?? "https://uaiymunelgvvnznkxeik.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhaXltdW5lbGd2dm56bmt4ZWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1MzQ2NzUsImV4cCI6MjA4ODExMDY3NX0.sL1kcUsg10yNj5YVjUNUhoHlVafpdFnDHH1RsJyIesU";
+
+// Reuse these anywhere that calls edge functions, so they never see undefined.
+export { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY };
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";

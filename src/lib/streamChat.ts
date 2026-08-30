@@ -1,4 +1,6 @@
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fempower-coach`;
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
+
+const CHAT_URL = `${SUPABASE_URL}/functions/v1/fempower-coach`;
 
 export type Msg = { role: "user" | "assistant"; content: string };
 
@@ -41,7 +43,7 @@ export async function streamChat({
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
     },
     body: JSON.stringify({ messages, userProfile, checklistHistory, saveChecklists, bucketKey }),
   });
