@@ -526,7 +526,7 @@ const EventDetail = () => {
         </HashLink>
 
         {event.cover_image_url && (
-          <div className="rounded-2xl overflow-hidden mb-8 aspect-square max-w-2xl mx-auto bg-muted">
+          <div className="w-full aspect-[16/7] rounded-2xl overflow-hidden mb-8 bg-muted">
             <img
               src={event.cover_image_url}
               alt={event.title}

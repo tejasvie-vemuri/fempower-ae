@@ -5,10 +5,10 @@ import { decode, Image } from 'https://deno.land/x/imagescript@1.2.17/mod.ts';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const BUCKET = 'event-covers';
-const TARGET = 1080;
-// Accept only near-square sources (Instagram grid)
-const MIN_RATIO = 0.9;
-const MAX_RATIO = 1.1;
+const TARGET_WIDTH = 1600;
+const TARGET_HEIGHT = 700;
+const TARGET_RATIO = TARGET_WIDTH / TARGET_HEIGHT;
+const RATIO_TOLERANCE = 0.1;
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -59,25 +59,26 @@ Deno.serve(async (req) => {
     }
 
     const ratio = img.width / img.height;
-    if (ratio < MIN_RATIO || ratio > MAX_RATIO) {
+    if (Math.abs(ratio - TARGET_RATIO) / TARGET_RATIO > RATIO_TOLERANCE) {
       await admin.storage.from(BUCKET).remove([rawPath]);
       return json(
         {
-          error: `Cover must be square (1:1). Yours is ${img.width}×${img.height} (${ratio.toFixed(2)}:1). Please upload a 1080×1080 Instagram-grid image.`,
+          error: `Cover must be close to 16:7. Yours is ${img.width}×${img.height} (${ratio.toFixed(2)}:1). Please upload a wide 1600×700 image.`,
         },
         400,
       );
     }
 
-    // Centre-crop to a perfect square, then resize to 1080×1080
-    const side = Math.min(img.width, img.height);
+    // Centre-crop to an exact 16:7 frame, then resize to 1600×700.
+    const cropWidth = ratio > TARGET_RATIO ? Math.round(img.height * TARGET_RATIO) : img.width;
+    const cropHeight = ratio > TARGET_RATIO ? img.height : Math.round(img.width / TARGET_RATIO);
     img.crop(
-      Math.round((img.width - side) / 2),
-      Math.round((img.height - side) / 2),
-      side,
-      side,
+      Math.round((img.width - cropWidth) / 2),
+      Math.round((img.height - cropHeight) / 2),
+      cropWidth,
+      cropHeight,
     );
-    img.resize(TARGET, TARGET);
+    img.resize(TARGET_WIDTH, TARGET_HEIGHT);
     const out = await img.encodeJPEG(88);
 
     const finalPath = `covers/cover-${Date.now()}-${crypto.randomUUID().slice(0, 8)}.jpg`;
@@ -91,7 +92,7 @@ Deno.serve(async (req) => {
     await admin.storage.from(BUCKET).remove([rawPath]);
     const { data: pub } = admin.storage.from(BUCKET).getPublicUrl(finalPath);
 
-    return json({ url: pub.publicUrl, width: TARGET, height: TARGET });
+    return json({ url: pub.publicUrl, width: TARGET_WIDTH, height: TARGET_HEIGHT });
   } catch (err) {
     console.error('process-event-cover error', err);
     return json({ error: (err as Error)?.message ?? 'Processing failed' }, 500);
