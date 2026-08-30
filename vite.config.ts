@@ -338,7 +338,23 @@ function prerenderPlugin(env: Record<string, string>): Plugin {
 // https://vitejs.dev/config/
 export default defineConfig(({ mode, isSsrBuild }) => {
   const env = loadEnv(mode, __dirname, "");
+  // The deploy snapshot excludes the gitignored .env, so production builds
+  // would inline `undefined` for these and the site crashes on load with
+  // "supabaseUrl is required". These are PUBLIC values (they ship in the
+  // browser bundle regardless; data is protected by RLS), so fall back to
+  // the known project config whenever the env file is absent.
+  const FALLBACK_ENV: Record<string, string> = {
+    VITE_SUPABASE_URL: "https://uaiymunelgvvnznkxeik.supabase.co",
+    VITE_SUPABASE_PUBLISHABLE_KEY:
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhaXltdW5lbGd2dm56bmt4ZWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1MzQ2NzUsImV4cCI6MjA4ODExMDY3NX0.sL1kcUsg10yNj5YVjUNUhoHlVafpdFnDHH1RsJyIesU",
+    VITE_SUPABASE_PROJECT_ID: "uaiymunelgvvnznkxeik",
+  };
+  const define: Record<string, string> = {};
+  for (const [name, fallback] of Object.entries(FALLBACK_ENV)) {
+    if (!env[name]) define[`import.meta.env.${name}`] = JSON.stringify(fallback);
+  }
   return {
+  define,
   server: {
     host: "::",
     port: 8080,
