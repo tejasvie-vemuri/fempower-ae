@@ -120,7 +120,7 @@ const AdminTestimonials = () => {
 
   const sendFeedbackEmail = async (row: Row, decision: Status, feedbackNoteText: string | null) => {
     if (!row.author?.email) return;
-    const { error } = await supabase.functions.invoke("send-transactional-email", {
+    const { error } = await supabase.functions.invoke("send-app-email", {
       body: {
         templateName: "testimonial-feedback",
         recipientEmail: row.author.email,
@@ -207,7 +207,7 @@ const AdminTestimonials = () => {
       return false;
     }
     const stamp = new Date().toISOString();
-    const { error } = await supabase.functions.invoke("send-transactional-email", {
+    const { error } = await supabase.functions.invoke("send-app-email", {
       body: {
         templateName: "testimonial-request",
         recipientEmail: member.email,

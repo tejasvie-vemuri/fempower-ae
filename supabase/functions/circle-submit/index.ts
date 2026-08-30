@@ -146,7 +146,7 @@ Deno.serve(async (req) => {
               .filter(Boolean);
             await Promise.all(
               emails.map((email: string) =>
-                admin.functions.invoke("send-transactional-email", {
+                admin.functions.invoke("send-app-email", {
                   body: {
                     templateName: "circle-post-pending",
                     recipientEmail: email,

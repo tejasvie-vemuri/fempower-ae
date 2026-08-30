@@ -47,7 +47,7 @@ async function maybeSendWelcomeEmail(user: User) {
     let lastError: unknown = null;
     for (let attempt = 1; attempt <= WELCOME_EMAIL_MAX_ATTEMPTS; attempt++) {
       const { error: sendError } = await supabase.functions.invoke(
-        "send-transactional-email",
+        "send-app-email",
         {
           body: {
             templateName: "welcome",

@@ -140,7 +140,7 @@ const AdminMembers = () => {
           .eq("user_id", member.user_id)
           .maybeSingle();
         if (profile?.email) {
-          await supabase.functions.invoke("send-transactional-email", {
+          await supabase.functions.invoke("send-app-email", {
             body: {
               templateName: "membership-approved",
               recipientEmail: profile.email,
@@ -192,7 +192,7 @@ const AdminMembers = () => {
     const recipient = emails[m.user_id];
     if (recipient) {
       const idempotencyKey = `spotlight-request-${row.id}`;
-      const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
+      const { error: emailErr } = await supabase.functions.invoke("send-app-email", {
         body: {
           templateName: "spotlight-story-request",
           recipientEmail: recipient,

@@ -106,7 +106,7 @@ const AdminCircle = () => {
           .eq("user_id", prev.user_id)
           .maybeSingle();
         if (profile?.email) {
-          await supabase.functions.invoke("send-transactional-email", {
+          await supabase.functions.invoke("send-app-email", {
             body: {
               templateName: "circle-post-approved",
               recipientEmail: profile.email,

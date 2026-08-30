@@ -542,7 +542,7 @@ function StoryRequestsTab() {
 
     if (profile?.email) {
       const idempotencyKey = `spotlight-request-${row.id}`;
-      const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
+      const { error: emailErr } = await supabase.functions.invoke("send-app-email", {
         body: {
           templateName: "spotlight-story-request",
           recipientEmail: profile.email,
@@ -589,7 +589,7 @@ function StoryRequestsTab() {
       return;
     }
     const idempotencyKey = `spotlight-request-${r.id}-resend-${Date.now()}`;
-    const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
+    const { error: emailErr } = await supabase.functions.invoke("send-app-email", {
       body: {
         templateName: "spotlight-story-request",
         recipientEmail: profile.email,

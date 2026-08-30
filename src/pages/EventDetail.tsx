@@ -346,7 +346,7 @@ const EventDetail = () => {
           .eq("user_id", user.id)
           .maybeSingle();
         if (profile?.email && reg) {
-          await supabase.functions.invoke("send-transactional-email", {
+          await supabase.functions.invoke("send-app-email", {
             body: {
               templateName: "event-registration-confirmation",
               recipientEmail: profile.email,
