@@ -5,11 +5,15 @@ import * as React from 'npm:react@18.3.1'
 import {
   Body,
   Button,
+  Column,
   Container,
   Head,
   Heading,
   Html,
+  Img,
   Preview,
+  Row,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
@@ -18,27 +22,34 @@ interface MagicLinkEmailProps {
   confirmationUrl: string
 }
 
-export const MagicLinkEmail = ({
-  siteName,
-  confirmationUrl,
-}: MagicLinkEmailProps) => (
+export const MagicLinkEmail = ({ siteName, confirmationUrl }: MagicLinkEmailProps) => (
   <Html lang="en" dir="ltr">
-    <Head>
-      <style>{darkModeCss}</style>
-    </Head>
-    <Preview>Your login link for {siteName}</Preview>
+    <Head />
+    <Preview>Your sign-in link for Fempower</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Your login link</Heading>
+        <Section style={brandBar}>
+          <Row>
+            <Column style={logoCol}>
+              <Img src="https://uaiymunelgvvnznkxeik.supabase.co/storage/v1/object/public/site-images/email%2Ffempower-logo.png" alt="Fempower" width="56" height="56" style={logoImg} />
+            </Column>
+            <Column>
+              <Text style={brandMark}>FEMPOWER</Text>
+              <Text style={brandTagline}>Rooted Together, Rising Together</Text>
+            </Column>
+          </Row>
+        </Section>
+        <Heading style={h1}>Your sign-in link</Heading>
         <Text style={text}>
-          Click the button below to log in to {siteName}. This link will expire
-          shortly.
+          Click below to sign in to <strong>{siteName}</strong>. This link will expire shortly.
         </Text>
-        <Button className="dm-btn" style={button} href={confirmationUrl}>
-          Log In
-        </Button>
+        <Section style={buttonWrap}>
+          <Button style={button} href={confirmationUrl}>
+            Sign in
+          </Button>
+        </Section>
         <Text style={footer}>
-          If you didn't request this link, you can safely ignore this email.
+          If you didn't request this, you can safely ignore this email.
         </Text>
       </Container>
     </Body>
@@ -47,35 +58,42 @@ export const MagicLinkEmail = ({
 
 export default MagicLinkEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
+const main = { backgroundColor: '#ffffff', fontFamily: "'DM Sans', Helvetica, Arial, sans-serif" }
+const container = { padding: '32px 28px', maxWidth: '560px' }
+const brandBar = { borderBottom: '1px solid #EDE4D8', paddingBottom: '20px', marginBottom: '28px' }
+const logoCol = { width: '70px', verticalAlign: 'middle' as const }
+const logoImg = { display: 'block', borderRadius: '6px' }
+const brandMark = {
+  fontFamily: "'Playfair Display', Georgia, serif",
+  fontSize: '20px',
+  letterSpacing: '4px',
+  color: '#4A2040',
+  margin: '0',
   fontWeight: 'bold' as const,
-  color: '#000000',
+}
+const brandTagline = {
+  fontFamily: "'Playfair Display', Georgia, serif",
+  fontSize: '12px',
+  fontStyle: 'italic' as const,
+  color: '#D4A853',
+  margin: '4px 0 0',
+}
+const h1 = {
+  fontFamily: "'Playfair Display', Georgia, serif",
+  fontSize: '28px',
+  fontWeight: 'bold' as const,
+  color: '#4A2040',
   margin: '0 0 20px',
 }
-const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
-}
+const text = { fontSize: '15px', color: '#3D3540', lineHeight: '1.6', margin: '0 0 18px' }
+const buttonWrap = { margin: '28px 0' }
 const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  border: '1px solid #000000',
+  backgroundColor: '#4A2040',
+  color: '#FDF8F3',
+  fontSize: '15px',
   borderRadius: '8px',
-  padding: '12px 20px',
+  padding: '14px 28px',
   textDecoration: 'none',
+  fontWeight: '500' as const,
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
-// Rendered as a text child, which React may HTML-escape: keep this CSS free of >, &, and quotes.
-const darkModeCss = `
-  @media (prefers-color-scheme: dark) {
-    .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
-  }
-  [data-ogsc] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
-  [data-ogsb] .dm-btn { background-color: #ffffff !important; color: #000000 !important; }
-`
+const footer = { fontSize: '13px', color: '#8A7E8E', margin: '24px 0 0', lineHeight: '1.5' }
