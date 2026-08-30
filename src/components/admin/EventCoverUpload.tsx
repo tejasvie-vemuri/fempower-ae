@@ -11,9 +11,7 @@ interface Props {
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ACCEPT = ["image/jpeg", "image/png", "image/webp", "image/avif"];
-const TARGET_RATIO = 1;
-const RATIO_TOLERANCE = 0.1;
-const MIN_SIDE = 600;
+const MIN_SIDE = 400;
 
 const readDimensions = (file: File) =>
   new Promise<{ width: number; height: number }>((resolve, reject) => {
@@ -51,18 +49,9 @@ const EventCoverUpload = ({ value, onChange }: Props) => {
     let rawPath = "";
     try {
       const { width, height } = await readDimensions(file);
-      const ratio = width / height;
-      if (Math.abs(ratio - TARGET_RATIO) / TARGET_RATIO > RATIO_TOLERANCE) {
+      if (Math.max(width, height) < MIN_SIDE) {
         toast.error(
-          `Cover must be close to square (1:1). This image is ${width}×${height} (${ratio.toFixed(
-            2,
-          )}:1). Please upload an Instagram post image.`,
-        );
-        return;
-      }
-      if (Math.min(width, height) < MIN_SIDE) {
-        toast.error(
-          `Image is too small (${width}×${height}). Use at least ${MIN_SIDE}×${MIN_SIDE}, ideally 1080×1080.`,
+          `Image is too small (${width}×${height}). Use at least ${MIN_SIDE}px on the longest side.`,
         );
         return;
       }
@@ -94,7 +83,7 @@ const EventCoverUpload = ({ value, onChange }: Props) => {
       if (!data?.url) throw new Error(data?.error ?? "Processing failed");
 
       onChange(data.url);
-      toast.success("Cover uploaded and resized to 1080×1080");
+      toast.success("Cover uploaded");
     } catch (err: unknown) {
       if (rawPath) await supabase.storage.from("event-covers").remove([rawPath]);
       toast.error((err as Error)?.message ?? "Upload failed");
@@ -110,7 +99,7 @@ const EventCoverUpload = ({ value, onChange }: Props) => {
           <img
             src={value}
             alt="Event cover preview"
-            className="w-full aspect-square object-cover"
+            className="w-full h-auto object-contain"
           />
           <div className="absolute top-2 right-2 flex gap-1.5">
             <Button
@@ -138,16 +127,16 @@ const EventCoverUpload = ({ value, onChange }: Props) => {
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={busy}
-          className="w-full aspect-square max-h-96 rounded-lg border-2 border-dashed border-border hover:border-primary/50 bg-muted/40 flex flex-col items-center justify-center gap-1.5 text-muted-foreground transition-colors"
+          className="w-full aspect-[4/3] max-h-96 rounded-lg border-2 border-dashed border-border hover:border-primary/50 bg-muted/40 flex flex-col items-center justify-center gap-1.5 text-muted-foreground transition-colors"
         >
           {busy ? (
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <>
               <ImagePlus className="h-5 w-5" />
-              <span className="text-xs font-medium">Upload Instagram post (1080×1080)</span>
+              <span className="text-xs font-medium">Upload cover image</span>
               <span className="text-[10px]">
-                1:1 square only · JPG, PNG, WebP or AVIF · max 10 MB
+                Any aspect ratio · shown in full · JPG, PNG, WebP or AVIF · max 10 MB
               </span>
             </>
           )}
