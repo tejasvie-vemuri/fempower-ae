@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
       continue
     }
 
-    const { error: sendErr } = await supabase.functions.invoke('send-transactional-email', {
+    const { error: sendErr } = await supabase.functions.invoke('send-app-email', {
       headers: { Authorization: `Bearer ${key}` },
       body: {
         templateName: 'intro-nudge',

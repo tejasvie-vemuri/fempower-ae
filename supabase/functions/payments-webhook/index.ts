@@ -39,7 +39,7 @@ async function sendConfirmationEmail(registrationId: string, userId: string) {
           .maybeSingle()
       : { data: null };
     if (profile?.email && reg && ev) {
-      await supabase.functions.invoke("send-transactional-email", {
+      await supabase.functions.invoke("send-app-email", {
         body: {
           templateName: "event-registration-confirmation",
           recipientEmail: profile.email,
