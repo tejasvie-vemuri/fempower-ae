@@ -18,34 +18,44 @@ function getSupabase() {
   return _supabase;
 }
 
-async function sendConfirmationEmail(registrationId: string, userId: string) {
+async function sendConfirmationEmail(registrationId: string) {
   try {
     const supabase = getSupabase();
     const { data: reg } = await supabase
       .from("registrations")
-      .select("id, ticket_code, quantity, event_id")
+      .select("id, ticket_code, quantity, event_id, user_id, guest_name, guest_email")
       .eq("id", registrationId)
       .maybeSingle();
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("email, name")
-      .eq("user_id", userId)
+    if (!reg) return;
+
+    // Members are emailed at their account address; guests at the address they
+    // typed into the registration form.
+    let email = (reg.guest_email as string | null) ?? null;
+    let name = (reg.guest_name as string | null) ?? null;
+    if (reg.user_id) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email, name")
+        .eq("user_id", reg.user_id)
+        .maybeSingle();
+      email = (profile?.email as string | null) ?? email;
+      name = (profile?.name as string | null) ?? name;
+    }
+
+    const { data: ev } = await supabase
+      .from("events")
+      .select("title, slug, starts_at, location")
+      .eq("id", reg.event_id)
       .maybeSingle();
-    const { data: ev } = reg
-      ? await supabase
-          .from("events")
-          .select("title, slug, starts_at, location")
-          .eq("id", reg.event_id)
-          .maybeSingle()
-      : { data: null };
-    if (profile?.email && reg && ev) {
+
+    if (email && ev) {
       await supabase.functions.invoke("send-app-email", {
         body: {
           templateName: "event-registration-confirmation",
-          recipientEmail: profile.email,
+          recipientEmail: email,
           idempotencyKey: `event-reg-${reg.id}`,
           templateData: {
-            name: profile.name,
+            name,
             eventTitle: ev.title,
             startsAt: ev.starts_at,
             location: ev.location,
@@ -86,7 +96,7 @@ async function handlePaymentIntentStatus(intent: ZiinaPaymentIntent) {
       .eq("id", reg.id);
     if (error) throw error;
     if (reg.status !== "confirmed") {
-      await sendConfirmationEmail(reg.id, reg.user_id);
+      await sendConfirmationEmail(reg.id);
     }
     return;
   }
