@@ -312,6 +312,24 @@ const MyTickets = () => {
                         )}
                         {isConfirmed && !t.cancellation_requested_at && (
                           <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setTransferTarget(t);
+                              setTransferForm({
+                                name: "",
+                                email: "",
+                                phone: "",
+                                linkedin_url: "",
+                              });
+                            }}
+                          >
+                            <Send className="w-4 h-4 mr-1" />
+                            Transfer ticket
+                          </Button>
+                        )}
+                        {isConfirmed && !t.cancellation_requested_at && (
+                          <Button
                             variant="ghost"
                             size="sm"
                             className="text-muted-foreground hover:text-destructive"
