@@ -55,6 +55,7 @@ interface EventData {
   capacity: number;
   status: string;
   waitlist_enabled: boolean;
+  members_only: boolean;
   attendee_questions: unknown;
 }
 
@@ -89,11 +90,22 @@ const EventDetail = () => {
   const [responseErrors, setResponseErrors] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
   const [guests, setGuests] = useState<Guest[]>([]);
+  // Guest (no account) registration — only offered on open events.
+  const [guestMode, setGuestMode] = useState(false);
+  const [guestForm, setGuestForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    linkedin_url: "",
+  });
+  const [alreadyMemberNotice, setAlreadyMemberNotice] = useState<string | null>(null);
+  const [guestTicket, setGuestTicket] = useState<string | null>(null);
   // Event sign-ups are members-only. "none" = signed in but no profile yet.
   const [memberStatus, setMemberStatus] = useState<
     "unknown" | "none" | "pending" | "rejected" | "approved"
   >("unknown");
   const isMember = memberStatus === "approved";
+  const membersOnly = event?.members_only !== false;
 
   const questions: AttendeeQuestion[] = useMemo(() => {
     // Per-event custom questions, skipping any that collide with default IDs.
@@ -274,7 +286,7 @@ const EventDetail = () => {
       navigate(`/auth?redirect=/events/${event.slug}`);
       return;
     }
-    if (!isMember) {
+    if (membersOnly && !isMember) {
       // Members-only sign-ups. The database enforces this too; this branch
       // just avoids a raw error toast.
       track("event_register_failed", {
@@ -394,6 +406,80 @@ const EventDetail = () => {
       window.location.assign(data.redirect_url);
     }
 
+  };
+
+  const handleGuestRegister = async () => {
+    if (!event) return;
+    const funnel = {
+      target_id: event.id,
+      slug: event.slug,
+      is_free: event.price_cents === 0,
+      quantity,
+    };
+    track("event_register_started", { ...funnel, authenticated: false, guest: true });
+    setAlreadyMemberNotice(null);
+
+    const name = guestForm.name.trim();
+    const email = guestForm.email.trim();
+    const phone = guestForm.phone.trim();
+    const linkedin = guestForm.linkedin_url.trim();
+    if (name.length < 2) return toast.error("Please enter your full name");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))
+      return toast.error("Please enter a valid email address");
+    if (!/^\+?[0-9][0-9\s-]{6,19}$/.test(phone))
+      return toast.error("Please enter a valid phone number");
+    if (!/^https?:\/\/([a-z]{2,3}\.)?linkedin\.com\/.+$/i.test(linkedin))
+      return toast.error("Please enter your LinkedIn profile URL (linkedin.com/in/…)");
+
+    if (questions.length) {
+      const v = validateResponses(questions, responses);
+      setResponseErrors(v.errors);
+      if (!v.ok) {
+        toast.error("Please answer the required questions");
+        return;
+      }
+    }
+    const safeQty = Math.max(1, Math.min(MAX_QUANTITY, quantity));
+    const cleanGuests = sanitizeGuests(safeQty, guests);
+    const guestErr = validateGuests(safeQty, cleanGuests);
+    if (guestErr) return toast.error(guestErr);
+
+    setActing(true);
+    const { data, error } = await supabase.functions.invoke("guest-register", {
+      body: {
+        event_id: event.id,
+        name,
+        email,
+        phone,
+        linkedin_url: linkedin,
+        responses: JSON.parse(JSON.stringify(responses)),
+        quantity: safeQty,
+        guests: JSON.parse(JSON.stringify(cleanGuests)),
+        origin: window.location.origin,
+      },
+    });
+    setActing(false);
+
+    if (error || data?.error) {
+      const reason = data?.error ?? error?.message ?? "Could not complete registration";
+      track("event_register_failed", { ...funnel, guest: true, reason });
+      toast.error(reason);
+      return;
+    }
+    if (data?.existing_member) {
+      setAlreadyMemberNotice(data.message as string);
+      track("event_register_failed", { ...funnel, guest: true, reason: "existing_member" });
+      return;
+    }
+    if (data?.redirect_url) {
+      track("checkout_started", { ...funnel, guest: true, quantity: safeQty });
+      window.location.assign(data.redirect_url as string);
+      return;
+    }
+    track("event_register_succeeded", { ...funnel, guest: true, quantity: safeQty });
+    setGuestTicket((data?.ticket_code as string) ?? null);
+    toast.success("You're registered! Check your email for the ticket.");
+    load();
   };
 
   const handleJoinWaitlist = async () => {
@@ -600,6 +686,7 @@ const EventDetail = () => {
             />
 
             {questions.length > 0 &&
+              !guestTicket &&
               (!myReg || myReg.status !== "confirmed") &&
               event.status === "published" &&
               !isFull && (
@@ -809,7 +896,120 @@ const EventDetail = () => {
                 ) : (
                   <div className="bg-muted text-sm rounded-md p-3">Sold out.</div>
                 )
-              ) : user && !isMember ? (
+              ) : guestTicket ? (
+                <div className="bg-muted text-sm rounded-md p-3 space-y-1">
+                  <p className="font-medium text-foreground">You're registered!</p>
+                  <p>
+                    Your ticket code is{" "}
+                    <span className="font-mono">{guestTicket}</span>. We've emailed
+                    it to you — bring it on the day.
+                  </p>
+                </div>
+              ) : !user && !membersOnly ? (
+                <>
+                  {alreadyMemberNotice && (
+                    <div className="bg-primary/10 text-sm rounded-md p-3 space-y-2">
+                      <p>{alreadyMemberNotice}</p>
+                      <div className="flex gap-2">
+                        <Button asChild size="sm">
+                          <Link to={`/auth?redirect=/events/${event.slug}`}>Sign in</Link>
+                        </Button>
+                        <Button asChild size="sm" variant="outline">
+                          <Link to="/forgot-password">Forgot password</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  {!guestMode ? (
+                    <>
+                      <Button
+                        className="w-full"
+                        size="lg"
+                        onClick={() => navigate(`/auth?redirect=/events/${event.slug}`)}
+                      >
+                        Sign in / create account
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        size="lg"
+                        onClick={() => setGuestMode(true)}
+                      >
+                        Continue as guest
+                      </Button>
+                      <p className="text-xs text-muted-foreground text-center">
+                        This event is open to everyone — no membership needed.
+                      </p>
+                    </>
+                  ) : (
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="guest-full-name">Full name</Label>
+                        <Input
+                          id="guest-full-name"
+                          value={guestForm.name}
+                          onChange={(e) =>
+                            setGuestForm((f) => ({ ...f, name: e.target.value }))
+                          }
+                          placeholder="Your name"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="guest-main-email">Email</Label>
+                        <Input
+                          id="guest-main-email"
+                          type="email"
+                          value={guestForm.email}
+                          onChange={(e) =>
+                            setGuestForm((f) => ({ ...f, email: e.target.value }))
+                          }
+                          placeholder="you@example.com"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="guest-phone">Phone number</Label>
+                        <Input
+                          id="guest-phone"
+                          type="tel"
+                          value={guestForm.phone}
+                          onChange={(e) =>
+                            setGuestForm((f) => ({ ...f, phone: e.target.value }))
+                          }
+                          placeholder="+971 50 123 4567"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="guest-linkedin">LinkedIn profile</Label>
+                        <Input
+                          id="guest-linkedin"
+                          type="url"
+                          value={guestForm.linkedin_url}
+                          onChange={(e) =>
+                            setGuestForm((f) => ({ ...f, linkedin_url: e.target.value }))
+                          }
+                          placeholder="https://linkedin.com/in/yourname"
+                        />
+                      </div>
+                      <Button
+                        className="w-full"
+                        size="lg"
+                        disabled={acting}
+                        onClick={handleGuestRegister}
+                      >
+                        {acting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                        {isFree ? "Register as guest" : "Continue to payment"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full"
+                        onClick={() => setGuestMode(false)}
+                      >
+                        Back
+                      </Button>
+                    </div>
+                  )}
+                </>
+              ) : user && membersOnly && !isMember ? (
                 <>
                   <div className="bg-muted text-sm rounded-md p-3">
                     Fempower events are for members. {memberStatus === "none"
@@ -846,7 +1046,7 @@ const EventDetail = () => {
                 </Button>
               )}
 
-              {!user && (
+              {!user && membersOnly && (
                 <p className="text-xs text-muted-foreground text-center">
                   Event sign-ups are for Fempower members — sign in or join to
                   register.
