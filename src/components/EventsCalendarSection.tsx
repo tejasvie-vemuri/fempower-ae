@@ -17,12 +17,15 @@ interface CalendarEvent {
   location: string;
   price_cents: number;
   currency: string;
+  members_only: boolean;
 }
 
 const EventsCalendarSection = () => {
   const { requireJoin } = useJoinGate();
-  const handleEventClick = (e: React.MouseEvent) => {
-    if (!requireJoin()) e.preventDefault();
+  // Events open to all are reachable without an account — only members-only
+  // events pop the join dialog.
+  const handleEventClick = (e: React.MouseEvent, membersOnly = true) => {
+    if (membersOnly && !requireJoin()) e.preventDefault();
   };
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -33,7 +36,7 @@ const EventsCalendarSection = () => {
       try {
         const { data, error } = await supabase
           .from("events")
-          .select("id, slug, title, starts_at, location, price_cents, currency")
+          .select("id, slug, title, starts_at, location, price_cents, currency, members_only")
           .in("status", ["published"])
           .order("starts_at", { ascending: true });
         if (error) throw error;
@@ -46,6 +49,7 @@ const EventsCalendarSection = () => {
             location: e.location ?? "TBD",
             price_cents: e.price_cents,
             currency: e.currency,
+            members_only: e.members_only,
             date: d,
             time: d.toLocaleTimeString("en-AE", { hour: "2-digit", minute: "2-digit" }),
           };
@@ -191,7 +195,7 @@ const EventsCalendarSection = () => {
                   <Link
                     key={event.id}
                     to={`/events/${event.slug}`}
-                    onClick={handleEventClick}
+                    onClick={(e) => handleEventClick(e, event.members_only)}
                     className="block bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-start gap-3">
@@ -243,7 +247,7 @@ const EventsCalendarSection = () => {
                     <Link
                       key={event.id}
                       to={`/events/${event.slug}`}
-                      onClick={handleEventClick}
+                      onClick={(e) => handleEventClick(e, event.members_only)}
                       className="block bg-card border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-center gap-3">
