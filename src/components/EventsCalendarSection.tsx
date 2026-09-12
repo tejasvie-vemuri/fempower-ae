@@ -17,12 +17,15 @@ interface CalendarEvent {
   location: string;
   price_cents: number;
   currency: string;
+  members_only: boolean;
 }
 
 const EventsCalendarSection = () => {
   const { requireJoin } = useJoinGate();
-  const handleEventClick = (e: React.MouseEvent) => {
-    if (!requireJoin()) e.preventDefault();
+  // Events open to all are reachable without an account — only members-only
+  // events pop the join dialog.
+  const handleEventClick = (e: React.MouseEvent, membersOnly = true) => {
+    if (membersOnly && !requireJoin()) e.preventDefault();
   };
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -33,7 +36,7 @@ const EventsCalendarSection = () => {
       try {
         const { data, error } = await supabase
           .from("events")
-          .select("id, slug, title, starts_at, location, price_cents, currency")
+          .select("id, slug, title, starts_at, location, price_cents, currency, members_only")
           .in("status", ["published"])
           .order("starts_at", { ascending: true });
         if (error) throw error;

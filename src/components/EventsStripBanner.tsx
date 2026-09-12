@@ -29,7 +29,7 @@ const EventsStripBanner = () => {
     (async () => {
       const { data } = await supabase
         .from("events")
-        .select("id, slug, title, starts_at")
+        .select("id, slug, title, starts_at, members_only")
         .eq("status", "published")
         .gte("starts_at", new Date().toISOString())
         .order("starts_at", { ascending: true })
@@ -52,6 +52,8 @@ const EventsStripBanner = () => {
   const event = events[index];
 
   const handleEventClick = (e: React.MouseEvent) => {
+    // Open events need no account, so don't interrupt with the join dialog.
+    if (event.members_only === false) return;
     if (!requireJoin()) e.preventDefault();
   };
 
