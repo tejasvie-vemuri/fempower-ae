@@ -411,6 +411,92 @@ const MyTickets = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog
+        open={!!transferTarget}
+        onOpenChange={(open) => !open && setTransferTarget(null)}
+      >
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Transfer this ticket</DialogTitle>
+            <DialogDescription>
+              Send your place at {transferTarget?.event?.title ?? "this event"} to
+              someone else. They'll get a confirmation email with a new ticket
+              code, and this ticket will leave your account.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="transfer-name">Their full name</Label>
+              <Input
+                id="transfer-name"
+                value={transferForm.name}
+                onChange={(e) =>
+                  setTransferForm((f) => ({ ...f, name: e.target.value }))
+                }
+                placeholder="Layla Ahmed"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="transfer-email">Their email</Label>
+              <Input
+                id="transfer-email"
+                type="email"
+                inputMode="email"
+                value={transferForm.email}
+                onChange={(e) =>
+                  setTransferForm((f) => ({ ...f, email: e.target.value }))
+                }
+                placeholder="layla@example.com"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="transfer-phone">Their phone (optional)</Label>
+              <Input
+                id="transfer-phone"
+                type="tel"
+                inputMode="tel"
+                value={transferForm.phone}
+                onChange={(e) =>
+                  setTransferForm((f) => ({ ...f, phone: e.target.value }))
+                }
+                placeholder="+971 50 123 4567"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="transfer-linkedin">
+                Their LinkedIn (optional)
+              </Label>
+              <Input
+                id="transfer-linkedin"
+                value={transferForm.linkedin_url}
+                onChange={(e) =>
+                  setTransferForm((f) => ({
+                    ...f,
+                    linkedin_url: e.target.value,
+                  }))
+                }
+                placeholder="https://linkedin.com/in/…"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTransferTarget(null)}>
+              Never mind
+            </Button>
+            <Button
+              onClick={submitTransfer}
+              disabled={
+                transferring ||
+                transferForm.name.trim().length < 2 ||
+                !transferForm.email.trim()
+              }
+            >
+              {transferring ? "Transferring…" : "Transfer ticket"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
