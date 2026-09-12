@@ -900,6 +900,7 @@ export type Database = {
           ends_at: string | null
           id: string
           location: string | null
+          members_only: boolean
           price_cents: number
           slug: string
           starts_at: string
@@ -920,6 +921,7 @@ export type Database = {
           ends_at?: string | null
           id?: string
           location?: string | null
+          members_only?: boolean
           price_cents?: number
           slug: string
           starts_at: string
@@ -940,6 +942,7 @@ export type Database = {
           ends_at?: string | null
           id?: string
           location?: string | null
+          members_only?: boolean
           price_cents?: number
           slug?: string
           starts_at?: string
@@ -1928,6 +1931,10 @@ export type Database = {
           created_at: string
           currency: string
           event_id: string
+          guest_email: string | null
+          guest_linkedin_url: string | null
+          guest_name: string | null
+          guest_phone: string | null
           guests: Json
           id: string
           payment_checkout_url: string | null
@@ -1940,7 +1947,7 @@ export type Database = {
           status: string
           ticket_code: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           amount_paid_cents?: number
@@ -1950,6 +1957,10 @@ export type Database = {
           created_at?: string
           currency?: string
           event_id: string
+          guest_email?: string | null
+          guest_linkedin_url?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
           guests?: Json
           id?: string
           payment_checkout_url?: string | null
@@ -1962,7 +1973,7 @@ export type Database = {
           status?: string
           ticket_code?: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           amount_paid_cents?: number
@@ -1972,6 +1983,10 @@ export type Database = {
           created_at?: string
           currency?: string
           event_id?: string
+          guest_email?: string | null
+          guest_linkedin_url?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
           guests?: Json
           id?: string
           payment_checkout_url?: string | null
@@ -1984,7 +1999,7 @@ export type Database = {
           status?: string
           ticket_code?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {

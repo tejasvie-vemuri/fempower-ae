@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789217274582,
+      "tag": "0000_add_open_events_guest_registration",
+      "breakpoints": true
+    }
+  ]
+}
