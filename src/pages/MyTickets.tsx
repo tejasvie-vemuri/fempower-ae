@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";
-import { Calendar, MapPin, Ticket, ArrowLeft, Download, XCircle } from "lucide-react";
+import { Calendar, MapPin, Ticket, ArrowLeft, Download, XCircle, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
