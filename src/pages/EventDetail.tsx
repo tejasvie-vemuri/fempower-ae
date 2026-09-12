@@ -686,6 +686,7 @@ const EventDetail = () => {
             />
 
             {questions.length > 0 &&
+              !guestTicket &&
               (!myReg || myReg.status !== "confirmed") &&
               event.status === "published" &&
               !isFull && (
