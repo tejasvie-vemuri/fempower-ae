@@ -94,26 +94,9 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Event sign-ups are members-only. The free path is enforced inside
-    // confirm_free_registration; the paid path is enforced here, before any
-    // payment intent is created.
-    const { data: isMember, error: memberErr } = await supabaseAdmin.rpc(
-      "is_approved_member",
-      { _user_id: userId },
-    );
-    if (memberErr || !isMember) {
-      return new Response(
-        JSON.stringify({
-          error:
-            "Fempower membership required to book events. Join the community first and we'll approve you.",
-        }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
     const { data: ev, error: evErr } = await supabaseAdmin
       .from("events")
-      .select("id, slug, title, price_cents, currency, capacity, status, waitlist_enabled")
+      .select("id, slug, title, price_cents, currency, capacity, status, waitlist_enabled, members_only")
       .eq("id", eventId)
       .maybeSingle();
 
@@ -122,6 +105,24 @@ Deno.serve(async (req) => {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Members-only events are enforced here, before any payment intent is
+    // created. Open events are bookable by any signed-in user.
+    if (ev.members_only) {
+      const { data: isMember, error: memberErr } = await supabaseAdmin.rpc(
+        "is_approved_member",
+        { _user_id: userId },
+      );
+      if (memberErr || !isMember) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "Fempower membership required to book events. Join the community first and we'll approve you.",
+          }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
     }
     if (ev.status !== "published") {
       return new Response(JSON.stringify({ error: "Event is not open for registration" }), {
