@@ -155,6 +155,32 @@ const MyTickets = () => {
     loadTickets();
   };
 
+  const submitTransfer = async () => {
+    if (!transferTarget) return;
+    setTransferring(true);
+    const { data, error } = await supabase.functions.invoke("transfer-ticket", {
+      body: {
+        registration_id: transferTarget.id,
+        ...transferForm,
+        origin: window.location.origin,
+      },
+    });
+    setTransferring(false);
+    const errMsg =
+      (data as { error?: string } | null)?.error ??
+      (error ? "We couldn't transfer this ticket. Please try again." : null);
+    if (errMsg) {
+      toast.error(errMsg);
+      return;
+    }
+    toast.success(
+      `Ticket transferred to ${transferForm.name}. They've been emailed their new ticket.`,
+    );
+    setTransferTarget(null);
+    setTransferForm({ name: "", email: "", phone: "", linkedin_url: "" });
+    loadTickets();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-12 max-w-5xl">
