@@ -31,7 +31,11 @@ interface WaitlistEntry {
 
 interface Registration {
   id: string;
-  user_id: string;
+  user_id: string | null;
+  guest_name: string | null;
+  guest_email: string | null;
+  guest_phone: string | null;
+  guest_linkedin_url: string | null;
   status: string;
   ticket_code: string;
   amount_paid_cents: number;
@@ -97,7 +101,7 @@ const AdminRegistrations = () => {
       supabase
         .from("registrations")
         .select(
-          "id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, payment_intent_id, payment_provider, cancellation_requested_at, cancellation_reason, responses, quantity, guests",
+          "id, user_id, guest_name, guest_email, guest_phone, guest_linkedin_url, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, payment_intent_id, payment_provider, cancellation_requested_at, cancellation_reason, responses, quantity, guests",
         )
         .eq("event_id", eventId)
         .order("created_at", { ascending: false }),
@@ -114,7 +118,11 @@ const AdminRegistrations = () => {
     setWaitlist((wl as WaitlistEntry[]) ?? []);
 
     const userIds = Array.from(
-      new Set([...rows.map((r) => r.user_id), ...((wl as WaitlistEntry[]) ?? []).map((w) => w.user_id)]),
+      new Set(
+        [...rows.map((r) => r.user_id), ...((wl as WaitlistEntry[]) ?? []).map((w) => w.user_id)].filter(
+          (id): id is string => !!id,
+        ),
+      ),
     );
     if (userIds.length) {
       const { data: profs } = await supabase
@@ -135,11 +143,24 @@ const AdminRegistrations = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
+  // Registrations come from members (linked to a profile) or from guests on
+  // open events, who supply their own contact details.
+  const attendee = (r: Registration) => {
+    const p = r.user_id ? profiles[r.user_id] : undefined;
+    return {
+      name: p?.name ?? r.guest_name ?? null,
+      email: p?.email ?? r.guest_email ?? null,
+      phone: p?.phone ?? r.guest_phone ?? null,
+      linkedin: r.guest_linkedin_url,
+      isGuest: !r.user_id,
+    };
+  };
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return regs;
     return regs.filter((r) => {
-      const p = profiles[r.user_id];
+      const p = attendee(r);
       return (
         r.ticket_code.toLowerCase().includes(q) ||
         p?.email?.toLowerCase().includes(q) ||
@@ -255,12 +276,14 @@ const AdminRegistrations = () => {
       "Payment intent",
       "Seats",
       "Guests",
+      "Registered as",
+      "LinkedIn",
     ];
     const questionHeaders = questions.map((q) => q.label);
     const rows = [
       [...baseHeaders, ...questionHeaders],
       ...filtered.map((r) => {
-        const p = profiles[r.user_id];
+        const p = attendee(r);
         const answers = (r.responses ?? {}) as Record<string, unknown>;
         const guestsText = Array.isArray(r.guests)
           ? r.guests
@@ -282,6 +305,8 @@ const AdminRegistrations = () => {
           r.payment_intent_id ?? "",
           String(r.quantity ?? 1),
           guestsText,
+          p.isGuest ? "Guest" : "Member",
+          p.linkedin ?? "",
           ...questions.map((q) => {
             const v = answers[q.id];
             return v == null ? "" : String(v);
@@ -380,12 +405,17 @@ const AdminRegistrations = () => {
               </TableHeader>
               <TableBody>
                 {filtered.map((r) => {
-                  const p = profiles[r.user_id];
+                  const p = attendee(r);
                   return (
                     <TableRow key={r.id}>
                       <TableCell className="font-medium align-top">
                         <div className="flex items-center gap-2">
-                          <span>{p?.name ?? "—"}</span>
+                          <span>{p.name ?? "—"}</span>
+                          {p.isGuest && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                              Guest
+                            </span>
+                          )}
                           {(r.quantity ?? 1) > 1 && (
                             <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary">
                               +{(r.quantity ?? 1) - 1}
@@ -413,9 +443,19 @@ const AdminRegistrations = () => {
                         )}
                       </TableCell>
                       <TableCell className="text-sm">
-                        <div>{p?.email ?? "—"}</div>
-                        {p?.phone && (
+                        <div>{p.email ?? "—"}</div>
+                        {p.phone && (
                           <div className="text-muted-foreground">{p.phone}</div>
+                        )}
+                        {p.linkedin && (
+                          <a
+                            href={p.linkedin}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:underline break-all"
+                          >
+                            LinkedIn
+                          </a>
                         )}
                       </TableCell>
                       <TableCell>
