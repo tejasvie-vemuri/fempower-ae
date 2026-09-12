@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";
-import { Calendar, MapPin, Ticket, ArrowLeft, Download, XCircle } from "lucide-react";
+import { Calendar, MapPin, Ticket, ArrowLeft, Download, XCircle, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
 import HashLink from "@/components/HashLink";
@@ -99,6 +101,14 @@ const MyTickets = () => {
   const [cancelTarget, setCancelTarget] = useState<TicketRow | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [cancelling, setCancelling] = useState(false);
+  const [transferTarget, setTransferTarget] = useState<TicketRow | null>(null);
+  const [transferForm, setTransferForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    linkedin_url: "",
+  });
+  const [transferring, setTransferring] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -142,6 +152,32 @@ const MyTickets = () => {
     toast.success("Cancellation request sent. Our team will review it shortly.");
     setCancelTarget(null);
     setCancelReason("");
+    loadTickets();
+  };
+
+  const submitTransfer = async () => {
+    if (!transferTarget) return;
+    setTransferring(true);
+    const { data, error } = await supabase.functions.invoke("transfer-ticket", {
+      body: {
+        registration_id: transferTarget.id,
+        ...transferForm,
+        origin: window.location.origin,
+      },
+    });
+    setTransferring(false);
+    const errMsg =
+      (data as { error?: string } | null)?.error ??
+      (error ? "We couldn't transfer this ticket. Please try again." : null);
+    if (errMsg) {
+      toast.error(errMsg);
+      return;
+    }
+    toast.success(
+      `Ticket transferred to ${transferForm.name}. They've been emailed their new ticket.`,
+    );
+    setTransferTarget(null);
+    setTransferForm({ name: "", email: "", phone: "", linkedin_url: "" });
     loadTickets();
   };
 
@@ -276,6 +312,24 @@ const MyTickets = () => {
                         )}
                         {isConfirmed && !t.cancellation_requested_at && (
                           <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setTransferTarget(t);
+                              setTransferForm({
+                                name: "",
+                                email: "",
+                                phone: "",
+                                linkedin_url: "",
+                              });
+                            }}
+                          >
+                            <Send className="w-4 h-4 mr-1" />
+                            Transfer ticket
+                          </Button>
+                        )}
+                        {isConfirmed && !t.cancellation_requested_at && (
+                          <Button
                             variant="ghost"
                             size="sm"
                             className="text-muted-foreground hover:text-destructive"
@@ -353,6 +407,92 @@ const MyTickets = () => {
             </Button>
             <Button onClick={submitCancellation} disabled={cancelling}>
               {cancelling ? "Sending…" : "Send request"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!transferTarget}
+        onOpenChange={(open) => !open && setTransferTarget(null)}
+      >
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Transfer this ticket</DialogTitle>
+            <DialogDescription>
+              Send your place at {transferTarget?.event?.title ?? "this event"} to
+              someone else. They'll get a confirmation email with a new ticket
+              code, and this ticket will leave your account.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="transfer-name">Their full name</Label>
+              <Input
+                id="transfer-name"
+                value={transferForm.name}
+                onChange={(e) =>
+                  setTransferForm((f) => ({ ...f, name: e.target.value }))
+                }
+                placeholder="Layla Ahmed"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="transfer-email">Their email</Label>
+              <Input
+                id="transfer-email"
+                type="email"
+                inputMode="email"
+                value={transferForm.email}
+                onChange={(e) =>
+                  setTransferForm((f) => ({ ...f, email: e.target.value }))
+                }
+                placeholder="layla@example.com"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="transfer-phone">Their phone (optional)</Label>
+              <Input
+                id="transfer-phone"
+                type="tel"
+                inputMode="tel"
+                value={transferForm.phone}
+                onChange={(e) =>
+                  setTransferForm((f) => ({ ...f, phone: e.target.value }))
+                }
+                placeholder="+971 50 123 4567"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="transfer-linkedin">
+                Their LinkedIn (optional)
+              </Label>
+              <Input
+                id="transfer-linkedin"
+                value={transferForm.linkedin_url}
+                onChange={(e) =>
+                  setTransferForm((f) => ({
+                    ...f,
+                    linkedin_url: e.target.value,
+                  }))
+                }
+                placeholder="https://linkedin.com/in/…"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTransferTarget(null)}>
+              Never mind
+            </Button>
+            <Button
+              onClick={submitTransfer}
+              disabled={
+                transferring ||
+                transferForm.name.trim().length < 2 ||
+                !transferForm.email.trim()
+              }
+            >
+              {transferring ? "Transferring…" : "Transfer ticket"}
             </Button>
           </DialogFooter>
         </DialogContent>
