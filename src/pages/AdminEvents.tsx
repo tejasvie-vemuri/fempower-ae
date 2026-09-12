@@ -58,6 +58,7 @@ interface EventRow {
   waitlist_enabled: boolean;
   members_only: boolean;
   attendee_questions: unknown;
+  enabled_default_questions: string[] | null;
 }
 
 const emptyForm = {
@@ -77,6 +78,7 @@ const emptyForm = {
   waitlist_enabled: true,
   members_only: true,
   attendee_questions: [] as AttendeeQuestion[],
+  enabled_default_questions: DEFAULT_ATTENDEE_QUESTIONS.map((q) => q.id),
 };
 
 const TIMEZONES = [
@@ -114,7 +116,6 @@ const AdminEvents = () => {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyForm);
-  const [defaultsAcknowledged, setDefaultsAcknowledged] = useState(false);
 
 
   const load = async () => {
@@ -134,7 +135,6 @@ const AdminEvents = () => {
 
   const openCreate = () => {
     setForm(emptyForm);
-    setDefaultsAcknowledged(false);
     setOpen(true);
   };
 
@@ -157,8 +157,10 @@ const AdminEvents = () => {
       waitlist_enabled: e.waitlist_enabled,
       members_only: e.members_only ?? true,
       attendee_questions: parseQuestions(e.attendee_questions),
+      // NULL means "all defaults" for events created before questions became selectable.
+      enabled_default_questions:
+        e.enabled_default_questions ?? DEFAULT_ATTENDEE_QUESTIONS.map((q) => q.id),
     });
-    setDefaultsAcknowledged(false);
     setOpen(true);
   };
 
@@ -167,10 +169,6 @@ const AdminEvents = () => {
     ev.preventDefault();
     if (!form.title || !form.starts_at) {
       toast.error("Title and start date are required");
-      return;
-    }
-    if (!defaultsAcknowledged) {
-      toast.error("Please review and confirm the default attendee questions");
       return;
     }
     setSaving(true);
@@ -191,6 +189,7 @@ const AdminEvents = () => {
       status: form.status,
       waitlist_enabled: form.waitlist_enabled,
       members_only: form.members_only,
+      enabled_default_questions: form.enabled_default_questions,
       attendee_questions: JSON.parse(
         JSON.stringify(form.attendee_questions.filter((q) => q.label.trim())),
       ),
@@ -429,38 +428,73 @@ const AdminEvents = () => {
                 <div className="space-y-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
                   <div>
                     <h4 className="font-medium text-foreground">
-                      Default questions asked to every attendee
+                      Standard questions
                     </h4>
                     <p className="text-xs text-muted-foreground">
-                      These 5 questions are always shown at checkout. Review
-                      them and confirm before saving.
+                      Tick the ones you want to ask at checkout for this event.
                     </p>
                   </div>
-                  <ol className="space-y-1.5 text-sm text-foreground/90 list-decimal pl-5">
-                    {DEFAULT_ATTENDEE_QUESTIONS.map((q) => (
-                      <li key={q.id}>
-                        <span>{q.label}</span>
-                        {q.options && q.options.length > 0 && (
-                          <span className="block text-xs text-muted-foreground">
-                            Options: {q.options.join(" · ")}
+                  <div className="space-y-2">
+                    {DEFAULT_ATTENDEE_QUESTIONS.map((q) => {
+                      const checked = form.enabled_default_questions.includes(q.id);
+                      return (
+                        <label key={q.id} className="flex items-start gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            className="mt-1"
+                            checked={checked}
+                            onChange={(e) =>
+                              setForm((f) => ({
+                                ...f,
+                                enabled_default_questions: e.target.checked
+                                  ? [
+                                      ...DEFAULT_ATTENDEE_QUESTIONS.map((d) => d.id).filter(
+                                        (id) =>
+                                          id === q.id ||
+                                          f.enabled_default_questions.includes(id),
+                                      ),
+                                    ]
+                                  : f.enabled_default_questions.filter((id) => id !== q.id),
+                              }))
+                            }
+                          />
+                          <span>
+                            {q.label}
+                            {q.options && q.options.length > 0 && (
+                              <span className="block text-xs text-muted-foreground">
+                                Options: {q.options.join(" · ")}
+                              </span>
+                            )}
                           </span>
-                        )}
-                      </li>
-                    ))}
-                  </ol>
-                  <label className="flex items-start gap-2 text-sm pt-1">
-                    <input
-                      type="checkbox"
-                      className="mt-1"
-                      checked={defaultsAcknowledged}
-                      onChange={(e) =>
-                        setDefaultsAcknowledged(e.target.checked)
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <div className="flex gap-3 pt-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          enabled_default_questions: DEFAULT_ATTENDEE_QUESTIONS.map((q) => q.id),
+                        }))
                       }
-                    />
-                    <span>
-                      I've reviewed and approve the 5 default questions above.
-                    </span>
-                  </label>
+                    >
+                      Select all
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setForm((f) => ({ ...f, enabled_default_questions: [] }))
+                      }
+                    >
+                      Clear all
+                    </Button>
+                  </div>
                 </div>
 
                 <AttendeeQuestionsEditor
