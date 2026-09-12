@@ -45,7 +45,11 @@ interface EventRow {
 interface Registration {
   id: string;
   event_id: string;
-  user_id: string;
+  user_id: string | null;
+  guest_name: string | null;
+  guest_email: string | null;
+  guest_phone: string | null;
+  guest_linkedin_url: string | null;
   status: string;
   ticket_code: string;
   amount_paid_cents: number;
@@ -85,6 +89,28 @@ const statusColor = (s: string) =>
         ? "bg-rose-100 text-rose-800"
         : "bg-muted text-foreground/70";
 
+interface Contact {
+  name: string;
+  email: string;
+  phone: string;
+  linkedin: string;
+  isGuest: boolean;
+}
+
+const resolveContact = (
+  r: Registration,
+  profiles: Record<string, Profile>,
+): Contact => {
+  const p = r.user_id ? profiles[r.user_id] : undefined;
+  return {
+    name: p?.name ?? r.guest_name ?? "",
+    email: p?.email ?? r.guest_email ?? "",
+    phone: p?.phone ?? r.guest_phone ?? "",
+    linkedin: r.guest_linkedin_url ?? "",
+    isGuest: !r.user_id,
+  };
+};
+
 const AdminAllRegistrations = () => {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [regs, setRegs] = useState<Registration[]>([]);
@@ -92,6 +118,7 @@ const AdminAllRegistrations = () => {
   const [loading, setLoading] = useState(true);
   const [eventFilter, setEventFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [query, setQuery] = useState("");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
@@ -107,7 +134,7 @@ const AdminAllRegistrations = () => {
           supabase
             .from("registrations")
             .select(
-              "id, event_id, user_id, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, responses, quantity, guests, payment_provider",
+              "id, event_id, user_id, guest_name, guest_email, guest_phone, guest_linkedin_url, status, ticket_code, amount_paid_cents, currency, checked_in_at, created_at, responses, quantity, guests, payment_provider",
             )
             .order("created_at", { ascending: false }),
         ]);
@@ -118,7 +145,9 @@ const AdminAllRegistrations = () => {
       setEvents(eventRows);
       setRegs(regRows);
 
-      const userIds = Array.from(new Set(regRows.map((r) => r.user_id)));
+      const userIds = Array.from(
+        new Set(regRows.map((r) => r.user_id).filter((id): id is string => !!id)),
+      );
       if (userIds.length) {
         const { data: profs } = await supabase
           .from("profiles")
@@ -160,18 +189,20 @@ const AdminAllRegistrations = () => {
     return regs.filter((r) => {
       if (eventFilter !== "all" && r.event_id !== eventFilter) return false;
       if (statusFilter !== "all" && r.status !== statusFilter) return false;
+      const c = resolveContact(r, profiles);
+      if (typeFilter === "guest" && !c.isGuest) return false;
+      if (typeFilter === "member" && c.isGuest) return false;
       if (!q) return true;
-      const p = profiles[r.user_id];
       const ev = eventsById[r.event_id];
       return (
         r.ticket_code.toLowerCase().includes(q) ||
-        p?.email?.toLowerCase().includes(q) ||
-        p?.name?.toLowerCase().includes(q) ||
-        p?.phone?.toLowerCase().includes(q) ||
+        c.email.toLowerCase().includes(q) ||
+        c.name.toLowerCase().includes(q) ||
+        c.phone.toLowerCase().includes(q) ||
         ev?.title?.toLowerCase().includes(q)
       );
     });
-  }, [regs, eventFilter, statusFilter, query, profiles, eventsById]);
+  }, [regs, eventFilter, statusFilter, typeFilter, query, profiles, eventsById]);
 
   const stats = useMemo(() => {
     const seats = (r: Registration) => r.quantity ?? 1;
@@ -188,9 +219,11 @@ const AdminAllRegistrations = () => {
     const baseHeaders = [
       "Event",
       "Event date",
+      "Attendee type",
       "Name",
       "Email",
       "Phone",
+      "LinkedIn",
       "Status",
       "Ticket code",
       "Seats",
@@ -203,7 +236,7 @@ const AdminAllRegistrations = () => {
     const rows = [
       [...baseHeaders, ...defaultHeaders, "Other answers (JSON)", "Guests"],
       ...filtered.map((r) => {
-        const p = profiles[r.user_id];
+        const c = resolveContact(r, profiles);
         const ev = eventsById[r.event_id];
         const answers = (r.responses ?? {}) as Record<string, unknown>;
         const customAnswers: Record<string, unknown> = {};
@@ -221,9 +254,11 @@ const AdminAllRegistrations = () => {
         return [
           ev?.title ?? "",
           ev?.starts_at ?? "",
-          p?.name ?? "",
-          p?.email ?? "",
-          p?.phone ?? "",
+          c.isGuest ? "Guest" : "Member",
+          c.name,
+          c.email,
+          c.phone,
+          c.linkedin,
           r.status,
           r.ticket_code,
           String(r.quantity ?? 1),
@@ -307,7 +342,7 @@ const AdminAllRegistrations = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_220px_180px] gap-3 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_220px_180px_180px] gap-3 mb-4">
           <Input
             placeholder="Search by name, email, phone, ticket or event…"
             value={query}
@@ -338,6 +373,16 @@ const AdminAllRegistrations = () => {
               <SelectItem value="cancelled">Cancelled</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Everyone" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Members & guests</SelectItem>
+              <SelectItem value="guest">Guests only</SelectItem>
+              <SelectItem value="member">Members only</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -363,7 +408,7 @@ const AdminAllRegistrations = () => {
               </TableHeader>
               <TableBody>
                 {filtered.map((r) => {
-                  const p = profiles[r.user_id];
+                  const c = resolveContact(r, profiles);
                   const ev = eventsById[r.event_id];
                   const qs = questionsByEvent[r.event_id] ?? DEFAULT_ATTENDEE_QUESTIONS;
                   const isOpen = !!expanded[r.id];
@@ -383,11 +428,29 @@ const AdminAllRegistrations = () => {
                           )}
                         </TableCell>
                         <TableCell className="align-top font-medium">
-                          <div>{p?.name ?? "—"}</div>
-                          <div className="text-xs font-normal text-muted-foreground">
-                            {p?.email ?? "—"}
-                            {p?.phone ? ` · ${p.phone}` : ""}
+                          <div className="flex items-center gap-2">
+                            <span>{c.name || "—"}</span>
+                            {c.isGuest && (
+                              <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                                Guest
+                              </span>
+                            )}
                           </div>
+                          <div className="text-xs font-normal text-muted-foreground">
+                            {c.email || "—"}
+                            {c.phone ? ` · ${c.phone}` : ""}
+                          </div>
+                          {c.linkedin && (
+                            <a
+                              href={c.linkedin}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-xs font-normal text-primary hover:underline inline-flex items-center gap-1"
+                            >
+                              LinkedIn <ExternalLink className="h-3 w-3" />
+                            </a>
+                          )}
                           {(r.quantity ?? 1) > 1 && (
                             <span className="mt-1 inline-block text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary">
                               +{(r.quantity ?? 1) - 1} guest
