@@ -56,6 +56,7 @@ interface EventRow {
   capacity: number;
   status: EventStatus;
   waitlist_enabled: boolean;
+  members_only: boolean;
   attendee_questions: unknown;
 }
 
@@ -74,6 +75,7 @@ const emptyForm = {
   capacity: "0",
   status: "draft" as EventStatus,
   waitlist_enabled: true,
+  members_only: true,
   attendee_questions: [] as AttendeeQuestion[],
 };
 
@@ -153,6 +155,7 @@ const AdminEvents = () => {
       capacity: e.capacity.toString(),
       status: e.status,
       waitlist_enabled: e.waitlist_enabled,
+      members_only: e.members_only ?? true,
       attendee_questions: parseQuestions(e.attendee_questions),
     });
     setDefaultsAcknowledged(false);
@@ -187,6 +190,7 @@ const AdminEvents = () => {
       capacity: parseInt(form.capacity || "0", 10),
       status: form.status,
       waitlist_enabled: form.waitlist_enabled,
+      members_only: form.members_only,
       attendee_questions: JSON.parse(
         JSON.stringify(form.attendee_questions.filter((q) => q.label.trim())),
       ),
@@ -401,6 +405,27 @@ const AdminEvents = () => {
                   </Label>
                 </div>
 
+                <div className="flex items-start gap-2 rounded-lg border border-border p-3">
+                  <input
+                    id="members_only"
+                    type="checkbox"
+                    className="mt-1"
+                    checked={form.members_only}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, members_only: e.target.checked }))
+                    }
+                  />
+                  <div>
+                    <Label htmlFor="members_only" className="cursor-pointer">
+                      Members only
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      When off, anyone can register — visitors can continue as a
+                      guest with their name, email, phone and LinkedIn.
+                    </p>
+                  </div>
+                </div>
+
                 <div className="space-y-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
                   <div>
                     <h4 className="font-medium text-foreground">
@@ -503,6 +528,9 @@ const AdminEvents = () => {
                     <TableCell>
                       <span className="text-xs uppercase tracking-wide px-2 py-1 rounded bg-muted">
                         {e.status}
+                      </span>
+                      <span className="block mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                        {e.members_only ? "Members only" : "Open to all"}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
