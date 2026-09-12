@@ -49,6 +49,7 @@ const EventsCalendarSection = () => {
             location: e.location ?? "TBD",
             price_cents: e.price_cents,
             currency: e.currency,
+            members_only: e.members_only,
             date: d,
             time: d.toLocaleTimeString("en-AE", { hour: "2-digit", minute: "2-digit" }),
           };
