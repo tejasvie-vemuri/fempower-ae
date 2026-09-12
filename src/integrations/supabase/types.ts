@@ -897,6 +897,7 @@ export type Database = {
           created_by: string | null
           currency: string
           description: string | null
+          enabled_default_questions: string[] | null
           ends_at: string | null
           id: string
           location: string | null
@@ -918,6 +919,7 @@ export type Database = {
           created_by?: string | null
           currency?: string
           description?: string | null
+          enabled_default_questions?: string[] | null
           ends_at?: string | null
           id?: string
           location?: string | null
@@ -939,6 +941,7 @@ export type Database = {
           created_by?: string | null
           currency?: string
           description?: string | null
+          enabled_default_questions?: string[] | null
           ends_at?: string | null
           id?: string
           location?: string | null
@@ -1935,6 +1938,7 @@ export type Database = {
           guest_linkedin_url: string | null
           guest_name: string | null
           guest_phone: string | null
+          guest_signup_nudge_sent_at: string | null
           guests: Json
           id: string
           payment_checkout_url: string | null
@@ -1961,6 +1965,7 @@ export type Database = {
           guest_linkedin_url?: string | null
           guest_name?: string | null
           guest_phone?: string | null
+          guest_signup_nudge_sent_at?: string | null
           guests?: Json
           id?: string
           payment_checkout_url?: string | null
@@ -1987,6 +1992,7 @@ export type Database = {
           guest_linkedin_url?: string | null
           guest_name?: string | null
           guest_phone?: string | null
+          guest_signup_nudge_sent_at?: string | null
           guests?: Json
           id?: string
           payment_checkout_url?: string | null

@@ -12,6 +12,7 @@ import { template as testimonialRequest } from './testimonial-request.tsx'
 import { template as testimonialFeedback } from './testimonial-feedback.tsx'
 import { template as weeklyDigest } from './weekly-digest.tsx'
 import { template as introNudge } from './intro-nudge.tsx'
+import { template as guestSignupNudge } from './guest-signup-nudge.tsx'
 import { template as spotlightStoryRequest } from './spotlight-story-request.tsx'
 
 export type SubjectFn = (data: Record<string, unknown>) => string
@@ -37,5 +38,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'testimonial-feedback': testimonialFeedback,
   'weekly-digest': weeklyDigest,
   'intro-nudge': introNudge,
+  'guest-signup-nudge': guestSignupNudge,
   'spotlight-story-request': spotlightStoryRequest,
 }

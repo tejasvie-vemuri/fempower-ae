@@ -15,6 +15,13 @@
       "when": 1789217302972,
       "tag": "0001_open_events_free_registration",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789218260185,
+      "tag": "0002_guest_nudge_and_question_selection",
+      "breakpoints": true
     }
   ]
 }
