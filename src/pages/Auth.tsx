@@ -47,14 +47,15 @@ const AuthPage = () => {
   const [signInData, setSignInData] = useState({ email: "", password: "" });
   const [signInErrors, setSignInErrors] = useState<Errors>({});
 
+  // Guest-registration nudge emails link here with details already filled in.
   const [signUpData, setSignUpData] = useState({
-    name: "",
-    email: "",
+    name: params.get("name") ?? "",
+    email: params.get("email") ?? "",
     password: "",
     city: "",
     company: "",
     bio: "",
-    linkedin_url: "",
+    linkedin_url: params.get("linkedin_url") ?? "",
     looking_for: [] as string[],
   });
   const [signUpErrors, setSignUpErrors] = useState<Errors>({});
