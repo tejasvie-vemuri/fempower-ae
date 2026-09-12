@@ -10,6 +10,7 @@ interface UpcomingEvent {
   slug: string;
   title: string;
   starts_at: string;
+  members_only: boolean;
 }
 
 const ROTATE_MS = 4500;

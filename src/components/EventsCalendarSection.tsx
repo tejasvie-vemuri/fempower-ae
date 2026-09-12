@@ -194,7 +194,7 @@ const EventsCalendarSection = () => {
                   <Link
                     key={event.id}
                     to={`/events/${event.slug}`}
-                    onClick={handleEventClick}
+                    onClick={(e) => handleEventClick(e, event.members_only)}
                     className="block bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-start gap-3">
@@ -246,7 +246,7 @@ const EventsCalendarSection = () => {
                     <Link
                       key={event.id}
                       to={`/events/${event.slug}`}
-                      onClick={handleEventClick}
+                      onClick={(e) => handleEventClick(e, event.members_only)}
                       className="block bg-card border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-center gap-3">
