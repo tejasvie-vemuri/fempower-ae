@@ -9,34 +9,41 @@ import {
 async function sendConfirmationEmail(
   supabaseAdmin: ReturnType<typeof createClient>,
   registrationId: string,
-  userId: string,
 ) {
   try {
     const { data: reg } = await supabaseAdmin
       .from("registrations")
-      .select("id, ticket_code, quantity, event_id")
+      .select("id, ticket_code, quantity, event_id, user_id, guest_name, guest_email")
       .eq("id", registrationId)
       .maybeSingle();
-    const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("email, name")
-      .eq("user_id", userId)
+    if (!reg) return;
+
+    let email = (reg.guest_email as string | null) ?? null;
+    let name = (reg.guest_name as string | null) ?? null;
+    if (reg.user_id) {
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("email, name")
+        .eq("user_id", reg.user_id)
+        .maybeSingle();
+      email = (profile?.email as string | null) ?? email;
+      name = (profile?.name as string | null) ?? name;
+    }
+
+    const { data: ev } = await supabaseAdmin
+      .from("events")
+      .select("title, slug, starts_at, location")
+      .eq("id", reg.event_id)
       .maybeSingle();
-    const { data: ev } = reg
-      ? await supabaseAdmin
-          .from("events")
-          .select("title, slug, starts_at, location")
-          .eq("id", reg.event_id)
-          .maybeSingle()
-      : { data: null };
-    if (profile?.email && reg && ev) {
+
+    if (email && ev) {
       await supabaseAdmin.functions.invoke("send-app-email", {
         body: {
           templateName: "event-registration-confirmation",
-          recipientEmail: profile.email,
+          recipientEmail: email,
           idempotencyKey: `event-reg-${reg.id}`,
           templateData: {
-            name: profile.name,
+            name,
             eventTitle: ev.title,
             startsAt: ev.starts_at,
             location: ev.location,
@@ -89,7 +96,7 @@ async function confirmIfCompleted(
       .eq("id", reg.id);
     if (updateErr) throw updateErr;
     if (reg.status !== "confirmed") {
-      await sendConfirmationEmail(supabaseAdmin, reg.id, userId);
+      await sendConfirmationEmail(supabaseAdmin, reg.id);
     }
     return;
   }
