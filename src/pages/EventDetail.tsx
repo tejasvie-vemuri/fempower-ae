@@ -57,6 +57,7 @@ interface EventData {
   waitlist_enabled: boolean;
   members_only: boolean;
   attendee_questions: unknown;
+  enabled_default_questions: string[] | null;
 }
 
 const EventDetail = () => {
@@ -112,8 +113,13 @@ const EventDetail = () => {
     const custom = parseQuestions(event?.attendee_questions).filter(
       (q) => !DEFAULT_ATTENDEE_QUESTION_IDS.has(q.id),
     );
-    return [...DEFAULT_ATTENDEE_QUESTIONS, ...custom];
-  }, [event?.attendee_questions]);
+    // NULL keeps the legacy behaviour of asking every default question.
+    const enabled = event?.enabled_default_questions;
+    const defaults = enabled
+      ? DEFAULT_ATTENDEE_QUESTIONS.filter((q) => enabled.includes(q.id))
+      : DEFAULT_ATTENDEE_QUESTIONS;
+    return [...defaults, ...custom];
+  }, [event?.attendee_questions, event?.enabled_default_questions]);
 
 
   const load = async () => {
