@@ -895,7 +895,120 @@ const EventDetail = () => {
                 ) : (
                   <div className="bg-muted text-sm rounded-md p-3">Sold out.</div>
                 )
-              ) : user && !isMember ? (
+              ) : guestTicket ? (
+                <div className="bg-muted text-sm rounded-md p-3 space-y-1">
+                  <p className="font-medium text-foreground">You're registered!</p>
+                  <p>
+                    Your ticket code is{" "}
+                    <span className="font-mono">{guestTicket}</span>. We've emailed
+                    it to you — bring it on the day.
+                  </p>
+                </div>
+              ) : !user && !membersOnly ? (
+                <>
+                  {alreadyMemberNotice && (
+                    <div className="bg-primary/10 text-sm rounded-md p-3 space-y-2">
+                      <p>{alreadyMemberNotice}</p>
+                      <div className="flex gap-2">
+                        <Button asChild size="sm">
+                          <Link to={`/auth?redirect=/events/${event.slug}`}>Sign in</Link>
+                        </Button>
+                        <Button asChild size="sm" variant="outline">
+                          <Link to="/forgot-password">Forgot password</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  {!guestMode ? (
+                    <>
+                      <Button
+                        className="w-full"
+                        size="lg"
+                        onClick={() => navigate(`/auth?redirect=/events/${event.slug}`)}
+                      >
+                        Sign in / create account
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        size="lg"
+                        onClick={() => setGuestMode(true)}
+                      >
+                        Continue as guest
+                      </Button>
+                      <p className="text-xs text-muted-foreground text-center">
+                        This event is open to everyone — no membership needed.
+                      </p>
+                    </>
+                  ) : (
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="guest-full-name">Full name</Label>
+                        <Input
+                          id="guest-full-name"
+                          value={guestForm.name}
+                          onChange={(e) =>
+                            setGuestForm((f) => ({ ...f, name: e.target.value }))
+                          }
+                          placeholder="Your name"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="guest-main-email">Email</Label>
+                        <Input
+                          id="guest-main-email"
+                          type="email"
+                          value={guestForm.email}
+                          onChange={(e) =>
+                            setGuestForm((f) => ({ ...f, email: e.target.value }))
+                          }
+                          placeholder="you@example.com"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="guest-phone">Phone number</Label>
+                        <Input
+                          id="guest-phone"
+                          type="tel"
+                          value={guestForm.phone}
+                          onChange={(e) =>
+                            setGuestForm((f) => ({ ...f, phone: e.target.value }))
+                          }
+                          placeholder="+971 50 123 4567"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="guest-linkedin">LinkedIn profile</Label>
+                        <Input
+                          id="guest-linkedin"
+                          type="url"
+                          value={guestForm.linkedin_url}
+                          onChange={(e) =>
+                            setGuestForm((f) => ({ ...f, linkedin_url: e.target.value }))
+                          }
+                          placeholder="https://linkedin.com/in/yourname"
+                        />
+                      </div>
+                      <Button
+                        className="w-full"
+                        size="lg"
+                        disabled={acting}
+                        onClick={handleGuestRegister}
+                      >
+                        {acting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                        {isFree ? "Register as guest" : "Continue to payment"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full"
+                        onClick={() => setGuestMode(false)}
+                      >
+                        Back
+                      </Button>
+                    </div>
+                  )}
+                </>
+              ) : user && membersOnly && !isMember ? (
                 <>
                   <div className="bg-muted text-sm rounded-md p-3">
                     Fempower events are for members. {memberStatus === "none"
@@ -932,7 +1045,7 @@ const EventDetail = () => {
                 </Button>
               )}
 
-              {!user && (
+              {!user && membersOnly && (
                 <p className="text-xs text-muted-foreground text-center">
                   Event sign-ups are for Fempower members — sign in or join to
                   register.
