@@ -101,6 +101,14 @@ const MyTickets = () => {
   const [cancelTarget, setCancelTarget] = useState<TicketRow | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [cancelling, setCancelling] = useState(false);
+  const [transferTarget, setTransferTarget] = useState<TicketRow | null>(null);
+  const [transferForm, setTransferForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    linkedin_url: "",
+  });
+  const [transferring, setTransferring] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
