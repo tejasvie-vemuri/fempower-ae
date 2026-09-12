@@ -181,9 +181,9 @@ function buildChecklist(a: Answers): ChecklistItem[] {
         timing: "Once you have a car",
         title: "Register for Salik (Dubai toll)",
         bullets: [
-          "Buy a windshield RFID tag: AED 100 (AED 50 tag + AED 50 starting credit).",
+          "Buy a windshield RFID tag: AED 105 (was AED 100 before 5% VAT applied from 1 June 2026 — AED 50 tag + AED 50 starting credit, plus VAT).",
           "Register/activate within 10 working days of your first gate crossing.",
-          "AED 6 during peak hours (6-10am & 4-8pm, Mon-Sat) and AED 4 off-peak; Sundays and public holidays are a flat AED 4, and there is no charge between 1-6am. Charged automatically — no need to slow down.",
+          "AED 6.30 during peak hours (6-10am & 4-8pm, Mon-Sat) and AED 4.20 off-peak (5% VAT applied since 1 June 2026); Sundays and public holidays are a flat AED 4.20, and there is no charge between 1-6am. Charged automatically — no need to slow down.",
           "There are 10 Salik gates across Dubai.",
         ],
         sources: [{ label: "Salik — How it works", url: "https://www.salik.ae/en/about/how-it-works" }],
