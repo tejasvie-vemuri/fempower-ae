@@ -137,17 +137,14 @@ const EventDetail = () => {
     }
     setEvent(ev as EventData);
 
-    // Confirmed seats = SUM(quantity) on confirmed registrations
-    const { data: seatRows } = await supabase
-      .from("registrations")
-      .select("quantity")
-      .eq("event_id", ev.id)
-      .eq("status", "confirmed");
-    const seatTotal = (seatRows ?? []).reduce(
-      (acc: number, r: { quantity: number | null }) => acc + (r.quantity ?? 1),
-      0,
-    );
-    setConfirmedCount(seatTotal);
+    // Confirmed seats = SUM(quantity) on confirmed registrations. RLS on
+    // `registrations` only exposes the viewer's own rows, so we must go through
+    // the SECURITY DEFINER RPC to get the true total across all attendees
+    // (otherwise guests always see 0 and members only see their own seats).
+    const { data: seatTotal } = await supabase.rpc("event_confirmed_count", {
+      _event_id: ev.id,
+    });
+    setConfirmedCount(seatTotal ?? 0);
 
     if (user) {
       const { data: reg } = await supabase
