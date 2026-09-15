@@ -72,16 +72,36 @@ async function sendConfirmationEmail(registrationId: string) {
 }
 
 async function handlePaymentIntentStatus(intent: ZiinaPaymentIntent) {
-  if (!intent.id) return;
+  if (!intent.id) {
+    console.warn("Ziina webhook: payment intent missing id, ignoring", intent);
+    return;
+  }
   const nextStatus = toRegistrationStatus(intent.status);
-  if (!nextStatus) return;
+  if (!nextStatus) {
+    // An unmapped status silently dropping confirmations is exactly how paid
+    // sign-ups get stuck on pending — surface it so it's diagnosable.
+    console.error("Ziina webhook: UNKNOWN payment status, no action taken", {
+      intentId: intent.id,
+      status: intent.status,
+    });
+    return;
+  }
 
   const { data: reg } = await getSupabase()
     .from("registrations")
     .select("id, status, user_id")
     .eq("payment_intent_id", intent.id)
     .maybeSingle();
-  if (!reg) return;
+  if (!reg) {
+    // No row matches this intent — usually the payment_intent_id write lost a
+    // race or failed. Reconciliation cannot catch this either (it also matches
+    // by intent id), so it must be logged for manual follow-up.
+    console.error("Ziina webhook: no registration for payment_intent_id", {
+      intentId: intent.id,
+      status: intent.status,
+    });
+    return;
+  }
 
   if (nextStatus === "confirmed") {
     const { error } = await getSupabase()
@@ -141,7 +161,21 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.text();
-    const event = await verifyZiinaWebhook(body, req.headers.get("X-Hmac-Signature"));
+
+    let event;
+    try {
+      event = await verifyZiinaWebhook(body, req.headers.get("X-Hmac-Signature"));
+    } catch (verifyErr) {
+      // A signature/secret mismatch rejects EVERY webhook, which silently breaks
+      // all payment confirmations. Log loudly with the source IP so a
+      // misconfigured ZIINA_WEBHOOK_SECRET is obvious in the logs.
+      console.error("Ziina webhook: signature verification FAILED", {
+        ip: rawIp ?? "unknown",
+        hasSignature: !!req.headers.get("X-Hmac-Signature"),
+        error: verifyErr instanceof Error ? verifyErr.message : String(verifyErr),
+      });
+      return new Response("Invalid signature", { status: 400 });
+    }
 
     switch (event.event) {
       case "payment_intent.status.updated":

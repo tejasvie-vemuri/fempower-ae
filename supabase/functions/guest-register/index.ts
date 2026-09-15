@@ -181,7 +181,10 @@ Deno.serve(async (req) => {
       if (!intent.id || !intent.redirect_url) {
         throw new Error("Ziina did not return a payment redirect URL");
       }
-      await admin
+      // Critical write — the webhook and reconciliation match the paid guest
+      // registration by payment_intent_id. Fail before redirecting to pay if it
+      // can't be stored, so a captured payment is never orphaned as pending.
+      const { error: intentErr } = await admin
         .from("registrations")
         .update({
           payment_intent_id: intent.id,
@@ -189,6 +192,14 @@ Deno.serve(async (req) => {
           payment_operation_id: intent.operation_id ?? operationId,
         })
         .eq("id", registrationId!);
+      if (intentErr) {
+        console.error("guest-register: failed to store payment_intent_id", {
+          registrationId,
+          intentId: intent.id,
+          error: intentErr.message,
+        });
+        return json({ error: "Could not start checkout. Please try again." }, 500);
+      }
 
       return json({ redirect_url: intent.redirect_url, registration_id: registrationId });
     }

@@ -234,7 +234,10 @@ Deno.serve(async (req) => {
       throw new Error("Ziina did not return a payment redirect URL");
     }
 
-    await supabaseAdmin
+    // This write is critical: the webhook and reconciliation both match the paid
+    // registration by payment_intent_id. If it fails we must NOT send the user to
+    // pay, or their payment could never be linked back and would stay pending.
+    const { error: intentErr } = await supabaseAdmin
       .from("registrations")
       .update({
         payment_provider: "ziina",
@@ -243,6 +246,17 @@ Deno.serve(async (req) => {
         payment_operation_id: intent.operation_id ?? operationId,
       })
       .eq("id", registrationId!);
+    if (intentErr) {
+      console.error("create-checkout-session: failed to store payment_intent_id", {
+        registrationId,
+        intentId: intent.id,
+        error: intentErr.message,
+      });
+      return new Response(
+        JSON.stringify({ error: "Could not start checkout. Please try again." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     return new Response(
       JSON.stringify({

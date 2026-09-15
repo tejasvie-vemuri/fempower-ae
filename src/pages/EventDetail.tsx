@@ -210,7 +210,10 @@ const EventDetail = () => {
     const paymentIntentId =
       rawPaymentIntentId && !rawPaymentIntentId.includes("{") ? rawPaymentIntentId : null;
     const registrationId = searchParams.get("registration_id");
-    if (checkout === "success" && user && (paymentIntentId || registrationId || event?.id)) {
+    // Members return with a session; guests return with only the registration_id
+    // on the URL. Both must be verified, otherwise a guest who paid stays pending
+    // whenever the Ziina webhook misses.
+    if (checkout === "success" && (paymentIntentId || registrationId || (user && event?.id))) {
       (async () => {
         const { data, error } = await supabase.functions.invoke("verify-checkout-session", {
           body: {

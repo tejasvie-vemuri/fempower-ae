@@ -62,7 +62,7 @@ async function sendConfirmationEmail(
 async function confirmIfCompleted(
   supabaseAdmin: ReturnType<typeof createClient>,
   intent: ZiinaPaymentIntent,
-  userId: string,
+  userId: string | null,
   registrationId?: string,
 ) {
   const nextStatus = toRegistrationStatus(intent.status);
@@ -79,8 +79,20 @@ async function confirmIfCompleted(
   const { data: reg, error: regErr } = await query.maybeSingle();
 
   if (regErr) throw regErr;
-  if (!reg || reg.user_id !== userId) {
-    throw new Error("Payment intent does not belong to user");
+  if (!reg) {
+    throw new Error("Registration not found");
+  }
+  // Ownership: a signed-in user may only confirm their own registration; a guest
+  // (no session) may only confirm a guest registration (user_id is null) and
+  // must identify it by its unguessable registration_id.
+  if (userId) {
+    if (reg.user_id !== userId) {
+      throw new Error("Payment intent does not belong to user");
+    }
+  } else {
+    if (reg.user_id !== null || !registrationId) {
+      throw new Error("Payment intent does not belong to guest");
+    }
   }
 
   if (nextStatus === "confirmed") {
@@ -123,34 +135,37 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
+    // Auth is optional: signed-in members carry a real user token, guests carry
+    // only the anon key (no `sub`). Guests confirm by registration_id instead.
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    let userId: string | null = null;
+    if (authHeader?.startsWith("Bearer ")) {
+      const supabaseUser = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } },
+      );
+      const { data: claimsData } = await supabaseUser.auth.getClaims(
+        authHeader.replace("Bearer ", ""),
+      );
+      const sub = claimsData?.claims?.sub;
+      if (typeof sub === "string" && sub.length > 0) userId = sub;
     }
-
-    const supabaseUser = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } },
-    );
-    const { data: claimsData, error: claimsErr } = await supabaseUser.auth.getClaims(
-      authHeader.replace("Bearer ", ""),
-    );
-    if (claimsErr || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const userId = claimsData.claims.sub as string;
 
     const body = await req.json().catch(() => ({}));
     let paymentIntentId = cleanPaymentIntentId(body.payment_intent_id);
     const registrationId = typeof body.registration_id === "string" ? body.registration_id : undefined;
     const eventId = typeof body.event_id === "string" ? body.event_id : undefined;
+
+    // A guest has no session, so they cannot be identified by event_id alone —
+    // require the registration_id that was carried on the checkout return URL.
+    if (!userId && !registrationId) {
+      return new Response(JSON.stringify({ error: "registration_id required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -163,8 +178,9 @@ Deno.serve(async (req) => {
         .eq("id", registrationId)
         .maybeSingle();
       if (regErr) throw regErr;
-      if (!reg || reg.user_id !== userId) {
-        return new Response(JSON.stringify({ error: "Registration does not belong to user" }), {
+      const ownershipOk = userId ? reg?.user_id === userId : reg?.user_id === null;
+      if (!reg || !ownershipOk) {
+        return new Response(JSON.stringify({ error: "Registration does not belong to requester" }), {
           status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -172,7 +188,7 @@ Deno.serve(async (req) => {
       paymentIntentId = cleanPaymentIntentId(reg.payment_intent_id);
     }
 
-    if (!paymentIntentId && eventId) {
+    if (!paymentIntentId && eventId && userId) {
       const { data: regs, error: regsErr } = await supabaseAdmin
         .from("registrations")
         .select("payment_intent_id")
