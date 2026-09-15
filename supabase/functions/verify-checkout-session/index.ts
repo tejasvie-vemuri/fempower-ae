@@ -38,6 +38,9 @@ async function sendConfirmationEmail(
 
     if (email && ev) {
       await supabaseAdmin.functions.invoke("send-app-email", {
+        headers: {
+          Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+        },
         body: {
           templateName: "event-registration-confirmation",
           recipientEmail: email,
