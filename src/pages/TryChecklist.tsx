@@ -94,6 +94,10 @@ const TryChecklistPage = () => {
             a: `${checklist.subhook} It is free, takes about ${checklist.minutes} minutes, and is guided by Zara, Fempower's AI coach for women living in the UAE.`,
           },
           {
+            q: `What questions does the ${checklist.label} ask?`,
+            a: `All ${checklist.questionCount} questions are published on the page: ${checklist.allQuestions.join(" ")}`,
+          },
+          {
             q: `Do I need an account to do the ${checklist.label}?`,
             a: "No. It is open to any visitor at fempowerae.com — no signup, no app and no cost. Signing in only adds personalisation and lets you save the summary if you choose to.",
           },
