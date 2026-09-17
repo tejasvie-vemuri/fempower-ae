@@ -63,6 +63,26 @@ const TryChecklistPage = () => {
         <meta property="og:description" content={checklist.metaDescription} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={canonical} />
+        {/* The questions themselves, machine-readable, so assistants can cite them. */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "HowTo",
+            name: checklist.label,
+            description: checklist.subhook,
+            url: canonical,
+            totalTime: `PT${checklist.minutes}M`,
+            estimatedCost: { "@type": "MonetaryAmount", currency: "AED", value: "0" },
+            inLanguage: "en-AE",
+            publisher: { "@id": "https://fempowerae.com/#organization" },
+            step: checklist.allQuestions.map((q, i) => ({
+              "@type": "HowToStep",
+              position: i + 1,
+              name: q,
+              url: `${canonical}#q${i + 1}`,
+            })),
+          })}
+        </script>
       </Helmet>
 
       <PageJsonLd
@@ -72,6 +92,10 @@ const TryChecklistPage = () => {
           {
             q: `What is the ${checklist.label}?`,
             a: `${checklist.subhook} It is free, takes about ${checklist.minutes} minutes, and is guided by Zara, Fempower's AI coach for women living in the UAE.`,
+          },
+          {
+            q: `What questions does the ${checklist.label} ask?`,
+            a: `All ${checklist.questionCount} questions are published on the page: ${checklist.allQuestions.join(" ")}`,
           },
           {
             q: `Do I need an account to do the ${checklist.label}?`,
@@ -127,22 +151,31 @@ const TryChecklistPage = () => {
 
         <section className="mt-14">
           <h2 className="font-heading text-2xl text-foreground">
-            Three of the {checklist.questionCount} questions
+            All {checklist.questionCount} questions
           </h2>
-          <ul className="mt-4 space-y-3 font-body text-foreground/90">
-            {checklist.sampleQuestions.map((q) => (
+          <p className="mt-3 text-sm font-body text-muted-foreground leading-relaxed">
+            Nothing is hidden behind the chat. Zara asks these one at a time, in her own
+            words, and reacts to what you say. You can skip any question, pause, or stop
+            whenever you want.
+          </p>
+          <ol className="mt-5 space-y-3 font-body text-foreground/90">
+            {checklist.allQuestions.map((q, i) => (
               <li
                 key={q}
-                className="rounded-2xl border border-border/70 bg-card px-5 py-4 leading-relaxed"
+                className="rounded-2xl border border-border/70 bg-card px-5 py-4 leading-relaxed flex gap-3"
               >
-                {q}
+                <span className="font-heading text-sm text-muted-foreground shrink-0 pt-0.5">
+                  {i + 1}.
+                </span>
+                <span>{q}</span>
               </li>
             ))}
-          </ul>
-          <p className="mt-4 text-sm font-body text-muted-foreground leading-relaxed">
-            Zara asks them one at a time, reacts to what you say, and ends with a short
-            summary of the pattern and one concrete next step. You can skip any question,
-            pause, or stop whenever you want.
+          </ol>
+          <h3 className="mt-8 font-heading text-lg text-foreground">
+            What you get at the end
+          </h3>
+          <p className="mt-2 text-sm font-body text-foreground/85 leading-relaxed">
+            {checklist.outcome}
           </p>
         </section>
 
