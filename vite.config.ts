@@ -376,6 +376,8 @@ function prerenderPlugin(env: Record<string, string>): Plugin {
         console.log(`[prerender] wrote ${path.relative(__dirname, outPath)}`);
       }
 
+      injectEventsIndexList(distRoot, upcomingEvents);
+
       // Clean up SSR output — not served in production.
       try {
         fs.rmSync(ssrOutDir, { recursive: true, force: true });
