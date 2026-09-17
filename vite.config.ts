@@ -14,6 +14,7 @@ const PRERENDER_ROUTES = [
   "/terms",
   // Public content pages. These exist to be found by search engines and AI
   // assistants, so prerendering them is not optional — crawlers do not run JS.
+  "/events",
   "/lonely-in-dubai",
   "/roundtables",
   "/women-networking-dubai",

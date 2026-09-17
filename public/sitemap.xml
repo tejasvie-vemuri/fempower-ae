@@ -11,6 +11,11 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://fempowerae.com/events</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
     <loc>https://fempowerae.com/lonely-in-dubai</loc>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
@@ -31,14 +36,29 @@
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://fempowerae.com/auth</loc>
-    <changefreq>yearly</changefreq>
-    <priority>0.4</priority>
+    <loc>https://fempowerae.com/try/invisible-labour-audit</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://fempowerae.com/directory</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <loc>https://fempowerae.com/try/the-ask-checklist</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fempowerae.com/try/am-i-actually-fine</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fempowerae.com/try/relocation-load</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fempowerae.com/meetups</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://fempowerae.com/circle</loc>
@@ -46,9 +66,14 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://fempowerae.com/meetups</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
+    <loc>https://fempowerae.com/directory</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://fempowerae.com/auth</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
   </url>
   <url>
     <loc>https://fempowerae.com/account/tickets</loc>
@@ -71,23 +96,43 @@
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://fempowerae.com/try/invisible-labour-audit</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://fempowerae.com/events/the-to-do-room-ai-roundtable</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://fempowerae.com/try/the-ask-checklist</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://fempowerae.com/events/I</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://fempowerae.com/try/am-i-actually-fine</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://fempowerae.com/events/y</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://fempowerae.com/try/relocation-load</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://fempowerae.com/events/t</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://fempowerae.com/events/a</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://fempowerae.com/events/the-midpoint-half-year-gathering</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://fempowerae.com/events/career-confidence-courage-prapthi-rai</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://fempowerae.com/events/inner-compass</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
   </url>
 </urlset>
