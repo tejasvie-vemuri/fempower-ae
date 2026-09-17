@@ -63,6 +63,26 @@ const TryChecklistPage = () => {
         <meta property="og:description" content={checklist.metaDescription} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={canonical} />
+        {/* The questions themselves, machine-readable, so assistants can cite them. */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "HowTo",
+            name: checklist.label,
+            description: checklist.subhook,
+            url: canonical,
+            totalTime: `PT${checklist.minutes}M`,
+            estimatedCost: { "@type": "MonetaryAmount", currency: "AED", value: "0" },
+            inLanguage: "en-AE",
+            publisher: { "@id": "https://fempowerae.com/#organization" },
+            step: checklist.allQuestions.map((q, i) => ({
+              "@type": "HowToStep",
+              position: i + 1,
+              name: q,
+              url: `${canonical}#q${i + 1}`,
+            })),
+          })}
+        </script>
       </Helmet>
 
       <PageJsonLd
