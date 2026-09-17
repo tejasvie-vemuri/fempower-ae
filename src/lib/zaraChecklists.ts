@@ -14,6 +14,15 @@ export type TryChecklist = {
   subhook: string;
   /** Real questions from the flow, used as the page's proof and its marketing. */
   sampleQuestions: string[];
+  /**
+   * Every question in the flow, written out. Zara phrases them in her own words
+   * in the moment, but these are the questions she works through — published as
+   * readable text so search engines and AI assistants can actually see what the
+   * checklist contains instead of an opaque "start chat" button.
+   */
+  allQuestions: string[];
+  /** One line on what the closing summary gives her. */
+  outcome: string;
   minutes: number;
   questionCount: number;
   metaTitle: string;
