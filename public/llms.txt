@@ -39,6 +39,7 @@ Fempower is an independent organisation. Its only official website is https://fe
 
 - [Home](/): About Fempower, programs, upcoming events, community moments, resources and voices.
 - [Join](/join): How to become a member — sign up or request access for existing members.
+- [Events](/events): All upcoming and recent Fempower women's events across Dubai, Abu Dhabi and the UAE, with dates, locations, prices and whether each event is open to all or members-only.
 - [Feeling lonely in Dubai](/lonely-in-dubai): Why loneliness is common after moving to the UAE, how long it typically lasts, and what actually helps build real friendships rather than contacts.
 - [Women's networking in Dubai and the UAE](/women-networking-dubai): Guide to the four types of women's networking group in the UAE — free WhatsApp communities, paid membership clubs, professional councils and small capped communities — with a comparison table, how to choose, and what is specific to networking in the UAE.
 - [Zara — free AI coach for women in the UAE](/ai-coach-for-women-uae): What Fempower's free AI coach does, the four guided checklists, UAE-specific context, privacy, and what she is explicitly not.
