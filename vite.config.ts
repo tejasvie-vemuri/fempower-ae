@@ -62,12 +62,12 @@ async function writeEventShells(
   distRoot: string,
   template: string,
   env: Record<string, string>,
-) {
+): Promise<BuildEvent[]> {
   const url = env.VITE_SUPABASE_URL;
   const key = env.VITE_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) {
     console.warn("[prerender] no Supabase env — skipping event shells");
-    return;
+    return [];
   }
 
   let events: BuildEvent[] = [];
@@ -85,7 +85,7 @@ async function writeEventShells(
       "[prerender] could not fetch events, skipping event shells:",
       (err as Error).message,
     );
-    return;
+    return [];
   }
 
   for (const ev of events) {
