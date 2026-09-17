@@ -161,6 +161,57 @@ async function writeEventShells(
     fs.writeFileSync(outPath, html, "utf-8");
     console.log(`[prerender] wrote events/${ev.slug}/index.html`);
   }
+
+  return events;
+}
+
+/**
+ * Injects a crawler-readable list of upcoming events into the prerendered
+ * /events page, plus ItemList JSON-LD. The React app replaces the markup on
+ * hydration, so this only ever serves crawlers and no-JS visitors.
+ */
+function injectEventsIndexList(distRoot: string, events: BuildEvent[]) {
+  const indexPath = path.join(distRoot, "events", "index.html");
+  if (!fs.existsSync(indexPath) || events.length === 0) return;
+
+  const items = events
+    .map((ev) => {
+      const when = new Date(ev.starts_at).toLocaleString("en-AE", {
+        dateStyle: "full",
+        timeStyle: "short",
+        timeZone: "Asia/Dubai",
+      });
+      const price =
+        ev.price_cents === 0
+          ? "Free"
+          : `${ev.currency} ${(ev.price_cents / 100).toFixed(0)}`;
+      return `<li><a href="/events/${ev.slug}">${escapeHtml(ev.title)}</a> — ${escapeHtml(
+        when,
+      )}, ${escapeHtml(ev.location || "United Arab Emirates")}. ${price}.</li>`;
+    })
+    .join("");
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Upcoming Fempower women's events in the UAE",
+    itemListElement: events.map((ev, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      url: `${SITE}/events/${ev.slug}`,
+      name: ev.title,
+    })),
+  };
+
+  const block = `<section><h2>Upcoming women's events in Dubai and the UAE</h2><ul>${items}</ul></section><script type="application/ld+json">${JSON.stringify(
+    jsonLd,
+  ).replace(/</g, "\\u003c")}</script>`;
+
+  const html = fs
+    .readFileSync(indexPath, "utf-8")
+    .replace('<div id="root">', `<div id="root">${block}`);
+  fs.writeFileSync(indexPath, html, "utf-8");
+  console.log(`[prerender] injected ${events.length} events into events/index.html`);
 }
 
 /**
