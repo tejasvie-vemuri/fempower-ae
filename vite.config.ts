@@ -14,6 +14,7 @@ const PRERENDER_ROUTES = [
   "/terms",
   // Public content pages. These exist to be found by search engines and AI
   // assistants, so prerendering them is not optional — crawlers do not run JS.
+  "/events",
   "/lonely-in-dubai",
   "/roundtables",
   "/women-networking-dubai",
@@ -61,12 +62,12 @@ async function writeEventShells(
   distRoot: string,
   template: string,
   env: Record<string, string>,
-) {
+): Promise<BuildEvent[]> {
   const url = env.VITE_SUPABASE_URL;
   const key = env.VITE_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) {
     console.warn("[prerender] no Supabase env — skipping event shells");
-    return;
+    return [];
   }
 
   let events: BuildEvent[] = [];
@@ -84,7 +85,7 @@ async function writeEventShells(
       "[prerender] could not fetch events, skipping event shells:",
       (err as Error).message,
     );
-    return;
+    return [];
   }
 
   for (const ev of events) {
@@ -160,6 +161,57 @@ async function writeEventShells(
     fs.writeFileSync(outPath, html, "utf-8");
     console.log(`[prerender] wrote events/${ev.slug}/index.html`);
   }
+
+  return events;
+}
+
+/**
+ * Injects a crawler-readable list of upcoming events into the prerendered
+ * /events page, plus ItemList JSON-LD. The React app replaces the markup on
+ * hydration, so this only ever serves crawlers and no-JS visitors.
+ */
+function injectEventsIndexList(distRoot: string, events: BuildEvent[]) {
+  const indexPath = path.join(distRoot, "events", "index.html");
+  if (!fs.existsSync(indexPath) || events.length === 0) return;
+
+  const items = events
+    .map((ev) => {
+      const when = new Date(ev.starts_at).toLocaleString("en-AE", {
+        dateStyle: "full",
+        timeStyle: "short",
+        timeZone: "Asia/Dubai",
+      });
+      const price =
+        ev.price_cents === 0
+          ? "Free"
+          : `${ev.currency} ${(ev.price_cents / 100).toFixed(0)}`;
+      return `<li><a href="/events/${ev.slug}">${escapeHtml(ev.title)}</a> — ${escapeHtml(
+        when,
+      )}, ${escapeHtml(ev.location || "United Arab Emirates")}. ${price}.</li>`;
+    })
+    .join("");
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Upcoming Fempower women's events in the UAE",
+    itemListElement: events.map((ev, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      url: `${SITE}/events/${ev.slug}`,
+      name: ev.title,
+    })),
+  };
+
+  const block = `<section><h2>Upcoming women's events in Dubai and the UAE</h2><ul>${items}</ul></section><script type="application/ld+json">${JSON.stringify(
+    jsonLd,
+  ).replace(/</g, "\\u003c")}</script>`;
+
+  const html = fs
+    .readFileSync(indexPath, "utf-8")
+    .replace('<div id="root">', `<div id="root">${block}`);
+  fs.writeFileSync(indexPath, html, "utf-8");
+  console.log(`[prerender] injected ${events.length} events into events/index.html`);
 }
 
 /**
@@ -253,7 +305,7 @@ function prerenderPlugin(env: Record<string, string>): Plugin {
       // metadata and schema.org Event JSON-LD. We do not SSR the body (the
       // SSR bundle has no database access), but crawlers and AI assistants
       // read the head — which is what "women's events in Dubai" answers use.
-      await writeEventShells(distRoot, template, env);
+      const upcomingEvents = await writeEventShells(distRoot, template, env);
 
 
       for (const route of PRERENDER_ROUTES) {
@@ -323,6 +375,8 @@ function prerenderPlugin(env: Record<string, string>): Plugin {
         fs.writeFileSync(outPath, finalHtml, "utf-8");
         console.log(`[prerender] wrote ${path.relative(__dirname, outPath)}`);
       }
+
+      injectEventsIndexList(distRoot, upcomingEvents);
 
       // Clean up SSR output — not served in production.
       try {

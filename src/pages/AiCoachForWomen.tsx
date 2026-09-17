@@ -2,6 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PageByline from "@/components/PageByline";
 import PageJsonLd, { type Faq } from "@/components/PageJsonLd";
 import FempowerCoach from "@/components/FempowerCoach";
 
@@ -167,7 +168,12 @@ const AiCoachForWomen = () => (
         <h1 className="font-heading text-4xl md:text-5xl text-foreground mb-5">
           Zara: a free AI coach and assistant for women living in the UAE
         </h1>
-        <p className="text-sm text-muted-foreground font-body">Last updated: {UPDATED}</p>
+        <PageByline
+          title={"Zara: a free AI coach and assistant for women living in the UAE"}
+          url={CANONICAL}
+          updated={UPDATED}
+          updatedIso="2026-08-26"
+        />
       </header>
 
       <div className="max-w-none font-body text-foreground/90 space-y-10 leading-relaxed [&_p]:mt-4 [&_h2]:mb-3 [&_h3]:mb-1">

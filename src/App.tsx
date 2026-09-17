@@ -19,6 +19,7 @@ import AdminTestimonials from "./pages/AdminTestimonials";
 import AdminEmails from "./pages/AdminEmails";
 
 import EventDetail from "./pages/EventDetail";
+import Events from "./pages/Events";
 import MyTickets from "./pages/MyTickets";
 import Directory from "./pages/Directory";
 import MemberProfileEdit from "./pages/MemberProfileEdit";
@@ -169,7 +170,7 @@ const App = () => (
             <Route path="/admin/lifestyle-manager" element={<AdminRoute><AdminLifestyleManager /></AdminRoute>} />
             <Route path="/admin/northstar" element={<AdminRoute><AdminNorthstar /></AdminRoute>} />
             <Route path="/programs" element={<Navigate to="/#programs" replace />} />
-            <Route path="/events" element={<Navigate to="/#events-calendar" replace />} />
+            <Route path="/events" element={<Events />} />
             <Route path="/join" element={<Join />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
