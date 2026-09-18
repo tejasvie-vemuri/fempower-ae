@@ -43,8 +43,8 @@ interface PhotoRow {
 }
 
 const BUCKET = "event-photos";
-const MIN_PHOTOS = 3;
-const MAX_PHOTOS = 4;
+const MIN_PHOTOS = 4;
+const MAX_PHOTOS = 10;
 const MAX_FILE_MB = 8;
 
 const publicUrl = (path: string) =>
