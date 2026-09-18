@@ -22,6 +22,13 @@
       "when": 1789218260185,
       "tag": "0002_guest_nudge_and_question_selection",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789757234542,
+      "tag": "0003_admins_select_event_photos",
+      "breakpoints": true
     }
   ]
 }
