@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
@@ -312,6 +313,22 @@ const Circle = () => {
 
   return (
     <>
+      <Helmet>
+        <title>The Circle — Honest Conversations for Women in the UAE</title>
+        <meta
+          name="description"
+          content="A safe, moderated space where Fempower members share what's really going on — work, motherhood, relocation and burnout — anonymously if they prefer."
+        />
+        <link rel="canonical" href="https://fempowerae.com/circle" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="The Circle — Honest Conversations for Women in the UAE" />
+        <meta
+          property="og:description"
+          content="A safe, moderated space where women in the UAE share what's really going on — anonymously if they prefer."
+        />
+        <meta property="og:url" content="https://fempowerae.com/circle" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Helmet>
       <Header />
       <main className="pt-24 pb-20 min-h-screen bg-background">
         <div className="container max-w-3xl">
