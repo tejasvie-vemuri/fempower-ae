@@ -28,6 +28,9 @@ const PRERENDER_ROUTES = [
 ];
 
 const SITE = "https://fempowerae.com";
+const PUBLIC_DATABASE_URL = "https://uaiymunelgvvnznkxeik.supabase.co";
+const PUBLIC_DATABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhaXltdW5lbGd2dm56bmt4ZWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1MzQ2NzUsImV4cCI6MjA4ODExMDY3NX0.sL1kcUsg10yNj5YVjUNUhoHlVafpdFnDHH1RsJyIesU";
 
 type BuildEvent = {
   slug: string;
@@ -63,12 +66,8 @@ async function writeEventShells(
   template: string,
   env: Record<string, string>,
 ): Promise<BuildEvent[]> {
-  const url = env.VITE_SUPABASE_URL;
-  const key = env.VITE_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) {
-    console.warn("[prerender] no Supabase env — skipping event shells");
-    return [];
-  }
+  const url = env.VITE_SUPABASE_URL || PUBLIC_DATABASE_URL;
+  const key = env.VITE_SUPABASE_PUBLISHABLE_KEY || PUBLIC_DATABASE_KEY;
 
   let events: BuildEvent[] = [];
   try {
