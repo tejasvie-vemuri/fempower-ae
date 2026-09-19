@@ -3,9 +3,8 @@ import { Link, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Trash2, Upload, GripVertical, Sparkles, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Loader2, Trash2, Upload, GripVertical, AlertTriangle } from "lucide-react";
 import {
   DndContext,
   DragEndEvent,
@@ -62,12 +61,9 @@ interface PhotoCardProps {
   photo: PhotoRow;
   onDelete: (p: PhotoRow) => void;
   onCaption: (p: PhotoRow, caption: string) => void;
-  onAlt: (p: PhotoRow, alt: string) => void;
-  onRegenerateAlt: (p: PhotoRow) => void;
-  regenerating: boolean;
 }
 
-const PhotoCard = ({ photo, onDelete, onCaption, onAlt, onRegenerateAlt, regenerating }: PhotoCardProps) => {
+const PhotoCard = ({ photo, onDelete, onCaption }: PhotoCardProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: photo.id });
 
@@ -112,35 +108,6 @@ const PhotoCard = ({ photo, onDelete, onCaption, onAlt, onRegenerateAlt, regener
             onBlur={(e) => onCaption(photo, e.target.value.trim())}
           />
         </div>
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="text-xs font-medium text-muted-foreground">Alt text (accessibility)</label>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-6 px-2 text-xs"
-              onClick={() => onRegenerateAlt(photo)}
-              disabled={regenerating}
-              title="Regenerate with AI"
-            >
-              {regenerating ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                <Sparkles className="h-3 w-3 mr-1" />
-              )}
-              AI
-            </Button>
-          </div>
-          <Textarea
-            key={photo.alt_text ?? "empty"}
-            defaultValue={photo.alt_text ?? ""}
-            placeholder="Describe the photo for screen readers"
-            rows={2}
-            maxLength={200}
-            onBlur={(e) => onAlt(photo, e.target.value.trim())}
-          />
-        </div>
         <div className="flex items-center justify-end">
           <Button
             variant="ghost"
@@ -163,7 +130,6 @@ const AdminEventPhotos = () => {
   const [photos, setPhotos] = useState<PhotoRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -192,19 +158,6 @@ const AdminEventPhotos = () => {
   useEffect(() => {
     load();
   }, [eventId]);
-
-  const generateAltFor = async (photoId: string, storagePath: string, eventTitle?: string) => {
-    try {
-      const url = publicUrl(storagePath);
-      const { error } = await supabase.functions.invoke("generate-photo-alt", {
-        body: { photoId, imageUrl: url, eventTitle },
-      });
-      if (error) throw error;
-    } catch (err: any) {
-      console.error("Alt-text generation failed:", err);
-      toast.error(`Alt-text generation failed: ${err.message ?? err}`);
-    }
-  };
 
   const handleUpload = async (files: FileList | null) => {
     if (!files || !eventId) return;
@@ -255,7 +208,7 @@ const AdminEventPhotos = () => {
 
     setUploading(true);
     let nextOrder = photos.length;
-    const newIds: { id: string; path: string }[] = [];
+    let uploadedCount = 0;
 
     for (const { file, hash } of prepared) {
       try {
@@ -278,24 +231,15 @@ const AdminEventPhotos = () => {
           .select("id, storage_path")
           .single();
         if (insErr) throw insErr;
-        if (inserted) newIds.push({ id: inserted.id, path: inserted.storage_path });
+        if (inserted) uploadedCount += 1;
       } catch (err: any) {
         toast.error(`Upload failed: ${err.message ?? err}`);
       }
     }
 
     setUploading(false);
-    toast.success(`Uploaded ${newIds.length} photo${newIds.length === 1 ? "" : "s"}`);
+    toast.success(`Uploaded ${uploadedCount} photo${uploadedCount === 1 ? "" : "s"}`);
     await load();
-
-    // Fire off alt-text generation in background (don't await)
-    if (newIds.length > 0) {
-      toast.info("Generating accessible alt text with AI…");
-      Promise.all(newIds.map((n) => generateAltFor(n.id, n.path, event?.title))).then(() => {
-        toast.success("Alt text ready");
-        load();
-      });
-    }
   };
 
   const handleDelete = async (photo: PhotoRow) => {
@@ -321,24 +265,6 @@ const AdminEventPhotos = () => {
       .update({ caption: caption || null })
       .eq("id", photo.id);
     if (error) toast.error(error.message);
-  };
-
-  const handleAlt = async (photo: PhotoRow, alt: string) => {
-    if ((photo.alt_text ?? "") === alt) return;
-    const { error } = await (supabase as any)
-      .from("event_photos")
-      .update({ alt_text: alt || null })
-      .eq("id", photo.id);
-    if (error) toast.error(error.message);
-    else setPhotos((prev) => prev.map((p) => (p.id === photo.id ? { ...p, alt_text: alt || null } : p)));
-  };
-
-  const handleRegenerateAlt = async (photo: PhotoRow) => {
-    setRegeneratingId(photo.id);
-    await generateAltFor(photo.id, photo.storage_path, event?.title);
-    setRegeneratingId(null);
-    await load();
-    toast.success("Alt text regenerated");
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -456,9 +382,6 @@ const AdminEventPhotos = () => {
                     photo={p}
                     onDelete={handleDelete}
                     onCaption={handleCaption}
-                    onAlt={handleAlt}
-                    onRegenerateAlt={handleRegenerateAlt}
-                    regenerating={regeneratingId === p.id}
                   />
                 ))}
               </div>
