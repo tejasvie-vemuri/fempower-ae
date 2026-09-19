@@ -592,6 +592,13 @@ const EventDetail = () => {
         <meta property="og:type" content="article" />
         <meta property="og:title" content={`${event.title} — Fempower`} />
         <meta property="og:description" content={metaDescription} />
+        <meta property="og:url" content={`https://fempowerae.com/events/${event.slug}`} />
+        {event.cover_image_url ? (
+          <meta property="og:image" content={event.cover_image_url} />
+        ) : null}
+        {event.cover_image_url ? (
+          <meta name="twitter:image" content={event.cover_image_url} />
+        ) : null}
         <meta name="twitter:card" content="summary_large_image" />
       </Helmet>
       <EventJsonLd

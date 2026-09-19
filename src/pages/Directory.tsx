@@ -62,6 +62,22 @@ const Directory = () => {
 
   return (
     <>
+      <Helmet>
+        <title>Member Directory — Fempower Women's Community UAE</title>
+        <meta
+          name="description"
+          content="Browse Fempower members across the UAE by city, industry and what they're open to — mentoring, collaboration, hiring or friendship."
+        />
+        <link rel="canonical" href="https://fempowerae.com/directory" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Member Directory — Fempower Women's Community UAE" />
+        <meta
+          property="og:description"
+          content="Find women across the UAE by city, industry and what they're open to — mentoring, collaboration, hiring or friendship."
+        />
+        <meta property="og:url" content="https://fempowerae.com/directory" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Helmet>
       <Header />
 
       {/* Hero — editorial intro inline with Fempower brand */}
