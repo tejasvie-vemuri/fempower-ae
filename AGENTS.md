@@ -1,0 +1,3 @@
+# Architecture rules
+- Event search and social metadata share `src/lib/eventMetadata.ts` between the build-time event HTML generator and the event page, so every event type stays consistent without homepage fallback duplicates.
+- Generate static HTML for all published events during the existing Vite prerender pass; publishing refreshes crawler-visible event data without introducing a separate server.
