@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import EventJsonLd from "@/components/EventJsonLd";
+import { eventMetadata } from "@/lib/eventMetadata";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -576,30 +577,24 @@ const EventDetail = () => {
   const spotsLeft =
     event.capacity > 0 ? Math.max(event.capacity - confirmedCount, 0) : null;
 
-  const metaDescription = (
-    event.description?.replace(/\s+/g, " ").trim() ||
-    `${event.title} — a Fempower gathering for women in the UAE on ${fmtDate}${
-      event.location ? ` at ${event.location}` : ""
-    }. Open to Fempower members.`
-  ).slice(0, 155);
+  const meta = eventMetadata(event);
 
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>{`${event.title} — Fempower event in the UAE`.slice(0, 60)}</title>
-        <meta name="description" content={metaDescription} />
-        <link rel="canonical" href={`https://fempowerae.com/events/${event.slug}`} />
-        <meta property="og:type" content="article" />
-        <meta property="og:title" content={`${event.title} — Fempower`} />
-        <meta property="og:description" content={metaDescription} />
-        <meta property="og:url" content={`https://fempowerae.com/events/${event.slug}`} />
-        {event.cover_image_url ? (
-          <meta property="og:image" content={event.cover_image_url} />
-        ) : null}
-        {event.cover_image_url ? (
-          <meta name="twitter:image" content={event.cover_image_url} />
-        ) : null}
-        <meta name="twitter:card" content="summary_large_image" />
+        <title>{meta.title}</title>
+        <meta name="description" content={meta.description} />
+        <link rel="canonical" href={meta.url} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={meta.title} />
+        <meta property="og:description" content={meta.description} />
+        <meta property="og:url" content={meta.url} />
+        {meta.image ? <meta property="og:image" content={meta.image} /> : null}
+        {meta.image ? <meta property="og:image:alt" content={event.title} /> : null}
+        {meta.image ? <meta name="twitter:image" content={meta.image} /> : null}
+        <meta name="twitter:title" content={meta.title} />
+        <meta name="twitter:description" content={meta.description} />
+        <meta name="twitter:card" content={meta.image ? "summary_large_image" : "summary"} />
       </Helmet>
       <EventJsonLd
         slug={event.slug}
@@ -614,6 +609,7 @@ const EventDetail = () => {
         status={event.status}
         capacity={event.capacity}
         seatsTaken={confirmedCount}
+        membersOnly={event.members_only}
       />
       <div className="max-w-4xl mx-auto px-4 py-10">
         <HashLink

@@ -21,6 +21,7 @@ type Props = {
   status: string;
   capacity: number;
   seatsTaken: number;
+  membersOnly?: boolean;
 };
 
 const EventJsonLd = ({
@@ -36,6 +37,7 @@ const EventJsonLd = ({
   status,
   capacity,
   seatsTaken,
+  membersOnly = true,
 }: Props) => {
   const url = `${SITE}/events/${slug}`;
   const isFull = capacity > 0 && seatsTaken >= capacity;
@@ -88,7 +90,7 @@ const EventJsonLd = ({
       price: (priceCents / 100).toFixed(2),
       priceCurrency: currency,
       availability,
-      category: "Members only — Fempower membership required to register",
+      category: membersOnly ? "Members only" : "Members & guests welcome",
     },
   };
 

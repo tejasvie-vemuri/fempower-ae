@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import fs from "fs";
 import { pathToFileURL } from "url";
+import { eventHtml, eventMetadata } from "./src/lib/eventMetadata";
 import { componentTagger } from "lovable-tagger";
 import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
 
@@ -43,6 +44,8 @@ type BuildEvent = {
   currency: string;
   cover_image_url: string | null;
   capacity: number;
+  timezone: string | null;
+  members_only: boolean;
 };
 
 function escapeHtml(s: string) {
@@ -54,7 +57,7 @@ function escapeHtml(s: string) {
 }
 
 /**
- * Writes dist/events/<slug>/index.html for every published, upcoming event.
+ * Writes dist/events/<slug>/index.html for every published event.
  *
  * The body stays client-rendered — the SSR bundle has no database access —
  * but the head carries a real title, description, canonical and schema.org
@@ -72,7 +75,7 @@ async function writeEventShells(
   let events: BuildEvent[] = [];
   try {
     const res = await fetch(
-      `${url}/rest/v1/events?select=slug,title,description,location,starts_at,ends_at,price_cents,currency,cover_image_url,capacity&status=eq.published&starts_at=gte.${new Date().toISOString()}&order=starts_at.asc&limit=100`,
+      `${url}/rest/v1/events?select=slug,title,description,location,starts_at,ends_at,price_cents,currency,cover_image_url,capacity,timezone,members_only&status=eq.published&order=starts_at.asc`,
       { headers: { apikey: key, Authorization: `Bearer ${key}` } },
     );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -88,14 +91,9 @@ async function writeEventShells(
   }
 
   for (const ev of events) {
-    const canonical = `${SITE}/events/${ev.slug}`;
-    const description = (
-      ev.description?.replace(/\s+/g, " ").trim() ||
-      `${ev.title} — a Fempower gathering for women in the UAE${
-        ev.location ? ` at ${ev.location}` : ""
-      }. Open to Fempower members.`
-    ).slice(0, 155);
-    const title = `${ev.title} — Fempower event in the UAE`.slice(0, 60);
+    const meta = eventMetadata(ev);
+    const canonical = meta.url;
+    const description = meta.description;
 
     const jsonLd: Record<string, unknown> = {
       "@context": "https://schema.org",
@@ -129,31 +127,13 @@ async function writeEventShells(
         price: (ev.price_cents / 100).toFixed(2),
         priceCurrency: ev.currency,
         availability: "https://schema.org/InStock",
-        category: "Members only — Fempower membership required to register",
+        category: meta.access,
       },
     };
     if (ev.ends_at) jsonLd.endDate = ev.ends_at;
-    if (ev.cover_image_url) jsonLd.image = [ev.cover_image_url];
+    if (meta.image) jsonLd.image = [meta.image];
 
-    const head = [
-      `<title>${escapeHtml(title)}</title>`,
-      `<meta name="description" content="${escapeHtml(description)}" />`,
-      `<link rel="canonical" href="${canonical}" />`,
-      `<meta property="og:type" content="article" />`,
-      `<meta property="og:title" content="${escapeHtml(ev.title)} — Fempower" />`,
-      `<meta property="og:description" content="${escapeHtml(description)}" />`,
-      `<meta name="twitter:card" content="summary_large_image" />`,
-      `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(
-        /</g,
-        "\\u003c",
-      )}</script>`,
-    ].join("\n    ");
-
-    const html = template
-      .replace(/<title>[\s\S]*?<\/title>/, "")
-      .replace(/<meta\s+name="description"[^>]*>/, "")
-      .replace(/<link\s+rel="canonical"[^>]*>/, "")
-      .replace("</head>", `    ${head}\n  </head>`);
+    const html = eventHtml(template, ev, jsonLd);
 
     const outPath = path.join(distRoot, "events", ev.slug, "index.html");
     fs.mkdirSync(path.dirname(outPath), { recursive: true });
@@ -304,7 +284,8 @@ function prerenderPlugin(env: Record<string, string>): Plugin {
       // metadata and schema.org Event JSON-LD. We do not SSR the body (the
       // SSR bundle has no database access), but crawlers and AI assistants
       // read the head — which is what "women's events in Dubai" answers use.
-      const upcomingEvents = await writeEventShells(distRoot, template, env);
+      const publishedEvents = await writeEventShells(distRoot, template, env);
+      const upcomingEvents = publishedEvents.filter((event) => new Date(event.starts_at).getTime() >= Date.now());
 
 
       for (const route of PRERENDER_ROUTES) {
