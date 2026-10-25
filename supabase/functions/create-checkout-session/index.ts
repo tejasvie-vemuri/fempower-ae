@@ -227,7 +227,8 @@ Deno.serve(async (req) => {
     if (quote.total_cents === 0) {
       const { error } = await supabaseAdmin.rpc("confirm_discounted_registration", { _registration_id: registrationId });
       if (error) throw error;
-      await sendAttendeeEmail(supabaseAdmin, registrationId, "confirmation");
+      try { await sendAttendeeEmail(supabaseAdmin, registrationId, "confirmation"); }
+      catch (error) { console.warn("Discounted registration confirmation email failed", error); }
       return new Response(JSON.stringify({ confirmed: true, registration_id: registrationId }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 

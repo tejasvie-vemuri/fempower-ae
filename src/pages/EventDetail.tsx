@@ -427,7 +427,10 @@ const EventDetail = () => {
         return;
       }
       if (error || !data?.redirect_url) {
-        const reason = error?.message ?? data?.error ?? "Could not start checkout";
+        let reason = data?.error ?? error?.message ?? "Could not start checkout";
+        if (error) {
+          try { reason = (await error.context?.json())?.error ?? reason; } catch { /* fallback */ }
+        }
         track("checkout_failed", { ...funnel, reason });
         toast.error(reason);
         return;
@@ -491,7 +494,10 @@ const EventDetail = () => {
     setActing(false);
 
     if (error || data?.error) {
-      const reason = data?.error ?? error?.message ?? "Could not complete registration";
+      let reason = data?.error ?? error?.message ?? "Could not complete registration";
+      if (error) {
+        try { reason = (await error.context?.json())?.error ?? reason; } catch { /* fallback */ }
+      }
       track("event_register_failed", { ...funnel, guest: true, reason });
       toast.error(reason);
       return;
