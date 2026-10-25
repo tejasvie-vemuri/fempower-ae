@@ -1,3 +1,4 @@
+import { assertCheckoutPayment } from "../_shared/promo-core.ts";
 import { sendAttendeeEmail } from "../_shared/attendee-email.ts";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -56,7 +57,7 @@ async function confirmIfCompleted(
 
   let query = supabaseAdmin
     .from("registrations")
-    .select("id, status, user_id");
+    .select("id, status, user_id, payment_intent_id, checkout_amount_cents, currency");
 
   query = registrationId
     ? query.eq("id", registrationId)
@@ -82,6 +83,7 @@ async function confirmIfCompleted(
   }
 
   if (nextStatus === "confirmed") {
+    assertCheckoutPayment(reg, intent);
     const { error: updateErr } = await supabaseAdmin
       .from("registrations")
       .update({

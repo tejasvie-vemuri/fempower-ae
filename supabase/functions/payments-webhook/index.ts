@@ -1,3 +1,4 @@
+import { assertCheckoutPayment } from "../_shared/promo-core.ts";
 import { sendAttendeeEmail } from "../_shared/attendee-email.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
@@ -75,7 +76,7 @@ async function handlePaymentIntentStatus(intent: ZiinaPaymentIntent) {
 
   const { data: reg } = await getSupabase()
     .from("registrations")
-    .select("id, status, user_id")
+    .select("id, status, user_id, payment_intent_id, checkout_amount_cents, currency")
     .eq("payment_intent_id", intent.id)
     .maybeSingle();
   if (!reg) {
@@ -90,6 +91,7 @@ async function handlePaymentIntentStatus(intent: ZiinaPaymentIntent) {
   }
 
   if (nextStatus === "confirmed") {
+    assertCheckoutPayment(reg, intent);
     const { error } = await getSupabase()
       .from("registrations")
       .update({

@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom"
 import { Helmet } from "react-helmet-async";
 import EventJsonLd from "@/components/EventJsonLd";
 import { eventMetadata } from "@/lib/eventMetadata";
+import EventPromoCode, { type AppliedPromo } from "@/components/EventPromoCode";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -93,6 +94,7 @@ const EventDetail = () => {
   const [responses, setResponses] = useState<AttendeeResponses>({});
   const [responseErrors, setResponseErrors] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
+  const [promo, setPromo] = useState<AppliedPromo | null>(null);
   const [guests, setGuests] = useState<Guest[]>([]);
   // Guest (no account) registration — only offered on open events.
   const [guestMode, setGuestMode] = useState(false);
@@ -415,11 +417,20 @@ const EventDetail = () => {
           responses: responsesPayload,
           quantity: safeQty,
           guests: guestsPayload,
+          promo_code: promo?.code,
         },
       });
       setActing(false);
+      if (data?.confirmed) {
+        toast.success("You're registered! Check your email for the ticket.");
+        load();
+        return;
+      }
       if (error || !data?.redirect_url) {
-        const reason = error?.message ?? data?.error ?? "Could not start checkout";
+        let reason = data?.error ?? error?.message ?? "Could not start checkout";
+        if (error) {
+          try { reason = (await error.context?.json())?.error ?? reason; } catch { /* fallback */ }
+        }
         track("checkout_failed", { ...funnel, reason });
         toast.error(reason);
         return;
@@ -477,12 +488,16 @@ const EventDetail = () => {
         quantity: safeQty,
         guests: JSON.parse(JSON.stringify(cleanGuests)),
         origin: window.location.origin,
+        promo_code: promo?.code,
       },
     });
     setActing(false);
 
     if (error || data?.error) {
-      const reason = data?.error ?? error?.message ?? "Could not complete registration";
+      let reason = data?.error ?? error?.message ?? "Could not complete registration";
+      if (error) {
+        try { reason = (await error.context?.json())?.error ?? reason; } catch { /* fallback */ }
+      }
       track("event_register_failed", { ...funnel, guest: true, reason });
       toast.error(reason);
       return;
@@ -857,7 +872,7 @@ const EventDetail = () => {
                 <div className="font-heading text-2xl text-primary">
                   {isFree
                     ? "Free"
-                    : `${event.currency} ${((event.price_cents * quantity) / 100).toFixed(2)}`}
+                    : `${event.currency} ${((promo?.total_cents ?? event.price_cents * quantity) / 100).toFixed(2)}`}
                 </div>
                 {!isFree && quantity > 1 && (
                   <div className="text-xs text-muted-foreground mt-1">
@@ -866,6 +881,10 @@ const EventDetail = () => {
                   </div>
                 )}
               </div>
+
+              {!isFree && event.status === "published" && !isFull && !guestTicket && myReg?.status !== "confirmed" && (
+                <EventPromoCode eventId={event.id} quantity={quantity} userId={user?.id} currency={event.currency} value={promo} onChange={setPromo} disabled={acting} />
+              )}
 
               {event.status === "cancelled" ? (
                 <div className="bg-destructive/10 text-destructive text-sm rounded-md p-3">
@@ -1038,7 +1057,7 @@ const EventDetail = () => {
                         onClick={handleGuestRegister}
                       >
                         {acting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                        {isFree ? "Register as guest" : "Continue to payment"}
+                        {isFree || promo?.total_cents === 0 ? "Register as guest" : "Continue to payment"}
                       </Button>
                       <Button
                         variant="ghost"

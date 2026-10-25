@@ -237,7 +237,8 @@ const AdminEvents = () => {
             </Link>
             <h1 className="font-heading text-3xl text-primary">Manage Events</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button asChild variant="outline"><Link to="/admin/promo-codes">Promo codes</Link></Button>
             <Button asChild variant="outline">
               <Link to="/admin/resources">
                 <FileText className="h-4 w-4 mr-2" /> Resources

@@ -11,6 +11,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Join from "./pages/Join";
 import AdminEvents from "./pages/AdminEvents";
+import AdminPromoCodes from "./pages/AdminPromoCodes";
 import AdminEventPhotos from "./pages/AdminEventPhotos";
 import AdminResources from "./pages/AdminResources";
 import AdminRegistrations from "./pages/AdminRegistrations";
@@ -88,6 +89,7 @@ const App = () => (
 
             <Route path="/pending-approval" element={<ProtectedRoute allowPending><PendingApproval /></ProtectedRoute>} />
             <Route path="/admin/members" element={<AdminRoute><AdminMembers /></AdminRoute>} />
+            <Route path="/admin/promo-codes" element={<AdminRoute><AdminPromoCodes /></AdminRoute>} />
             <Route path="/admin/images" element={<AdminRoute><AdminImages /></AdminRoute>} />
             <Route path="/admin/emails" element={<AdminRoute><AdminEmails /></AdminRoute>} />
             <Route path="/circle" element={<Circle />} />

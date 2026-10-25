@@ -823,6 +823,50 @@ export type Database = {
           },
         ]
       }
+      event_promo_codes: {
+        Row: {
+          code: string
+          created_at: string
+          discount_type: string
+          discount_value: number
+          event_id: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          members_only: boolean
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          discount_type: string
+          discount_value: number
+          event_id?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          members_only?: boolean
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          discount_type?: string
+          discount_value?: number
+          event_id?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          members_only?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_promo_codes_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_resources: {
         Row: {
           created_at: string
@@ -1931,8 +1975,10 @@ export type Database = {
           cancellation_reason: string | null
           cancellation_requested_at: string | null
           checked_in_at: string | null
+          checkout_amount_cents: number | null
           created_at: string
           currency: string
+          discount_cents: number
           event_confirmation_key: string | null
           event_id: string
           event_reminder_key: string | null
@@ -1947,6 +1993,8 @@ export type Database = {
           payment_intent_id: string | null
           payment_operation_id: string | null
           payment_provider: string | null
+          promo_code: string | null
+          promo_code_id: string | null
           quantity: number
           refund_id: string | null
           responses: Json
@@ -1960,8 +2008,10 @@ export type Database = {
           cancellation_reason?: string | null
           cancellation_requested_at?: string | null
           checked_in_at?: string | null
+          checkout_amount_cents?: number | null
           created_at?: string
           currency?: string
+          discount_cents?: number
           event_confirmation_key?: string | null
           event_id: string
           event_reminder_key?: string | null
@@ -1976,6 +2026,8 @@ export type Database = {
           payment_intent_id?: string | null
           payment_operation_id?: string | null
           payment_provider?: string | null
+          promo_code?: string | null
+          promo_code_id?: string | null
           quantity?: number
           refund_id?: string | null
           responses?: Json
@@ -1989,8 +2041,10 @@ export type Database = {
           cancellation_reason?: string | null
           cancellation_requested_at?: string | null
           checked_in_at?: string | null
+          checkout_amount_cents?: number | null
           created_at?: string
           currency?: string
+          discount_cents?: number
           event_confirmation_key?: string | null
           event_id?: string
           event_reminder_key?: string | null
@@ -2005,6 +2059,8 @@ export type Database = {
           payment_intent_id?: string | null
           payment_operation_id?: string | null
           payment_provider?: string | null
+          promo_code?: string | null
+          promo_code_id?: string | null
           quantity?: number
           refund_id?: string | null
           responses?: Json
@@ -2019,6 +2075,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registrations_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "event_promo_codes"
             referencedColumns: ["id"]
           },
         ]
@@ -2407,6 +2470,10 @@ export type Database = {
       can_view_event_resource: {
         Args: { _resource_id: string; _user_id: string }
         Returns: boolean
+      }
+      confirm_discounted_registration: {
+        Args: { _registration_id: string }
+        Returns: undefined
       }
       confirm_free_registration: {
         Args: {

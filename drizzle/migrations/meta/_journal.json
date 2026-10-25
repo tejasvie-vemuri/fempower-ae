@@ -36,6 +36,13 @@
       "when": 1792915463582,
       "tag": "0004_attendee_email_delivery_tracking",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792946150166,
+      "tag": "0005_event_promo_codes",
+      "breakpoints": true
     }
   ]
 }

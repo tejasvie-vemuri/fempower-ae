@@ -1,3 +1,5 @@
+import { resolvePromo } from "../_shared/promo.ts";
+import { sendAttendeeEmail } from "../_shared/attendee-email.ts";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
@@ -176,11 +178,14 @@ Deno.serve(async (req) => {
       });
     }
 
+    const quote = await resolvePromo(supabaseAdmin, body.promo_code, ev, quantity, userId);
+    const discountFields = { promo_code_id: quote.promo_code_id, promo_code: quote.code, discount_cents: quote.discount_cents, checkout_amount_cents: quote.total_cents };
     let registrationId = existingReg?.id;
     if (!registrationId) {
       const { data: reg, error: regErr } = await supabaseAdmin
         .from("registrations")
         .insert({
+          ...discountFields,
           event_id: ev.id,
           user_id: userId,
           status: "pending",
@@ -201,9 +206,12 @@ Deno.serve(async (req) => {
       }
       registrationId = reg.id;
     } else {
-      await supabaseAdmin
+      const { error: retryError } = await supabaseAdmin
         .from("registrations")
         .update({
+          ...discountFields,
+          payment_intent_id: null,
+          payment_checkout_url: null,
           status: "pending",
           amount_paid_cents: 0,
           currency: ev.currency,
@@ -213,13 +221,22 @@ Deno.serve(async (req) => {
           payment_provider: "ziina",
         })
         .eq("id", registrationId);
+      if (retryError) throw retryError;
+    }
+    if (!registrationId) throw new Error("Registration not created");
+    if (quote.total_cents === 0) {
+      const { error } = await supabaseAdmin.rpc("confirm_discounted_registration", { _registration_id: registrationId });
+      if (error) throw error;
+      try { await sendAttendeeEmail(supabaseAdmin, registrationId, "confirmation"); }
+      catch (error) { console.warn("Discounted registration confirmation email failed", error); }
+      return new Response(JSON.stringify({ confirmed: true, registration_id: registrationId }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const operationId = crypto.randomUUID();
     const baseReturnUrl = `${siteUrl}/events/${ev.slug}`;
-    const registrationReturnParam = `registration_id=${encodeURIComponent(registrationId!)}`;
+    const registrationReturnParam = `registration_id=${encodeURIComponent(registrationId)}`;
     const intent = await createPaymentIntent({
-      amount: ev.price_cents * quantity,
+      amount: quote.total_cents,
       currency_code: String(ev.currency ?? "AED").toUpperCase(),
       message: quantity > 1 ? `${ev.title} (x${quantity})` : ev.title,
       success_url: `${baseReturnUrl}?checkout=success&${registrationReturnParam}`,
@@ -245,7 +262,7 @@ Deno.serve(async (req) => {
         payment_checkout_url: intent.redirect_url,
         payment_operation_id: intent.operation_id ?? operationId,
       })
-      .eq("id", registrationId!);
+      .eq("id", registrationId);
     if (intentErr) {
       console.error("create-checkout-session: failed to store payment_intent_id", {
         registrationId,

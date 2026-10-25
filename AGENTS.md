@@ -1,4 +1,6 @@
 # Architecture rules
+- Event discounts are revalidated by the shared server-only promo resolver at checkout; registrations store the quoted amount and every payment confirmation path verifies it to prevent client-forged discounts.
+- Fixed promo discounts apply once to the booking subtotal; percentage discounts apply to the whole subtotal, with zero-total bookings confirmed through the capacity-locked service-only function.
 - Event search and social metadata share `src/lib/eventMetadata.ts` between the build-time event HTML generator and the event page, so every event type stays consistent without homepage fallback duplicates.
 - Generate static HTML for all published events during the existing Vite prerender pass; publishing refreshes crawler-visible event data without introducing a separate server.
 - Attendee confirmations and reminders use the shared server-only attendee email helper with stored registration data and ticket/start-derived idempotency keys; clients supply only their registration ID to prevent forged recipients and event details.
