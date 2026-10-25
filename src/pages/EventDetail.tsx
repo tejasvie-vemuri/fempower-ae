@@ -359,28 +359,11 @@ const EventDetail = () => {
           .eq("event_id", event.id)
           .eq("user_id", user.id)
           .maybeSingle();
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("email, name")
-          .eq("user_id", user.id)
-          .maybeSingle();
-        if (profile?.email && reg) {
-          await supabase.functions.invoke("send-app-email", {
-            body: {
-              templateName: "event-registration-confirmation",
-              recipientEmail: profile.email,
-              idempotencyKey: `event-reg-${reg.id}`,
-              templateData: {
-                name: profile.name,
-                eventTitle: event.title,
-                startsAt: event.starts_at,
-                location: event.location,
-                ticketCode: reg.ticket_code,
-                quantity: reg.quantity,
-                eventUrl: `${window.location.origin}/events/${event.slug}`,
-              },
-            },
+        if (reg) {
+          const { error: emailError } = await supabase.functions.invoke("event-attendee-email", {
+            body: { registration_id: reg.id },
           });
+          if (emailError) console.warn("Confirmation email could not be sent", emailError);
         }
       } catch (e) {
         console.warn("Failed to send event registration email", e);
