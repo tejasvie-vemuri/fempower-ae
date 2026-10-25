@@ -1,3 +1,4 @@
+import { sendAttendeeEmail } from "../_shared/attendee-email.ts";
 // Transfer a confirmed event ticket to someone else.
 // The caller must own the registration. If the new holder is already a
 // Fempower member the ticket is reassigned to their account, otherwise it
@@ -133,22 +134,7 @@ Deno.serve(async (req) => {
     const siteUrl = origin || Deno.env.get("PUBLIC_SITE_URL") || "https://fempowerae.com";
 
     try {
-      await admin.functions.invoke("send-app-email", {
-        body: {
-          templateName: "event-registration-confirmation",
-          recipientEmail: email,
-          idempotencyKey: `ticket-transfer-${reg.id}-${ticketCode}`,
-          templateData: {
-            name: recipientProfile?.name ?? name,
-            eventTitle: ev?.title ?? "Fempower event",
-            startsAt: ev?.starts_at,
-            location: ev?.location,
-            ticketCode,
-            quantity: reg.quantity ?? 1,
-            eventUrl: ev ? `${siteUrl}/events/${ev.slug}` : siteUrl,
-          },
-        },
-      });
+      await sendAttendeeEmail(admin, reg.id, "confirmation");
     } catch (e) {
       console.warn("transfer-ticket: email failed", e);
     }

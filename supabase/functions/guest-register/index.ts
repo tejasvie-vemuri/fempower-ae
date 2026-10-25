@@ -1,3 +1,4 @@
+import { sendAttendeeEmail } from "../_shared/attendee-email.ts";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
@@ -206,22 +207,7 @@ Deno.serve(async (req) => {
 
     // Free — confirmation email with the ticket code.
     try {
-      await admin.functions.invoke("send-app-email", {
-        body: {
-          templateName: "event-registration-confirmation",
-          recipientEmail: email,
-          idempotencyKey: `event-reg-${registrationId}`,
-          templateData: {
-            name,
-            eventTitle: ev.title,
-            startsAt: ev.starts_at,
-            location: ev.location,
-            ticketCode,
-            quantity,
-            eventUrl: `${siteUrl}/events/${ev.slug}`,
-          },
-        },
-      });
+      if (registrationId) await sendAttendeeEmail(admin, registrationId, "confirmation");
     } catch (e) {
       console.warn("guest-register: confirmation email failed", e);
     }

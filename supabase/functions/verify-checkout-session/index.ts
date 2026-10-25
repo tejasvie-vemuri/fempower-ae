@@ -1,3 +1,4 @@
+import { sendAttendeeEmail } from "../_shared/attendee-email.ts";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
@@ -37,25 +38,7 @@ async function sendConfirmationEmail(
       .maybeSingle();
 
     if (email && ev) {
-      await supabaseAdmin.functions.invoke("send-app-email", {
-        headers: {
-          Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-        },
-        body: {
-          templateName: "event-registration-confirmation",
-          recipientEmail: email,
-          idempotencyKey: `event-reg-${reg.id}`,
-          templateData: {
-            name,
-            eventTitle: ev.title,
-            startsAt: ev.starts_at,
-            location: ev.location,
-            ticketCode: reg.ticket_code,
-            quantity: reg.quantity,
-            eventUrl: `https://fempowerae.com/events/${ev.slug}`,
-          },
-        },
-      });
+      await sendAttendeeEmail(supabaseAdmin, reg.id, "confirmation");
     }
   } catch (e) {
     console.warn("Failed to send registration confirmation email", e);
