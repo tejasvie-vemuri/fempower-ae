@@ -1,3 +1,4 @@
+import { pageTags, replaceHeadTags } from "./pageMetadata";
 export const EVENT_SITE = "https://fempowerae.com";
 
 export interface EventPreviewData {
@@ -56,33 +57,15 @@ export function escapeEventHtml(value: string) {
 /** Replace, rather than append to, the homepage's social-preview tags. */
 export function eventHtml(template: string, event: EventPreviewData, jsonLd: Record<string, unknown>) {
   const meta = eventMetadata(event);
-  const esc = escapeEventHtml;
   const tags = [
-    `<title>${esc(meta.title)}</title>`,
-    `<meta name="description" content="${esc(meta.description)}" />`,
-    `<link rel="canonical" href="${esc(meta.url)}" />`,
-    `<meta property="og:type" content="website" />`,
-    `<meta property="og:site_name" content="Fempower" />`,
-    `<meta property="og:locale" content="en_AE" />`,
-    `<meta property="og:title" content="${esc(meta.title)}" />`,
-    `<meta property="og:description" content="${esc(meta.description)}" />`,
-    `<meta property="og:url" content="${esc(meta.url)}" />`,
-    `<meta name="twitter:card" content="${meta.image ? "summary_large_image" : "summary"}" />`,
-    `<meta name="twitter:title" content="${esc(meta.title)}" />`,
-    `<meta name="twitter:description" content="${esc(meta.description)}" />`,
-    ...(meta.image ? [
-      `<meta property="og:image" content="${esc(meta.image)}" />`,
-      `<meta property="og:image:alt" content="${esc(event.title)}" />`,
-      `<meta name="twitter:image" content="${esc(meta.image)}" />`,
-      `<meta name="twitter:image:alt" content="${esc(event.title)}" />`,
-    ] : []),
+    ...pageTags({
+      path: `/events/${encodeURIComponent(event.slug)}`,
+      title: meta.title,
+      description: meta.description,
+      image: meta.image,
+      imageAlt: event.title,
+    }),
     `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>`,
   ];
-  return template.replace(/<head>([\s\S]*?)<\/head>/i, (_, head: string) => {
-    const clean = head.replace(/<title\b[^>]*>[\s\S]*?<\/title>/gi, "")
-      .replace(/<meta\b[^>]*>/gi, (tag) =>
-        /(?:name|property)\s*=\s*["'](?:description|og:[^"']+|twitter:[^"']+)["']/i.test(tag) ? "" : tag)
-      .replace(/<link\b[^>]*\brel\s*=\s*["']canonical["'][^>]*>/gi, "");
-    return `<head>${clean}\n${tags.join("\n")}\n</head>`;
-  });
+  return replaceHeadTags(template, tags);
 }

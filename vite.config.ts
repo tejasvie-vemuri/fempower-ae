@@ -4,6 +4,7 @@ import path from "path";
 import fs from "fs";
 import { pathToFileURL } from "url";
 import { eventHtml, eventMetadata } from "./src/lib/eventMetadata";
+import { SHELL_PAGES, metaFromHelmet, pageTags, replaceHeadTags, stripSocialTags } from "./src/lib/pageMetadata";
 import { componentTagger } from "lovable-tagger";
 import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
 
@@ -300,45 +301,13 @@ function prerenderPlugin(env: Record<string, string>): Plugin {
           continue;
         }
 
-        // Only strip a static tag when Helmet supplied a replacement, so
-        // routes without their own Helmet fall back to the sitewide static
-        // <title>, <meta name="description"> and <link rel="canonical">.
-        const helmetTitleMatch = /<title[^>]*>([\s\S]*?)<\/title>/.exec(
-          rendered.headTags,
-        );
-        const hasHelmetTitle =
-          !!helmetTitleMatch && helmetTitleMatch[1].trim().length > 0;
-        const hasHelmetDesc =
-          /<meta[^>]*name="description"/.test(rendered.headTags);
-        const hasHelmetCanonical =
-          /<link[^>]*rel="canonical"/.test(rendered.headTags);
-
-        // Drop the empty title placeholder Helmet emits when no <Helmet>
-        // set a title on this route — otherwise it blanks the static one.
-        let headTagsToInject = rendered.headTags;
-        if (!hasHelmetTitle) {
-          headTagsToInject = headTagsToInject.replace(
-            /<title[^>]*>\s*<\/title>/,
-            "",
-          );
-        }
-
-        let head = template;
-        if (hasHelmetTitle) {
-          head = head.replace(/<title>[\s\S]*?<\/title>/, "");
-        }
-        if (hasHelmetDesc) {
-          head = head.replace(/<meta\s+name="description"[^>]*>/, "");
-        }
-        if (hasHelmetCanonical) {
-          head = head.replace(/<link\s+rel="canonical"[^>]*>/, "");
-        }
-
-        head = head.replace(
-          "</head>",
-          `    ${headTagsToInject}\n  </head>`,
-        );
-
+        // Social crawlers read only the first og:/twitter: tag they find, so
+        // write exactly one complete set per page from its Helmet metadata
+        // (falling back to the homepage set for routes without Helmet).
+        const pageMeta = metaFromHelmet(rendered.headTags, route);
+        const extraHead = stripSocialTags(rendered.headTags);
+        let head = pageMeta ? replaceHeadTags(template, pageTags(pageMeta)) : template;
+        head = head.replace("</head>", `    ${extraHead}\n  </head>`);
 
         // Replace <div id="root"></div> with rendered markup (no hydrate —
         // client createRoot replaces children).
@@ -354,6 +323,15 @@ function prerenderPlugin(env: Record<string, string>): Plugin {
         fs.mkdirSync(path.dirname(outPath), { recursive: true });
         fs.writeFileSync(outPath, finalHtml, "utf-8");
         console.log(`[prerender] wrote ${path.relative(__dirname, outPath)}`);
+      }
+
+      // Public SPA routes that aren't prerendered still need their own preview.
+      for (const page of SHELL_PAGES) {
+        const outPath = path.join(distRoot, page.path.replace(/^\//, ""), "index.html");
+        if (fs.existsSync(outPath)) continue;
+        fs.mkdirSync(path.dirname(outPath), { recursive: true });
+        fs.writeFileSync(outPath, replaceHeadTags(template, pageTags(page)), "utf-8");
+        console.log(`[prerender] wrote preview shell ${page.path}`);
       }
 
       injectEventsIndexList(distRoot, upcomingEvents);
