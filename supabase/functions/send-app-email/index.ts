@@ -3,6 +3,7 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
 import { EmailAPIError } from 'npm:@lovable.dev/email-js@0.1.0'
 import { TEMPLATES } from '../_shared/transactional-email-templates/registry.ts'
 import { sendTemplateEmail } from '../_shared/transactional-email-templates/send-email.ts'
+import { sendAttendeeEmail } from '../_shared/attendee-email.ts'
 
 // App email sender. Renders a registered template and sends it through
 // Lovable's managed email API. Delivery, retries, rate limits, suppression and
@@ -186,6 +187,25 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'Forbidden: recipient must match authenticated user' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       )
+    }
+  }
+
+  // Existing registration/payment callers keep their API, but event emails
+  // always resolve their recipient and details from the actual ticket.
+  if (templateName === 'event-registration-confirmation') {
+    const registrationId = idempotencyKey.match(/^(?:event-reg|ticket-transfer)-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:-|$)/i)?.[1]
+    if (!registrationId) return new Response(JSON.stringify({ error: 'Registration ID required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    if (!isServiceRole) {
+      const { data: reg } = await supabase.from('registrations').select('user_id').eq('id', registrationId).maybeSingle()
+      if (!callerIsAdmin && (!reg || reg.user_id !== callerSub)) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+    try {
+      const result = await sendAttendeeEmail(supabase, registrationId, 'confirmation')
+      return new Response(JSON.stringify({ success: true, ...result }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    } catch (error) {
+      const limited = error instanceof EmailAPIError && error.status === 429
+      logDiag('error_send', { code: error instanceof EmailAPIError ? error.code : 'send_failed' }, true)
+      return new Response(JSON.stringify({ error: limited ? 'Rate limited' : 'Email could not be sent', ...(limited ? { retry_after_seconds: error.retryAfterSeconds ?? 60 } : {}) }), { status: limited ? 429 : 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
   }
 
