@@ -8,6 +8,7 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Preview,
   Section,
   Text,
@@ -23,9 +24,13 @@ interface Props {
   ticketCode?: string
   quantity?: number
   eventUrl?: string
+  timezone?: string
+  coverImageUrl?: string
+  amountPaid?: number
+  currency?: string
 }
 
-const formatDate = (iso?: string) => {
+export const formatEventDate = (iso?: string, timezone = 'Asia/Dubai') => {
   if (!iso) return ''
   try {
     return new Date(iso).toLocaleString('en-GB', {
@@ -35,7 +40,7 @@ const formatDate = (iso?: string) => {
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      timeZone: 'Asia/Dubai',
+      timeZone: timezone,
       timeZoneName: 'short',
     })
   } catch {
@@ -51,6 +56,10 @@ const Email = ({
   ticketCode,
   quantity,
   eventUrl,
+  timezone,
+  coverImageUrl,
+  amountPaid,
+  currency,
 }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
@@ -58,6 +67,7 @@ const Email = ({
     <Body style={s.main}>
       <Container style={s.container}>
         <BrandHeader />
+        {coverImageUrl && <Img src={coverImageUrl} alt={eventTitle || 'Fempower event poster'} width="504" style={{ width: '100%', height: 'auto', marginBottom: '24px' }} />}
         <Heading style={s.h1}>You're registered</Heading>
         <Text style={s.text}>
           {name ? `Hi ${name}, ` : 'Hi, '}your registration for{' '}
@@ -67,7 +77,7 @@ const Email = ({
         <Section style={s.meta}>
           {startsAt && (
             <Text style={{ margin: 0 }}>
-              <strong>When:</strong> {formatDate(startsAt)}
+              <strong>When:</strong> {formatEventDate(startsAt, timezone)}
             </Text>
           )}
           {location && (
@@ -75,11 +85,12 @@ const Email = ({
               <strong>Where:</strong> {location}
             </Text>
           )}
-          {quantity && quantity > 1 && (
+          {quantity && quantity >= 1 && (
             <Text style={{ margin: '6px 0 0' }}>
               <strong>Tickets:</strong> {quantity}
             </Text>
           )}
+          {typeof amountPaid === 'number' && <Text style={{ margin: '6px 0 0' }}><strong>Paid:</strong> {amountPaid > 0 ? `${currency || 'AED'} ${amountPaid.toFixed(2)}` : 'Free event'}</Text>}
           {ticketCode && (
             <Text style={{ margin: '10px 0 0' }}>
               <strong>Ticket code:</strong>{' '}
@@ -95,7 +106,7 @@ const Email = ({
           </Section>
         )}
         <Text style={s.footer}>
-          If your plans change, please contact us so another sister can take your spot.
+          Keep your ticket code handy. We’ll send a reminder closer to the event. If your plans change, please contact us so another sister can take your spot.
         </Text>
         <Text style={s.signature}>
           Hugs,<br />
