@@ -1,3 +1,4 @@
+import { assertCheckoutPayment } from "../_shared/promo-core.ts";
 import { sendAttendeeEmail } from "../_shared/attendee-email.ts";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -80,7 +81,7 @@ Deno.serve(async (req) => {
   const cutoff = new Date(Date.now() - GRACE_MINUTES * 60_000).toISOString();
   const { data: pending, error: pendErr } = await admin
     .from("registrations")
-    .select("id, status, payment_intent_id, user_id")
+    .select("id, status, payment_intent_id, user_id, checkout_amount_cents, currency")
     .eq("status", "pending")
     .eq("payment_provider", "ziina")
     .not("payment_intent_id", "is", null)
@@ -111,6 +112,7 @@ Deno.serve(async (req) => {
       const nextStatus = toRegistrationStatus(intent.status);
 
       if (nextStatus === "confirmed") {
+    assertCheckoutPayment(reg, intent);
         const { error: updErr } = await admin
           .from("registrations")
           .update({
