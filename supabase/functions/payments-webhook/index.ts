@@ -1,3 +1,4 @@
+import { sendAttendeeEmail } from "../_shared/attendee-email.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
   isZiinaWebhookIp,
@@ -49,22 +50,7 @@ async function sendConfirmationEmail(registrationId: string) {
       .maybeSingle();
 
     if (email && ev) {
-      await supabase.functions.invoke("send-app-email", {
-        body: {
-          templateName: "event-registration-confirmation",
-          recipientEmail: email,
-          idempotencyKey: `event-reg-${reg.id}`,
-          templateData: {
-            name,
-            eventTitle: ev.title,
-            startsAt: ev.starts_at,
-            location: ev.location,
-            ticketCode: reg.ticket_code,
-            quantity: reg.quantity,
-            eventUrl: `https://fempowerae.com/events/${ev.slug}`,
-          },
-        },
-      });
+      await sendAttendeeEmail(supabase, reg.id, "confirmation");
     }
   } catch (e) {
     console.warn("Failed to send registration confirmation email", e);
