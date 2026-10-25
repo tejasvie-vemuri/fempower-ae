@@ -196,6 +196,8 @@ Deno.serve(async (req) => {
     const registrationId = idempotencyKey.match(/^(?:event-reg|ticket-transfer)-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:-|$)/i)?.[1]
     if (!registrationId) return new Response(JSON.stringify({ error: 'Registration ID required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     if (!isServiceRole) {
+      const { data: verified, error: verificationError } = await supabase.auth.getUser(callerToken)
+      if (verificationError || !verified.user || verified.user.id !== callerSub) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       const { data: reg } = await supabase.from('registrations').select('user_id').eq('id', registrationId).maybeSingle()
       if (!callerIsAdmin && (!reg || reg.user_id !== callerSub)) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
