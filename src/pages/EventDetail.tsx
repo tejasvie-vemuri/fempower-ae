@@ -31,6 +31,8 @@ import {
 } from "@/lib/guests";
 import { track } from "@/lib/analytics";
 import { Minus, Plus } from "lucide-react";
+
+const PHONE_RE = /^\+?[0-9][0-9\s-]{6,19}$/;
 import {
   Loader2,
   Calendar as CalendarIcon,
