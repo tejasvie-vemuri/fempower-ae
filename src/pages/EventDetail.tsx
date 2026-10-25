@@ -94,6 +94,8 @@ const EventDetail = () => {
   const [guests, setGuests] = useState<Guest[]>([]);
   // Guest (no account) registration — only offered on open events.
   const [guestMode, setGuestMode] = useState(false);
+  const [memberPhone, setMemberPhone] = useState("");
+  const [savedPhone, setSavedPhone] = useState("");
   const [guestForm, setGuestForm] = useState({
     name: "",
     email: "",
@@ -163,6 +165,15 @@ const EventDetail = () => {
         .eq("user_id", user.id)
         .maybeSingle();
       setOnWaitlist(!!wl);
+
+      const { data: contact } = await supabase
+        .from("profiles")
+        .select("phone")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const existingPhone = contact?.phone ?? "";
+      setSavedPhone(existingPhone);
+      setMemberPhone((p) => p || existingPhone);
 
       const { data: profile } = await supabase
         .from("member_profiles")
@@ -303,6 +314,24 @@ const EventDetail = () => {
       });
       navigate(memberStatus === "none" ? "/account/profile" : "/pending-approval");
       return;
+    }
+    const phoneValue = memberPhone.trim();
+    if (!PHONE_RE.test(phoneValue)) {
+      track("event_register_failed", { ...funnel, reason: "phone_invalid" });
+      toast.error("Please enter a valid phone number");
+      document.getElementById("member-phone")?.focus();
+      return;
+    }
+    if (phoneValue !== savedPhone) {
+      const { error: phoneErr } = await supabase
+        .from("profiles")
+        .update({ phone: phoneValue })
+        .eq("user_id", user.id);
+      if (phoneErr) {
+        toast.error("Couldn't save your phone number. Please try again.");
+        return;
+      }
+      setSavedPhone(phoneValue);
     }
     if (questions.length) {
       const v = validateResponses(questions, responses);
@@ -698,6 +727,24 @@ const EventDetail = () => {
               event.status === "published" &&
               !isFull && (
                 <div className="border border-border rounded-lg p-4 bg-card/50 space-y-4">
+                  {user && (
+                    <div className="space-y-1">
+                      <Label htmlFor="member-phone">Phone number</Label>
+                      <Input
+                        id="member-phone"
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
+                        placeholder="+971 50 123 4567"
+                        value={memberPhone}
+                        onChange={(e) => setMemberPhone(e.target.value)}
+                        disabled={acting}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        So we can reach you about the event.
+                      </p>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <div className="font-medium text-foreground">Tickets</div>
