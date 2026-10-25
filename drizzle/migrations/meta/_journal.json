@@ -29,6 +29,13 @@
       "when": 1789757234542,
       "tag": "0003_admins_select_event_photos",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792915463582,
+      "tag": "0004_attendee_email_delivery_tracking",
+      "breakpoints": true
     }
   ]
 }

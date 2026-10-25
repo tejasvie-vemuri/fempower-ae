@@ -1933,7 +1933,9 @@ export type Database = {
           checked_in_at: string | null
           created_at: string
           currency: string
+          event_confirmation_key: string | null
           event_id: string
+          event_reminder_key: string | null
           guest_email: string | null
           guest_linkedin_url: string | null
           guest_name: string | null
@@ -1960,7 +1962,9 @@ export type Database = {
           checked_in_at?: string | null
           created_at?: string
           currency?: string
+          event_confirmation_key?: string | null
           event_id: string
+          event_reminder_key?: string | null
           guest_email?: string | null
           guest_linkedin_url?: string | null
           guest_name?: string | null
@@ -1987,7 +1991,9 @@ export type Database = {
           checked_in_at?: string | null
           created_at?: string
           currency?: string
+          event_confirmation_key?: string | null
           event_id?: string
+          event_reminder_key?: string | null
           guest_email?: string | null
           guest_linkedin_url?: string | null
           guest_name?: string | null
