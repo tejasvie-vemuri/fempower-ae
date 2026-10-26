@@ -50,6 +50,13 @@
       "when": 1792992006576,
       "tag": "0006_grant_has_role_to_anon",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792992176498,
+      "tag": "0007_create_finance_entries",
+      "breakpoints": true
     }
   ]
 }
