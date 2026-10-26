@@ -168,6 +168,9 @@ const Header = () => {
                       <Link to="/admin/registrations">Admin · Registrations &amp; guests</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/admin/finances">Admin · Finances</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/admin/resources">Admin · Event Resources</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
