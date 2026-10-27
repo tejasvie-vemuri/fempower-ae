@@ -60,6 +60,9 @@ export default function AdminFinances() {
         row.discounts += r.discount_cents;
         row.tickets += r.quantity;
       } else if (r.status === "refunded") {
+        // The money was collected first, then returned — count both sides.
+        row.collected += r.amount_paid_cents;
+        row.discounts += r.discount_cents;
         row.refunds += r.amount_paid_cents;
       }
     }
@@ -83,7 +86,11 @@ export default function AdminFinances() {
     for (const r of regs) {
       const row = ensure(monthKey(r.created_at));
       if (r.status === "confirmed") row.tickets += r.amount_paid_cents;
-      else if (r.status === "refunded") row.refunds += r.amount_paid_cents;
+      else if (r.status === "refunded") {
+        // Collected first, then returned — count both sides.
+        row.tickets += r.amount_paid_cents;
+        row.refunds += r.amount_paid_cents;
+      }
     }
     for (const e of entries) {
       const row = ensure(monthKey(e.entry_date));
@@ -96,9 +103,10 @@ export default function AdminFinances() {
   }, [regs, entries]);
 
   const totals = useMemo(() => {
-    const collected = regs.filter((r) => r.status === "confirmed").reduce((s, r) => s + r.amount_paid_cents, 0);
+    // Refunded money was collected first, then returned — count both sides.
+    const collected = regs.reduce((s, r) => s + r.amount_paid_cents, 0);
     const refunds = regs.filter((r) => r.status === "refunded").reduce((s, r) => s + r.amount_paid_cents, 0);
-    const discounts = regs.filter((r) => r.status === "confirmed").reduce((s, r) => s + r.discount_cents, 0);
+    const discounts = regs.reduce((s, r) => s + r.discount_cents, 0);
     const manualIncome = entries.filter((e) => e.kind === "income").reduce((s, e) => s + e.amount_cents, 0);
     const expenses = entries.filter((e) => e.kind === "expense").reduce((s, e) => s + e.amount_cents, 0);
     return { collected, refunds, discounts, manualIncome, expenses, net: collected + manualIncome - refunds - expenses };
