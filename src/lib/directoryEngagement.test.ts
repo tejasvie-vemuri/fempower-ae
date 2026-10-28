@@ -13,6 +13,9 @@ describe("directory engagement rules", () => {
     expect(badgesFor({ looking_for: [] }, { ...none, circle_contributions: 2, wings_completed: 4 })).toEqual([]);
     expect(badgesFor({ looking_for: [] }, { ...none, circle_contributions: 3, wings_completed: 5 })).toEqual(["circle", "learner"]);
   });
+  it("admin-given badges show first and unknown keys are ignored", () => {
+    expect(badgesFor({ looking_for: [] }, { ...none, events_attended: 2, manual_badges: ["speaker", "bogus", "regular"] })).toEqual(["speaker", "regular"]);
+  });
   it("mentor badge comes from being open to mentoring", () => {
     expect(badgesFor({ looking_for: ["Mentoring"] }, null)).toEqual(["mentor"]);
   });

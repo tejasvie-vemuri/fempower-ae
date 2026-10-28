@@ -3,12 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import type { BadgeFacts } from "@/lib/directoryEngagement";
 
 /** Fetches badge facts for the given members, caching across renders. */
-export const useMemberBadges = (userIds: string[]) => {
+export const useMemberBadges = (userIds: string[], refreshKey = 0) => {
   const [facts, setFacts] = useState<Record<string, BadgeFacts>>({});
   const key = Array.from(new Set(userIds)).sort().join(",");
+  useEffect(() => { if (refreshKey) setFacts({}); }, [refreshKey]);
 
   useEffect(() => {
-    const missing = key ? key.split(",").filter((id) => !(id in facts)) : [];
+    const missing = key ? key.split(",").filter((id) => refreshKey > 0 || !(id in facts)) : [];
     if (!missing.length) return;
     let cancelled = false;
     (async () => {
@@ -24,6 +25,7 @@ export const useMemberBadges = (userIds: string[]) => {
             meetups_hosted: row.meetups_hosted ?? 0,
             wings_completed: row.wings_completed ?? 0,
             story_shared: !!row.story_shared,
+            manual_badges: row.manual_badges ?? [],
           };
         }
         return next;
@@ -31,7 +33,7 @@ export const useMemberBadges = (userIds: string[]) => {
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [key, refreshKey]);
 
   return facts;
 };

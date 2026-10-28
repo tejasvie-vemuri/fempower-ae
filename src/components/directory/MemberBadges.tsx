@@ -1,4 +1,4 @@
-import { Mic, Sparkles, HeartHandshake, MapPin, MessageCircle, BookOpen, Quote, Star } from "lucide-react";
+import { Mic, Sparkles, HeartHandshake, MapPin, MessageCircle, BookOpen, Quote, Star, Award, Megaphone, Trophy, HandHeart } from "lucide-react";
 import { BADGE_LABELS, BADGE_HINTS, type BadgeKey } from "@/lib/directoryEngagement";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,10 @@ const ICONS: Record<BadgeKey, typeof Mic> = {
   learner: BookOpen,
   story: Quote,
   allstar: Star,
+  ambassador: Award,
+  speaker: Megaphone,
+  champion: Trophy,
+  volunteer: HandHeart,
 };
 
 export const MemberBadges = ({ badges, className }: { badges: BadgeKey[]; className?: string }) => {

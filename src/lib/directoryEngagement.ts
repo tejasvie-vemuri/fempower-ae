@@ -63,13 +63,19 @@ export interface BadgeFacts {
   meetups_hosted: number;
   wings_completed: number;
   story_shared: boolean;
+  manual_badges?: string[];
 }
 
 export const ROUNDTABLE_REGULAR_MIN = 2;
 export const CIRCLE_VOICE_MIN = 3;
 export const LEARNER_MIN = 5;
 
-export type BadgeKey = "spotlight" | "regular" | "host" | "mentor" | "circle" | "learner" | "story" | "allstar";
+export type BadgeKey =
+  | "spotlight" | "regular" | "host" | "mentor" | "circle" | "learner" | "story" | "allstar"
+  | "ambassador" | "speaker" | "champion" | "volunteer";
+
+/** Badges only an admin can give. Admins can also give any automatic badge by hand. */
+export const MANUAL_ONLY_BADGES: BadgeKey[] = ["ambassador", "speaker", "champion", "volunteer"];
 export const BADGE_LABELS: Record<BadgeKey, string> = {
   spotlight: "Spotlight featured",
   regular: "Roundtable regular",
@@ -79,6 +85,10 @@ export const BADGE_LABELS: Record<BadgeKey, string> = {
   learner: "Lifelong learner",
   story: "Shared her story",
   allstar: "All-star profile",
+  ambassador: "Ambassador",
+  speaker: "Speaker",
+  champion: "Community champion",
+  volunteer: "Volunteer",
 };
 export const BADGE_HINTS: Record<BadgeKey, string> = {
   spotlight: "Featured in a member spotlight",
@@ -89,7 +99,13 @@ export const BADGE_HINTS: Record<BadgeKey, string> = {
   learner: `Completed ${LEARNER_MIN}+ lessons in Learn`,
   story: "Shared a testimonial on the site",
   allstar: "100% complete profile",
+  ambassador: "Fempower ambassador",
+  speaker: "Has spoken at a Fempower event",
+  champion: "Recognised by the Fempower team",
+  volunteer: "Volunteers with Fempower",
 };
+
+export const ALL_BADGES = Object.keys(BADGE_LABELS) as BadgeKey[];
 
 export const badgesFor = (
   member: Pick<MemberProfile, "looking_for"> & Partial<MemberProfile>,
@@ -104,7 +120,9 @@ export const badgesFor = (
   if ((facts?.wings_completed ?? 0) >= LEARNER_MIN) out.push("learner");
   if (facts?.story_shared) out.push("story");
   if (profileCompleteness(member) >= 100) out.push("allstar");
-  return out;
+  // Admin-given badges come first, then automatic ones; unknown keys are ignored.
+  const manual = (facts?.manual_badges ?? []).filter((k): k is BadgeKey => k in BADGE_LABELS);
+  return Array.from(new Set([...manual, ...out]));
 };
 
 /* ---------- "Women you should meet" ---------- */
