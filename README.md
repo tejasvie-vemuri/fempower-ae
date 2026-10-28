@@ -41,9 +41,13 @@ signal, and in our case a weak signal risks being merged with the similarly name
 | Feature | Description |
 |---------|-------------|
 | **Homepage** | Hero, About, Offerings, Programs spotlight, Events calendar, Gallery, Testimonials, FAQs |
+| **Events & ticketing** | Public events index + per-event pages. Free and paid events (Ziina payments, AED), members-only or open to guests, capacity limits with waitlist, configurable booking questions, guest registration (name/email/phone/LinkedIn), ticket transfer, My Tickets page |
+| **Promo codes** | Admin-configured codes — percentage or fixed AED off, scoped to one event or all paid events, with expiry and members-only eligibility. Revalidated server-side at checkout |
+| **Attendee emails** | Confirmation email on registration/payment and an automatic reminder 24h before the event, sent by the backend with per-registration dedup keys |
+| **Admin finances** | Consolidated money dashboard — per-event ticket revenue, refunds and discounts, plus manual income/expense entries, with per-event P&L and monthly totals |
 | **Ask the Circle** | Members-only forum — post anonymously or by name, moderated by approved members |
 | **Pop-up Meetups** | Member-hosted casual gatherings — RSVP or create your own |
-| **Member Directory** | Searchable member profiles, gated behind auth |
+| **Member Directory** | Searchable member profiles, gated behind auth. Engagement layer: "Women you should meet" suggestions, "New this week", profile-completeness nudge, "Ask me about" tags, and badges (earned automatically or given by admins) |
 | **Zara AI Coach** | AI career coach trained on UAE workplace context, powered by Google Gemini |
 | **FemPower Learn** | Members-only learning platform — courses, modules, and bite-sized lessons called "Wings" (butterfly metaphor). Each wing has Context, Reflection (saved + optionally shared), and Extension (action). Progress tracking, learning journal, and admin CRUD panel with publish scheduling |
 | **Auth** | Email/password + Google OAuth, admin-reviewed membership |
@@ -59,6 +63,8 @@ signal, and in our case a weak signal risks being merged with the similarly name
 | Styling | Tailwind CSS |
 | Backend & Auth | Supabase (PostgreSQL, Row-Level Security, Storage) |
 | AI | Google Gemini via Lovable AI Gateway |
+| Payments | Ziina (AED) |
+| Email | Lovable-managed transactional email (attendee confirmations & reminders) |
 | File Storage | Supabase Storage (private buckets, signed URLs) |
 | Content | Google Sheets / Google Drive (events, frameworks, resources) |
 | Newsletter | Substack |
@@ -73,17 +79,31 @@ signal, and in our case a weak signal risks being merged with the similarly name
 | Route | Access | Description |
 |-------|--------|-------------|
 | `/` | Public | Homepage (all anchor sections) |
+| `/events` | Public | Events index — upcoming and past events |
+| `/events/:slug` | Public | Event detail — registration, guest checkout, booking questions |
+| `/join` | Public | How to join — the single join path (account signup) |
+| `/roundtables`, `/lonely-in-dubai`, `/women-networking-dubai`, `/ai-coach-for-women-uae` | Public | SEO/GEO landing pages |
+| `/try/:slug` | Public | Shareable Zara checklist teasers |
+| `/auth`, `/forgot-password`, `/reset-password` | Public | Sign in / Create account / password recovery |
 | `/circle` | Members only | Ask the Circle forum |
 | `/meetups` | Members only | Pop-up meetups |
-| `/directory` | Members only | Member directory |
-| `/learn` | Members only | FemPower Learn — course listing with progress |
-| `/learn/:courseId` | Members only | Course detail — modules, resources, progress bar |
-| `/learn/:courseId/:moduleId` | Members only | Module detail — wing list with completion status |
-| `/learn/:courseId/:moduleId/:wingId` | Members only | Wing — Context → Reflection → Extension learning flow |
-| `/learn/journal` | Members only | Personal learning journal — all reflections in one place |
-| `/admin/learn` | Admin only | Manage courses, modules, wings, and resources (CRUD) |
-| `/auth` | Public | Sign in / Create account |
-| `/privacy` | Public | Privacy Policy |
+| `/directory` | Members only | Member directory with suggestions, badges, "New this week" |
+| `/account/tickets` | Signed in | My Tickets — registrations, transfers, payment status |
+| `/account/saved` | Signed in | Saved events |
+| `/account/profile` | Signed in (incl. pending) | Edit member profile (incl. "Ask me about" tags) |
+| `/account/checklists` | Signed in (incl. pending) | Zara checklist history |
+| `/pending-approval` | Signed in (pending) | Holding page while membership is reviewed |
+| `/learn`, `/learn/journal`, `/learn/:courseId`, `/learn/:courseId/:moduleId`, `/learn/:courseId/:moduleId/:wingId` | Members only | FemPower Learn — courses, modules, wings, journal |
+| `/share-win`, `/share-my-story` | Members only | Submit wins and testimonials for moderation |
+| `/lifestyle-manager`, `/the-pause`, `/starter-kit`, `/ai-edge` | Members only | Member tools and programs |
+| `/admin/events`, `/admin/events/:eventId/registrations`, `/admin/events/:eventId/photos`, `/admin/registrations` | Admin only | Event CRUD, guest lists, event photos, all registrations |
+| `/admin/members` | Admin only | Approve/hide members, give badge awards |
+| `/admin/promo-codes` | Admin only | Create and manage event promo codes |
+| `/admin/finances` | Admin only | Consolidated finances — per-event P&L, monthly totals, manual entries |
+| `/admin/emails` | Admin only | Attendee email delivery tracking |
+| `/admin/learn`, `/admin/circle`, `/admin/resources`, `/admin/testimonials`, `/admin/milestones`, `/admin/images` | Admin only | Content moderation and management |
+| `/admin/zara-broadcast`, `/admin/zara-style`, `/admin/ai-edge`, `/admin/lifestyle-manager`, `/admin/northstar` | Admin only | Zara controls, programs, Northstar metrics |
+| `/privacy` | Public | Privacy Policy (incl. analytics opt-out switch) |
 | `/terms` | Public | Terms & Conditions |
 
 ---
@@ -113,6 +133,33 @@ All tables use Row-Level Security. Content tables are readable by authenticated 
 ### Scheduling
 
 Courses support three statuses: `draft`, `published`, `scheduled`. When set to `scheduled` with a `published_at` timestamp, the course auto-appears to members once the time passes (enforced via RLS policy — no cron job needed). Modules can also have an optional `published_at` for drip-release of content.
+
+---
+
+## Events, tickets & payments
+
+Events live in the `events` table and are managed from `/admin/events`. Each event can be free or paid (Ziina checkout, amounts in AED cents), members-only or open to guests, and capacity-limited with an optional waitlist. Admins can attach configurable booking questions per event.
+
+- **Guest registration** — visitors without an account can register with name, email, phone and LinkedIn; they get the same confirmation email plus a nudge to create an account afterwards.
+- **Phone numbers** — collected from every attendee: guests in the guest form, signed-in members via a required field on the registration flow (saved to their profile).
+- **Tickets** — attendees see their registrations on `/account/tickets` and can transfer a ticket to someone else.
+- **Promo codes** — managed at `/admin/promo-codes`. Percentage or fixed AED off, scoped to one event or all paid events, with an expiry date and optional members-only eligibility. Codes are revalidated server-side at checkout and the quoted amount is stored on the registration, so client-forged discounts are rejected. 100%-off codes confirm through a capacity-locked service-only path.
+- **Attendee emails** — a confirmation email goes out on registration/payment, and a reminder 24h before the event via an hourly scheduled job. Both use stored registration data with per-registration idempotency keys, so nothing is sent twice and recipients can't be forged. Delivery is tracked and visible at `/admin/emails`.
+- **Static pages** — every published event gets build-time HTML with its own title, poster and details, so WhatsApp/LinkedIn link previews and search engines see event-specific metadata.
+
+## Admin finances
+
+`/admin/finances` consolidates all money in one place: per-event ticket revenue (collected, refunds, discounts given), plus manual income and expense entries stored in the `finance_entries` table (admin-only RLS). Views: per-event P&L and monthly totals. Refunded tickets count on both sides — collected when the money came in, refunded when it went back out — so a buy-then-refund nets to zero.
+
+## Member directory engagement
+
+The directory (`/directory`, members only) has an engagement layer whose rules live in `src/lib/directoryEngagement.ts` (unit-tested):
+
+- **Women you should meet** — 3 suggested members per week, scored on complementary "looking for" answers, same city/industry, and shared tags.
+- **New this week** — members approved in the last 7 days, with a "New" chip on their cards.
+- **Ask me about** — up to 3 self-chosen topics per profile, shown on cards and in the profile drawer.
+- **Profile completeness** — a progress bar with the next concrete nudge ("Add a photo to show up in suggestions").
+- **Badges** — shown on cards and profiles. Earned automatically: Roundtable regular (2+ events attended), Mentor, Meetup host, Circle voice (3+ posts/replies), Lifelong learner (5+ wings), Shared her story (approved testimonial), All-star profile (100% complete), Spotlight featured, and Sweat squad (profile mentions a fitness/sport activity). Given by admins from `/admin/members` → Badges: Ambassador, Speaker, Champion, Volunteer — plus any automatic badge by hand. Badge facts come from the member-only `get_member_badges` database function so registration rows stay private; only admins can write awards.
 
 ---
 
@@ -227,4 +274,4 @@ right to object. It's checked on every tracking call, so it takes effect immedia
 
 - Instagram: [@fempower.ae](https://www.instagram.com/fempower.ae)
 - LinkedIn: [linkedin.com/company/fempowerae](https://www.linkedin.com/company/fempowerae/)
-- To join: DM @fempower.ae on Instagram
+- To join: sign up at [fempowerae.com/join](https://fempowerae.com/join) — membership is reviewed within 24 hours
