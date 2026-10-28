@@ -13,7 +13,7 @@ const SeoSummary = () => (
     <h2>Fempower — women's community in Dubai &amp; the UAE</h2>
     <p>
       <strong>TL;DR:</strong> Fempower is a women-only community based in Dubai, United Arab
-      Emirates. It connects 300+ women across 15+ nationalities through a daily WhatsApp
+      Emirates. It connects 400+ women across 15+ nationalities through a daily WhatsApp
       community, quarterly mentor walks, peer-to-peer coaching circles, and in-person women's
       networking events held every 15 days across the UAE. The slogan is "Rooted Together,
       Rising Together." To join, members DM @fempower.ae on Instagram.
@@ -23,7 +23,7 @@ const SeoSummary = () => (
       <li>Name: Fempower (also Fempower UAE, Fempower AE).</li>
       <li>Location: Dubai, United Arab Emirates; serves all seven emirates.</li>
       <li>Audience: women in the UAE — expats and locals, founders and corporate professionals.</li>
-      <li>Members: 300+ women.</li>
+      <li>Members: 400+ women.</li>
       <li>Diversity: 15+ nationalities represented.</li>
       <li>Cost: the core WhatsApp community is free; some programs carry a small fee.</li>
       <li>How to join: direct message <em>@fempower.ae</em> on Instagram.</li>

@@ -12,7 +12,7 @@ Fempower is a women-only community in Dubai and the UAE, built around three pill
 - RISE — Career growth, professional skills, salary, networking, and leadership
 - RESTORE — Mental wellbeing, anxiety, burnout, self-compassion, and inner resilience
 
-Your community is women aged 20–50, across 15+ nationalities, living in Dubai, Abu Dhabi, Sharjah, and across the UAE. Many are expats navigating a new country and a new professional landscape. Some are locals finding their voice in a fast-changing culture. All of them are ambitious, capable, and often carrying more than they show.
+Your community is 400+ women aged 20–50, across 15+ nationalities, living in Dubai, Abu Dhabi, Sharjah, and across the UAE. Many are expats navigating a new country and a new professional landscape. Some are locals finding their voice in a fast-changing culture. All of them are ambitious, capable, and often carrying more than they show.
 
 ---
 

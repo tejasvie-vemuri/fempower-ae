@@ -278,9 +278,9 @@ const WomenNetworkingDubai = () => (
             applications open.
           </p>
           <p>
-            <strong>Coverage.</strong> Members are across all seven emirates, from 15+
-            nationalities. In-person events are mostly in Dubai, with Abu Dhabi gatherings
-            through the year.
+            <strong>Coverage.</strong> The community is 400+ women across all seven emirates,
+            from 15+ nationalities. In-person events are mostly in Dubai, with Abu Dhabi
+            gatherings through the year.
           </p>
           <p>
             <strong>Who it suits.</strong> Women who want the same faces to come back —
