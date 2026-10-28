@@ -72,7 +72,8 @@ export const LEARNER_MIN = 5;
 
 export type BadgeKey =
   | "spotlight" | "regular" | "host" | "mentor" | "circle" | "learner" | "story" | "allstar"
-  | "ambassador" | "speaker" | "champion" | "volunteer";
+  | "ambassador" | "speaker" | "champion" | "volunteer"
+  | "sweat";
 
 /** Badges only an admin can give. Admins can also give any automatic badge by hand. */
 export const MANUAL_ONLY_BADGES: BadgeKey[] = ["ambassador", "speaker", "champion", "volunteer"];
@@ -89,6 +90,7 @@ export const BADGE_LABELS: Record<BadgeKey, string> = {
   speaker: "Speaker",
   champion: "Community champion",
   volunteer: "Volunteer",
+  sweat: "Sweat squad",
 };
 export const BADGE_HINTS: Record<BadgeKey, string> = {
   spotlight: "Featured in a member spotlight",
@@ -103,9 +105,22 @@ export const BADGE_HINTS: Record<BadgeKey, string> = {
   speaker: "Has spoken at a Fempower event",
   champion: "Recognised by the Fempower team",
   volunteer: "Volunteers with Fempower",
+  sweat: "Mentions a fitness or sport activity on her profile",
 };
 
 export const ALL_BADGES = Object.keys(BADGE_LABELS) as BadgeKey[];
+
+/** Words that say "she's into moving her body" — checked against her own profile text. */
+const FITNESS_RE =
+  /\b(padel|pickleball|yoga|pilates|zumba|crossfit|cross fit|hiit|spinning|gym|fitness|workout|working out|running|runner|jogging|marathon|triathlon|5k|10k|half marathon|boxing|kickboxing|muay thai|martial arts|tennis|squash|badminton|swimming|swimmer|cycling|cyclist|hiking|hiker|trail running|climbing|bouldering|calisthenics|weightlifting|weight lifting|powerlifting|personal trainer|football|basketball|volleyball|netball)\b/i;
+
+const profileText = (m: Partial<MemberProfile>) =>
+  [m.bio, m.why_here, ...(m.interests ?? []), ...(m.expertise_tags ?? []), ...(m.ask_me_about ?? [])]
+    .filter(Boolean)
+    .join(" ");
+
+/** True when her own profile mentions a fitness or sport activity. */
+export const isFitnessFan = (m: Partial<MemberProfile>) => FITNESS_RE.test(profileText(m));
 
 export const badgesFor = (
   member: Pick<MemberProfile, "looking_for"> & Partial<MemberProfile>,
@@ -119,7 +134,9 @@ export const badgesFor = (
   if ((facts?.circle_contributions ?? 0) >= CIRCLE_VOICE_MIN) out.push("circle");
   if ((facts?.wings_completed ?? 0) >= LEARNER_MIN) out.push("learner");
   if (facts?.story_shared) out.push("story");
+  if (isFitnessFan(member)) out.push("sweat");
   if (profileCompleteness(member) >= 100) out.push("allstar");
+
   // Admin-given badges come first, then automatic ones; unknown keys are ignored.
   const manual = (facts?.manual_badges ?? []).filter((k): k is BadgeKey => k in BADGE_LABELS);
   return Array.from(new Set([...manual, ...out]));

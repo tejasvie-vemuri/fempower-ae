@@ -19,6 +19,13 @@ describe("directory engagement rules", () => {
   it("mentor badge comes from being open to mentoring", () => {
     expect(badgesFor({ looking_for: ["Mentoring"] }, null)).toEqual(["mentor"]);
   });
+  it("sweat squad comes from fitness words in her own profile, and admins can give it by hand", () => {
+    expect(badgesFor({ looking_for: [], interests: ["Padel"] }, null)).toEqual(["sweat"]);
+    expect(badgesFor({ looking_for: [], bio: "I run 5k every dawn and do yoga on Sundays" }, null)).toEqual(["sweat"]);
+    expect(badgesFor({ looking_for: [], ask_me_about: ["Moving to Dubai"] }, null)).not.toContain("sweat");
+    expect(badgesFor({ looking_for: [], bio: "Building fintech in DIFC" }, null)).not.toContain("sweat");
+    expect(badgesFor({ looking_for: [] }, { ...none, manual_badges: ["sweat"] })).toEqual(["sweat"]);
+  });
   it("matches a mentor with someone wanting to be mentored", () => {
     const r = matchScore({ ...base, user_id: "a", looking_for: ["Being mentored"] }, { ...base, user_id: "b", looking_for: ["Mentoring"] });
     expect(r.score).toBe(3);
