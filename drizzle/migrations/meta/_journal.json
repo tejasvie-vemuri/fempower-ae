@@ -71,6 +71,13 @@
       "when": 1793207391262,
       "tag": "0009_member_badges_v2",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793207572910,
+      "tag": "0010_manual_member_badges",
+      "breakpoints": true
     }
   ]
 }

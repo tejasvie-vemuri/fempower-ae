@@ -24,6 +24,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import type { MemberProfile } from "@/lib/memberProfile";
 import { MemberAvatar } from "@/components/directory/MemberAvatar";
+import { AdminBadgeDialog } from "@/components/admin/AdminBadgeDialog";
+import { Award } from "lucide-react";
 
 const STATUSES: Array<MemberProfile["status"] | "all"> = ["pending", "approved", "hidden", "rejected", "all"];
 type IntroFilter = "all" | "posted" | "nudged" | "not-nudged";
@@ -44,6 +46,7 @@ const AdminMembers = () => {
   const [spotlightTarget, setSpotlightTarget] = useState<MemberProfile | null>(null);
   const [spotlightNote, setSpotlightNote] = useState("");
   const [spotlightSending, setSpotlightSending] = useState(false);
+  const [badgeTarget, setBadgeTarget] = useState<MemberProfile | null>(null);
 
   const introCategory = (m: MemberProfile): IntroFilter => {
     if (m.status !== "approved") return "all";
@@ -354,6 +357,7 @@ const AdminMembers = () => {
                           <Sparkles size={14} className="mr-1" />
                           {openSpotlightIds.has(m.user_id) ? "Invited" : "Invite to share story"}
                         </Button>
+                        <Button size="sm" variant="outline" onClick={() => setBadgeTarget(m)}><Award size={14} className="mr-1" />Badges</Button>
                         <Button size="sm" variant="outline" onClick={() => updateStatus(m.id, "hidden")}><EyeOff size={14} className="mr-1" />Hide</Button>
                       </>
                     )}
@@ -415,6 +419,7 @@ const AdminMembers = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <AdminBadgeDialog member={badgeTarget} onOpenChange={(o) => !o && setBadgeTarget(null)} />
       <Footer />
     </>
   );
