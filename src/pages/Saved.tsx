@@ -289,9 +289,9 @@ const Saved = () => {
                         <div className="flex items-start gap-3 mb-3 pr-6">
                           <span className="text-xl flex-shrink-0 mt-0.5">🦋</span>
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-heading text-sm font-semibold text-foreground group-hover:text-blush-dark transition-colors line-clamp-2">
+                            <h2 className="font-heading text-sm font-semibold text-foreground group-hover:text-blush-dark transition-colors line-clamp-2">
                               {resource.title}
-                            </h4>
+                            </h2>
                             <span className="text-[10px] font-body uppercase tracking-widest text-muted-foreground mt-1 inline-block">
                               {resource.type === "pdf" ? "PDF" : "Article"}
                             </span>
