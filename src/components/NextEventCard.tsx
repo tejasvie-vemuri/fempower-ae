@@ -41,6 +41,7 @@ const NextEventCard = () => {
     weekday: "short",
     month: "short",
     day: "numeric",
+    timeZone: (event as { timezone?: string | null }).timezone || "Asia/Dubai",
   });
   const tz = (event as { timezone?: string | null }).timezone || "Asia/Dubai";
   const timeLabel = d.toLocaleTimeString("en-AE", { hour: "2-digit", minute: "2-digit", timeZone: tz });
