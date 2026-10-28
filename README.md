@@ -41,9 +41,13 @@ signal, and in our case a weak signal risks being merged with the similarly name
 | Feature | Description |
 |---------|-------------|
 | **Homepage** | Hero, About, Offerings, Programs spotlight, Events calendar, Gallery, Testimonials, FAQs |
+| **Events & ticketing** | Public events index + per-event pages. Free and paid events (Ziina payments, AED), members-only or open to guests, capacity limits with waitlist, configurable booking questions, guest registration (name/email/phone/LinkedIn), ticket transfer, My Tickets page |
+| **Promo codes** | Admin-configured codes — percentage or fixed AED off, scoped to one event or all paid events, with expiry and members-only eligibility. Revalidated server-side at checkout |
+| **Attendee emails** | Confirmation email on registration/payment and an automatic reminder 24h before the event, sent by the backend with per-registration dedup keys |
+| **Admin finances** | Consolidated money dashboard — per-event ticket revenue, refunds and discounts, plus manual income/expense entries, with per-event P&L and monthly totals |
 | **Ask the Circle** | Members-only forum — post anonymously or by name, moderated by approved members |
 | **Pop-up Meetups** | Member-hosted casual gatherings — RSVP or create your own |
-| **Member Directory** | Searchable member profiles, gated behind auth |
+| **Member Directory** | Searchable member profiles, gated behind auth. Engagement layer: "Women you should meet" suggestions, "New this week", profile-completeness nudge, "Ask me about" tags, and badges (earned automatically or given by admins) |
 | **Zara AI Coach** | AI career coach trained on UAE workplace context, powered by Google Gemini |
 | **FemPower Learn** | Members-only learning platform — courses, modules, and bite-sized lessons called "Wings" (butterfly metaphor). Each wing has Context, Reflection (saved + optionally shared), and Extension (action). Progress tracking, learning journal, and admin CRUD panel with publish scheduling |
 | **Auth** | Email/password + Google OAuth, admin-reviewed membership |
