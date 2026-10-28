@@ -23,7 +23,7 @@ const NextEventCard = () => {
     (async () => {
       const { data } = await supabase
         .from("events")
-        .select("id, slug, title, starts_at, location")
+        .select("id, slug, title, starts_at, timezone, location")
         .eq("status", "published")
         .gte("starts_at", new Date().toISOString())
         .order("starts_at", { ascending: true })
@@ -42,7 +42,8 @@ const NextEventCard = () => {
     month: "short",
     day: "numeric",
   });
-  const timeLabel = d.toLocaleTimeString("en-AE", { hour: "2-digit", minute: "2-digit" });
+  const tz = (event as { timezone?: string | null }).timezone || "Asia/Dubai";
+  const timeLabel = d.toLocaleTimeString("en-AE", { hour: "2-digit", minute: "2-digit", timeZone: tz });
 
   return (
     <div className="rounded-xl bg-card border border-border p-4">
