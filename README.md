@@ -63,6 +63,8 @@ signal, and in our case a weak signal risks being merged with the similarly name
 | Styling | Tailwind CSS |
 | Backend & Auth | Supabase (PostgreSQL, Row-Level Security, Storage) |
 | AI | Google Gemini via Lovable AI Gateway |
+| Payments | Ziina (AED) |
+| Email | Lovable-managed transactional email (attendee confirmations & reminders) |
 | File Storage | Supabase Storage (private buckets, signed URLs) |
 | Content | Google Sheets / Google Drive (events, frameworks, resources) |
 | Newsletter | Substack |
@@ -272,4 +274,4 @@ right to object. It's checked on every tracking call, so it takes effect immedia
 
 - Instagram: [@fempower.ae](https://www.instagram.com/fempower.ae)
 - LinkedIn: [linkedin.com/company/fempowerae](https://www.linkedin.com/company/fempowerae/)
-- To join: DM @fempower.ae on Instagram
+- To join: sign up at [fempowerae.com/join](https://fempowerae.com/join) — membership is reviewed within 24 hours
