@@ -78,6 +78,13 @@
       "when": 1793207572910,
       "tag": "0010_manual_member_badges",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793213504491,
+      "tag": "0011_restrict_reference_tables_and_event_covers_listing",
+      "breakpoints": true
     }
   ]
 }
