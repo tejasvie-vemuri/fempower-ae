@@ -1592,6 +1592,30 @@ export type Database = {
         }
         Relationships: []
       }
+      member_badge_awards: {
+        Row: {
+          awarded_by: string | null
+          badge_key: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          awarded_by?: string | null
+          badge_key: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          awarded_by?: string | null
+          badge_key?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       member_milestones: {
         Row: {
           category: string
@@ -2584,6 +2608,7 @@ export type Database = {
         Returns: {
           circle_contributions: number
           events_attended: number
+          manual_badges: string[]
           meetups_hosted: number
           spotlighted: boolean
           story_shared: boolean
