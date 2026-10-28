@@ -4,9 +4,14 @@ import { badgesFor, matchScore, suggestMembers, isNewMember, profileCompleteness
 const base = { user_id: "x", city: null, industry: null, looking_for: [], interests: [], expertise_tags: [] };
 
 describe("directory engagement rules", () => {
-  it("roundtable regular needs 3 attended events", () => {
-    expect(badgesFor({ looking_for: [] }, { events_attended: 2, spotlighted: false, founding: false })).not.toContain("regular");
-    expect(badgesFor({ looking_for: [] }, { events_attended: 3, spotlighted: false, founding: false })).toContain("regular");
+  const none = { events_attended: 0, spotlighted: false, circle_contributions: 0, meetups_hosted: 0, wings_completed: 0, story_shared: false };
+  it("roundtable regular needs 2 attended events", () => {
+    expect(badgesFor({ looking_for: [] }, { ...none, events_attended: 1 })).not.toContain("regular");
+    expect(badgesFor({ looking_for: [] }, { ...none, events_attended: 2 })).toContain("regular");
+  });
+  it("circle voice needs 3 posts or replies, learner needs 5 lessons", () => {
+    expect(badgesFor({ looking_for: [] }, { ...none, circle_contributions: 2, wings_completed: 4 })).toEqual([]);
+    expect(badgesFor({ looking_for: [] }, { ...none, circle_contributions: 3, wings_completed: 5 })).toEqual(["circle", "learner"]);
   });
   it("mentor badge comes from being open to mentoring", () => {
     expect(badgesFor({ looking_for: ["Mentoring"] }, null)).toEqual(["mentor"]);

@@ -2582,10 +2582,13 @@ export type Database = {
       get_member_badges: {
         Args: { _user_ids: string[] }
         Returns: {
+          circle_contributions: number
           events_attended: number
-          founding: boolean
+          meetups_hosted: number
           spotlighted: boolean
+          story_shared: boolean
           user_id: string
+          wings_completed: number
         }[]
       }
       get_testimonials_public: {

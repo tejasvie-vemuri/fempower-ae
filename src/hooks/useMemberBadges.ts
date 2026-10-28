@@ -20,7 +20,10 @@ export const useMemberBadges = (userIds: string[]) => {
           next[row.user_id] = {
             events_attended: row.events_attended ?? 0,
             spotlighted: !!row.spotlighted,
-            founding: !!row.founding,
+            circle_contributions: row.circle_contributions ?? 0,
+            meetups_hosted: row.meetups_hosted ?? 0,
+            wings_completed: row.wings_completed ?? 0,
+            story_shared: !!row.story_shared,
           };
         }
         return next;
