@@ -3,7 +3,7 @@
 > Rooted Together, Rising Together.
 
 Fempower is a members-only community platform for women in Dubai and the UAE.
-It connects 300+ women across 15+ nationalities through mentorship, peer
+It connects 400+ women across 15+ nationalities through mentorship, peer
 coaching, in-person events, and a safe digital space for real conversations.
 
 Live site → https://fempowerae.com

@@ -52,7 +52,7 @@ const HeroSection = () => {
           Rooted Together, Rising Together.
         </p>
         <p className="mt-4 text-base sm:text-lg md:text-xl text-muted-foreground font-body leading-relaxed max-w-xl">
-          Fempower is a women-only community in Dubai and across the UAE. Join 300+ women from 15+ nationalities for daily WhatsApp prompts, mentor walks, peer coaching circles, and women's networking events every 15 days.
+          Fempower is a women-only community in Dubai and across the UAE. Join 400+ women from 15+ nationalities for daily WhatsApp prompts, mentor walks, peer coaching circles, and women's networking events every 15 days.
         </p>
 
         <div className="mt-7 flex flex-col sm:flex-row gap-3 sm:gap-4">

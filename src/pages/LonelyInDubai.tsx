@@ -219,7 +219,7 @@ const LonelyInDubai = () => (
             Fempower is one option among those. We are deliberately small: our in-person
             gatherings are capped at around 15 women, specifically so that the fourth-meeting
             effect above can actually happen. Our WhatsApp community is free to join and has
-            300+ women from 15+ nationalities in it. Many of them arrived exactly where you
+            400+ women from 15+ nationalities in it. Many of them arrived exactly where you
             are now.
           </p>
           <p>
