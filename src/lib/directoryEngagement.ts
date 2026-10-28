@@ -59,28 +59,51 @@ export const nextProfileNudge = (p: CompletenessInput): string => {
 export interface BadgeFacts {
   events_attended: number;
   spotlighted: boolean;
-  founding: boolean;
+  circle_contributions: number;
+  meetups_hosted: number;
+  wings_completed: number;
+  story_shared: boolean;
 }
 
-export const ROUNDTABLE_REGULAR_MIN = 3;
+export const ROUNDTABLE_REGULAR_MIN = 2;
+export const CIRCLE_VOICE_MIN = 3;
+export const LEARNER_MIN = 5;
 
-export type BadgeKey = "founding" | "regular" | "mentor" | "spotlight";
+export type BadgeKey = "spotlight" | "regular" | "host" | "mentor" | "circle" | "learner" | "story" | "allstar";
 export const BADGE_LABELS: Record<BadgeKey, string> = {
-  founding: "Founding member",
-  regular: "Roundtable regular",
-  mentor: "Mentor",
   spotlight: "Spotlight featured",
+  regular: "Roundtable regular",
+  host: "Meetup host",
+  mentor: "Mentor",
+  circle: "Circle voice",
+  learner: "Lifelong learner",
+  story: "Shared her story",
+  allstar: "All-star profile",
+};
+export const BADGE_HINTS: Record<BadgeKey, string> = {
+  spotlight: "Featured in a member spotlight",
+  regular: `Attended ${ROUNDTABLE_REGULAR_MIN}+ Fempower events`,
+  host: "Hosted a community meetup",
+  mentor: "Open to mentoring other women",
+  circle: `${CIRCLE_VOICE_MIN}+ posts or replies in the Circle`,
+  learner: `Completed ${LEARNER_MIN}+ lessons in Learn`,
+  story: "Shared a testimonial on the site",
+  allstar: "100% complete profile",
 };
 
 export const badgesFor = (
-  member: Pick<MemberProfile, "looking_for">,
+  member: Pick<MemberProfile, "looking_for"> & Partial<MemberProfile>,
   facts?: BadgeFacts | null,
 ): BadgeKey[] => {
   const out: BadgeKey[] = [];
-  if (facts?.founding) out.push("founding");
   if (facts?.spotlighted) out.push("spotlight");
   if ((facts?.events_attended ?? 0) >= ROUNDTABLE_REGULAR_MIN) out.push("regular");
+  if ((facts?.meetups_hosted ?? 0) >= 1) out.push("host");
   if (member.looking_for?.includes("Mentoring")) out.push("mentor");
+  if ((facts?.circle_contributions ?? 0) >= CIRCLE_VOICE_MIN) out.push("circle");
+  if ((facts?.wings_completed ?? 0) >= LEARNER_MIN) out.push("learner");
+  if (facts?.story_shared) out.push("story");
+  if (profileCompleteness(member) >= 100) out.push("allstar");
   return out;
 };
 
