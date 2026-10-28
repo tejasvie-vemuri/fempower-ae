@@ -115,7 +115,7 @@ const MemberProfileEdit = () => {
     name: "", photo_url: "", role: "", company: "", city: "", bio: "",
     linkedin_url: "", instagram_url: "", website_url: "",
     industry: "", expertise_tags: [] as string[], interests: [] as string[],
-    looking_for: [] as string[], why_here: "",
+    looking_for: [] as string[], ask_me_about: [] as string[], why_here: "",
   });
 
   useEffect(() => {
@@ -138,6 +138,7 @@ const MemberProfileEdit = () => {
         expertise_tags: profile.expertise_tags || [],
         interests: profile.interests || [],
         looking_for: profile.looking_for || [],
+        ask_me_about: profile.ask_me_about || [],
         why_here: profile.why_here || "",
       });
     }
@@ -157,36 +158,15 @@ const MemberProfileEdit = () => {
   }, [form]);
 
   // Completeness meter (weights every meaningful field)
-  const completeness = useMemo(() => {
-    const items: [boolean, number][] = [
-      [!!form.name.trim(), 10],
-      [!!form.role.trim(), 10],
-      [!!form.company.trim(), 10],
-      [!!form.city.trim(), 8],
-      [!!form.linkedin_url.trim() && !fieldIssues.linkedin_url, 12],
-      [!!form.why_here.trim(), 15],
-      [!!form.photo_url, 12],
-      [!!form.bio && form.bio.trim().length >= 40, 8],
-      [!!form.industry, 5],
-      [form.expertise_tags.length >= 2, 4],
-      [form.interests.length >= 2, 3],
-      [form.looking_for.length >= 1, 3],
-    ];
-    const total = items.reduce((a, [, w]) => a + w, 0);
-    const got = items.reduce((a, [ok, w]) => a + (ok ? w : 0), 0);
-    return Math.round((got / total) * 100);
-  }, [form, fieldIssues]);
+  const completeness = useMemo(
+    () => profileCompleteness({ ...form, linkedinValid: !fieldIssues.linkedin_url }),
+    [form, fieldIssues],
+  );
 
   // Next best nudge for the progress bar
   const nextNudge = useMemo(() => {
-    if (!form.photo_url) return "Add a photo — profiles with a face get 3× more connections.";
-    if (!form.why_here.trim()) return "Share why you're here — sisters love to know your story.";
-    if (!form.bio || form.bio.trim().length < 40) return "Add a short bio (a line or two) to introduce yourself.";
-    if (!form.industry) return "Pick your industry so we can match you with the right sisters.";
-    if (form.expertise_tags.length < 2) return "Add a couple of expertise tags — this helps others find you.";
-    if (form.looking_for.length === 0) return "Tell us what you're open to — mentoring, friendship, hiring…";
     if (completeness === 100) return "You're a 100% sparkle ✨ — thank you!";
-    return "Almost there — polish a few more details to shine.";
+    return nextProfileNudge(form);
   }, [form, completeness]);
 
   const applyLinkedInSmartFill = () => {
@@ -361,6 +341,11 @@ const MemberProfileEdit = () => {
               <div>
                 <Label>Interests</Label>
                 <TagInput value={form.interests} onChange={v => setForm(f => ({ ...f, interests: v }))} placeholder="Type and press Enter" />
+              </div>
+              <div>
+                <Label>Ask me about (up to 3)</Label>
+                <p className="text-xs text-muted-foreground mb-1.5">Easy conversation starters, e.g. “moving to Dubai”, “pricing freelance work”, “padel”.</p>
+                <TagInput value={form.ask_me_about} onChange={v => setForm(f => ({ ...f, ask_me_about: v.slice(0, 3) }))} placeholder="Type and press Enter" />
               </div>
             </SectionCard>
 

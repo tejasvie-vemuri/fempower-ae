@@ -100,6 +100,7 @@ export const memberProfileSchema = z.object({
   expertise_tags: z.array(z.string().trim().min(1).max(40)).max(15).default([]),
   interests: z.array(z.string().trim().min(1).max(40)).max(15).default([]),
   looking_for: z.array(z.string().trim().min(1).max(60)).max(10).default([]),
+  ask_me_about: z.array(z.string().trim().min(1).max(60)).max(3).default([]),
   why_here: z.string().trim().min(1, "Please share why you're part of Fempower").max(400),
 });
 
@@ -120,6 +121,7 @@ export type MemberProfile = {
   expertise_tags: string[];
   interests: string[];
   looking_for: string[];
+  ask_me_about?: string[];
   why_here: string | null;
   status: "pending" | "approved" | "rejected" | "hidden";
   approved_at: string | null;
