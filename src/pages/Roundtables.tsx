@@ -213,8 +213,12 @@ const Roundtables = () => (
         <section>
           <h2 className="font-heading text-2xl text-foreground">Sessions so far in 2026</h2>
           <SessionList items={PAST} past />
+          <SessionList items={UPCOMING} past />
           <h3 className="font-heading text-xl text-foreground mt-10">Coming up</h3>
-          <SessionList items={UPCOMING} />
+          <p>
+            See the next roundtables and book your seat on the{" "}
+            <a href="/events" className="text-primary underline">events page</a>.
+          </p>
         </section>
 
         <section>

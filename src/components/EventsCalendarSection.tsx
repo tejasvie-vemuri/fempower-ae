@@ -36,7 +36,7 @@ const EventsCalendarSection = () => {
       try {
         const { data, error } = await supabase
           .from("events")
-          .select("id, slug, title, starts_at, location, price_cents, currency, members_only")
+          .select("id, slug, title, starts_at, timezone, location, price_cents, currency, members_only")
           .in("status", ["published"])
           .order("starts_at", { ascending: true });
         if (error) throw error;
@@ -51,7 +51,7 @@ const EventsCalendarSection = () => {
             currency: e.currency,
             members_only: e.members_only,
             date: d,
-            time: d.toLocaleTimeString("en-AE", { hour: "2-digit", minute: "2-digit" }),
+            time: d.toLocaleTimeString("en-AE", { hour: "2-digit", minute: "2-digit", timeZone: e.timezone || "Asia/Dubai" }),
           };
         });
         setEvents(parsed);
