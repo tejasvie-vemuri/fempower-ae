@@ -419,6 +419,7 @@ const AdminMembers = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <AdminBadgeDialog member={badgeTarget} onOpenChange={(o) => !o && setBadgeTarget(null)} />
       <Footer />
     </>
   );
