@@ -1,0 +1,10 @@
+DROP POLICY IF EXISTS "Anyone can read places_cache" ON public.places_cache;
+CREATE POLICY "Signed-in users can read places_cache" ON public.places_cache FOR SELECT TO authenticated USING (auth.uid() IS NOT NULL);
+DROP POLICY IF EXISTS "Anyone can read plan_config" ON public.plan_config;
+CREATE POLICY "Signed-in users can read plan_config" ON public.plan_config FOR SELECT TO authenticated USING (auth.uid() IS NOT NULL);
+DROP POLICY IF EXISTS "Anyone can read restaurant_venues" ON public.restaurant_venues;
+CREATE POLICY "Signed-in users can read restaurant_venues" ON public.restaurant_venues FOR SELECT TO authenticated USING (auth.uid() IS NOT NULL);
+DROP POLICY IF EXISTS "Anyone can read occasion_calendar" ON public.occasion_calendar;
+CREATE POLICY "Signed-in users can read occasion_calendar" ON public.occasion_calendar FOR SELECT TO authenticated USING (auth.uid() IS NOT NULL);
+DROP POLICY IF EXISTS "Event covers are publicly readable" ON storage.objects;
+CREATE POLICY "Admins can list event covers" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'event-covers' AND public.has_role(auth.uid(), 'admin'::app_role));
