@@ -77,17 +77,31 @@ signal, and in our case a weak signal risks being merged with the similarly name
 | Route | Access | Description |
 |-------|--------|-------------|
 | `/` | Public | Homepage (all anchor sections) |
+| `/events` | Public | Events index — upcoming and past events |
+| `/events/:slug` | Public | Event detail — registration, guest checkout, booking questions |
+| `/join` | Public | How to join — the single join path (account signup) |
+| `/roundtables`, `/lonely-in-dubai`, `/women-networking-dubai`, `/ai-coach-for-women-uae` | Public | SEO/GEO landing pages |
+| `/try/:slug` | Public | Shareable Zara checklist teasers |
+| `/auth`, `/forgot-password`, `/reset-password` | Public | Sign in / Create account / password recovery |
 | `/circle` | Members only | Ask the Circle forum |
 | `/meetups` | Members only | Pop-up meetups |
-| `/directory` | Members only | Member directory |
-| `/learn` | Members only | FemPower Learn — course listing with progress |
-| `/learn/:courseId` | Members only | Course detail — modules, resources, progress bar |
-| `/learn/:courseId/:moduleId` | Members only | Module detail — wing list with completion status |
-| `/learn/:courseId/:moduleId/:wingId` | Members only | Wing — Context → Reflection → Extension learning flow |
-| `/learn/journal` | Members only | Personal learning journal — all reflections in one place |
-| `/admin/learn` | Admin only | Manage courses, modules, wings, and resources (CRUD) |
-| `/auth` | Public | Sign in / Create account |
-| `/privacy` | Public | Privacy Policy |
+| `/directory` | Members only | Member directory with suggestions, badges, "New this week" |
+| `/account/tickets` | Signed in | My Tickets — registrations, transfers, payment status |
+| `/account/saved` | Signed in | Saved events |
+| `/account/profile` | Signed in (incl. pending) | Edit member profile (incl. "Ask me about" tags) |
+| `/account/checklists` | Signed in (incl. pending) | Zara checklist history |
+| `/pending-approval` | Signed in (pending) | Holding page while membership is reviewed |
+| `/learn`, `/learn/journal`, `/learn/:courseId`, `/learn/:courseId/:moduleId`, `/learn/:courseId/:moduleId/:wingId` | Members only | FemPower Learn — courses, modules, wings, journal |
+| `/share-win`, `/share-my-story` | Members only | Submit wins and testimonials for moderation |
+| `/lifestyle-manager`, `/the-pause`, `/starter-kit`, `/ai-edge` | Members only | Member tools and programs |
+| `/admin/events`, `/admin/events/:eventId/registrations`, `/admin/events/:eventId/photos`, `/admin/registrations` | Admin only | Event CRUD, guest lists, event photos, all registrations |
+| `/admin/members` | Admin only | Approve/hide members, give badge awards |
+| `/admin/promo-codes` | Admin only | Create and manage event promo codes |
+| `/admin/finances` | Admin only | Consolidated finances — per-event P&L, monthly totals, manual entries |
+| `/admin/emails` | Admin only | Attendee email delivery tracking |
+| `/admin/learn`, `/admin/circle`, `/admin/resources`, `/admin/testimonials`, `/admin/milestones`, `/admin/images` | Admin only | Content moderation and management |
+| `/admin/zara-broadcast`, `/admin/zara-style`, `/admin/ai-edge`, `/admin/lifestyle-manager`, `/admin/northstar` | Admin only | Zara controls, programs, Northstar metrics |
+| `/privacy` | Public | Privacy Policy (incl. analytics opt-out switch) |
 | `/terms` | Public | Terms & Conditions |
 
 ---
