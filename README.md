@@ -134,6 +134,33 @@ Courses support three statuses: `draft`, `published`, `scheduled`. When set to `
 
 ---
 
+## Events, tickets & payments
+
+Events live in the `events` table and are managed from `/admin/events`. Each event can be free or paid (Ziina checkout, amounts in AED cents), members-only or open to guests, and capacity-limited with an optional waitlist. Admins can attach configurable booking questions per event.
+
+- **Guest registration** — visitors without an account can register with name, email, phone and LinkedIn; they get the same confirmation email plus a nudge to create an account afterwards.
+- **Phone numbers** — collected from every attendee: guests in the guest form, signed-in members via a required field on the registration flow (saved to their profile).
+- **Tickets** — attendees see their registrations on `/account/tickets` and can transfer a ticket to someone else.
+- **Promo codes** — managed at `/admin/promo-codes`. Percentage or fixed AED off, scoped to one event or all paid events, with an expiry date and optional members-only eligibility. Codes are revalidated server-side at checkout and the quoted amount is stored on the registration, so client-forged discounts are rejected. 100%-off codes confirm through a capacity-locked service-only path.
+- **Attendee emails** — a confirmation email goes out on registration/payment, and a reminder 24h before the event via an hourly scheduled job. Both use stored registration data with per-registration idempotency keys, so nothing is sent twice and recipients can't be forged. Delivery is tracked and visible at `/admin/emails`.
+- **Static pages** — every published event gets build-time HTML with its own title, poster and details, so WhatsApp/LinkedIn link previews and search engines see event-specific metadata.
+
+## Admin finances
+
+`/admin/finances` consolidates all money in one place: per-event ticket revenue (collected, refunds, discounts given), plus manual income and expense entries stored in the `finance_entries` table (admin-only RLS). Views: per-event P&L and monthly totals. Refunded tickets count on both sides — collected when the money came in, refunded when it went back out — so a buy-then-refund nets to zero.
+
+## Member directory engagement
+
+The directory (`/directory`, members only) has an engagement layer whose rules live in `src/lib/directoryEngagement.ts` (unit-tested):
+
+- **Women you should meet** — 3 suggested members per week, scored on complementary "looking for" answers, same city/industry, and shared tags.
+- **New this week** — members approved in the last 7 days, with a "New" chip on their cards.
+- **Ask me about** — up to 3 self-chosen topics per profile, shown on cards and in the profile drawer.
+- **Profile completeness** — a progress bar with the next concrete nudge ("Add a photo to show up in suggestions").
+- **Badges** — shown on cards and profiles. Earned automatically: Roundtable regular (2+ events attended), Mentor, Meetup host, Circle voice (3+ posts/replies), Lifelong learner (5+ wings), Shared her story (approved testimonial), All-star profile (100% complete), Spotlight featured, and Sweat squad (profile mentions a fitness/sport activity). Given by admins from `/admin/members` → Badges: Ambassador, Speaker, Champion, Volunteer — plus any automatic badge by hand. Badge facts come from the member-only `get_member_badges` database function so registration rows stay private; only admins can write awards.
+
+---
+
 ## SEO & AI discoverability (GEO)
 
 The site is built to be readable and citable by AI assistants (ChatGPT, Claude, Perplexity,
