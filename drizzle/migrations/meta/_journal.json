@@ -64,6 +64,13 @@
       "when": 1793206592618,
       "tag": "0008_directory_engagement",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793207391262,
+      "tag": "0009_member_badges_v2",
+      "breakpoints": true
     }
   ]
 }
