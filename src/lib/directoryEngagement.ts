@@ -72,7 +72,8 @@ export const LEARNER_MIN = 5;
 
 export type BadgeKey =
   | "spotlight" | "regular" | "host" | "mentor" | "circle" | "learner" | "story" | "allstar"
-  | "ambassador" | "speaker" | "champion" | "volunteer";
+  | "ambassador" | "speaker" | "champion" | "volunteer"
+  | "sweat";
 
 /** Badges only an admin can give. Admins can also give any automatic badge by hand. */
 export const MANUAL_ONLY_BADGES: BadgeKey[] = ["ambassador", "speaker", "champion", "volunteer"];
@@ -89,6 +90,7 @@ export const BADGE_LABELS: Record<BadgeKey, string> = {
   speaker: "Speaker",
   champion: "Community champion",
   volunteer: "Volunteer",
+  sweat: "Sweat squad",
 };
 export const BADGE_HINTS: Record<BadgeKey, string> = {
   spotlight: "Featured in a member spotlight",
@@ -103,6 +105,7 @@ export const BADGE_HINTS: Record<BadgeKey, string> = {
   speaker: "Has spoken at a Fempower event",
   champion: "Recognised by the Fempower team",
   volunteer: "Volunteers with Fempower",
+  sweat: "Mentions a fitness or sport activity on her profile",
 };
 
 export const ALL_BADGES = Object.keys(BADGE_LABELS) as BadgeKey[];
