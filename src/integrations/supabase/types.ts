@@ -1637,6 +1637,7 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          ask_me_about: string[]
           bio: string | null
           city: string | null
           coach_save_checklists: boolean
@@ -1667,6 +1668,7 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          ask_me_about?: string[]
           bio?: string | null
           city?: string | null
           coach_save_checklists?: boolean
@@ -1697,6 +1699,7 @@ export type Database = {
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          ask_me_about?: string[]
           bio?: string | null
           city?: string | null
           coach_save_checklists?: boolean
@@ -2574,6 +2577,15 @@ export type Database = {
           status: string
           title: string
           updated_at: string
+        }[]
+      }
+      get_member_badges: {
+        Args: { _user_ids: string[] }
+        Returns: {
+          events_attended: number
+          founding: boolean
+          spotlighted: boolean
+          user_id: string
         }[]
       }
       get_testimonials_public: {

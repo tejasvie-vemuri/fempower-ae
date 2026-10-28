@@ -18,6 +18,9 @@ import { useMemberProfile } from "@/hooks/useMemberProfile";
 import { logEngagement } from "@/lib/engagement";
 import { track } from "@/lib/analytics";
 import { PalmDivider, DuneWave, CrescentStar } from "@/components/GulfDecoratives";
+import { ProfileProgressCard, SuggestedMembers, NewThisWeek } from "@/components/directory/DirectoryHighlights";
+import { useMemberBadges } from "@/hooks/useMemberBadges";
+import { badgesFor, isNewMember } from "@/lib/directoryEngagement";
 
 const Directory = () => {
   const [searchParams] = useSearchParams();
@@ -27,6 +30,11 @@ const Directory = () => {
   const [cities, setCities] = useState<string[]>([]);
   const [totalCount, setTotalCount] = useState<number | null>(null);
   const { profile } = useMemberProfile();
+  const badgeFacts = useMemberBadges([...items.map((m) => m.user_id), ...(selected ? [selected.user_id] : [])]);
+  const openMember = (m: MemberProfile, source: string) => {
+    setSelected(m);
+    track("directory_profile_viewed", { target_id: m.user_id, source });
+  };
 
   useEffect(() => {
     (async () => {
@@ -138,6 +146,12 @@ const Directory = () => {
             </div>
           )}
 
+          {profile && <ProfileProgressCard profile={profile as MemberProfile} />}
+          {profile && profile.status === "approved" && (
+            <SuggestedMembers me={profile as MemberProfile} onSelect={openMember} />
+          )}
+          <NewThisWeek meId={profile?.user_id} onSelect={openMember} />
+
           {/* Filter bar — elevated card */}
           <div className="bg-card rounded-2xl shadow-sm border border-border p-4 md:p-5 mb-8">
             <DirectoryFiltersBar
@@ -191,7 +205,12 @@ const Directory = () => {
                     key={m.id}
                     variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
                   >
-                    <MemberCard member={m} onClick={() => { setSelected(m); track("directory_profile_viewed", { target_id: m.user_id, source: "grid" }); }} />
+                    <MemberCard
+                      member={m}
+                      badges={badgesFor(m, badgeFacts[m.user_id])}
+                      isNew={isNewMember(m.approved_at)}
+                      onClick={() => openMember(m, "grid")}
+                    />
                   </motion.div>
                 ))}
               </motion.div>
@@ -211,7 +230,12 @@ const Directory = () => {
           )}
         </div>
       </main>
-      <MemberDrawer member={selected} open={!!selected} onOpenChange={o => !o && setSelected(null)} />
+      <MemberDrawer
+        member={selected}
+        open={!!selected}
+        onOpenChange={o => !o && setSelected(null)}
+        badges={selected ? badgesFor(selected, badgeFacts[selected.user_id]) : []}
+      />
       <Footer />
     </>
   );

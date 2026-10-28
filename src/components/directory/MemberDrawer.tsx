@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { MemberProfile } from "@/lib/memberProfile";
 import { MemberAvatar } from "@/components/directory/MemberAvatar";
+import { MemberBadges } from "@/components/directory/MemberBadges";
+import type { BadgeKey } from "@/lib/directoryEngagement";
 
 const initials = (name: string) =>
   name.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]?.toUpperCase()).join("");
@@ -12,10 +14,12 @@ export const MemberDrawer = ({
   member,
   open,
   onOpenChange,
+  badges = [],
 }: {
   member: MemberProfile | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  badges?: BadgeKey[];
 }) => {
   if (!member) return null;
   return (
@@ -48,6 +52,15 @@ export const MemberDrawer = ({
         </SheetHeader>
 
         <div className="mt-6 space-y-5">
+          <MemberBadges badges={badges} />
+          {(member.ask_me_about?.length ?? 0) > 0 && (
+            <div className="rounded-xl bg-secondary p-4">
+              <h4 className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Ask me about</h4>
+              <div className="flex flex-wrap gap-1.5">
+                {member.ask_me_about!.map(t => <Badge key={t} variant="outline" className="bg-card">{t}</Badge>)}
+              </div>
+            </div>
+          )}
           {member.bio && (
             <div>
               <h4 className="text-xs uppercase tracking-widest text-muted-foreground mb-1">About</h4>
