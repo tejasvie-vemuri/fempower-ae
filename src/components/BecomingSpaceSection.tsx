@@ -297,9 +297,9 @@ const ArticleCard = ({ article, index }: { article: Article; index: number }) =>
           {article.readTime}
         </span>
       </div>
-      <h4 className="font-heading text-sm md:text-base font-semibold text-foreground leading-snug group-hover:text-blush-dark transition-colors">
+      <h3 className="font-heading text-sm md:text-base font-semibold text-foreground leading-snug group-hover:text-blush-dark transition-colors">
         {article.title}
-      </h4>
+      </h3>
       <p className="text-[11px] font-body text-muted-foreground mt-0.5 mb-3">
         {article.subtitle}
       </p>
@@ -409,9 +409,9 @@ const FrameworkItem = ({ fw, index }: { fw: Framework; index: number }) => (
           {EMOJIS[index % EMOJIS.length]}
         </span>
         <div className="min-w-0 flex-1">
-          <h4 className="font-heading text-sm md:text-base font-semibold text-foreground break-words">
+          <h3 className="font-heading text-sm md:text-base font-semibold text-foreground break-words">
             {fw.name}
-          </h4>
+          </h3>
           {fw.inspiredBy && (
             <p className="text-[11px] font-body text-muted-foreground mt-0.5 break-words">
               Inspired by {fw.inspiredBy}

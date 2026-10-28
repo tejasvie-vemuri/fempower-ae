@@ -109,9 +109,9 @@ const SubstackFeedSection = () => {
                   <span className="text-[10px] font-body uppercase tracking-widest text-blush-dark mb-1">
                     {post.author}
                   </span>
-                  <h4 className="font-heading text-sm font-semibold text-foreground group-hover:text-blush-dark transition-colors line-clamp-2 mb-2">
+                  <h3 className="font-heading text-sm font-semibold text-foreground group-hover:text-blush-dark transition-colors line-clamp-2 mb-2">
                     {post.title}
-                  </h4>
+                  </h3>
                   {post.description && (
                     <p className="text-xs text-muted-foreground font-body line-clamp-3 flex-1 mb-3">
                       {post.description}

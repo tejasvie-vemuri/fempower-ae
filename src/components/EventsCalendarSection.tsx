@@ -203,9 +203,9 @@ const EventsCalendarSection = () => {
                         <CalendarHeart size={20} className="text-blush-dark" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-heading text-base font-semibold text-foreground">
+                        <h3 className="font-heading text-base font-semibold text-foreground">
                           {event.title}
-                        </h4>
+                        </h3>
                         <div className="mt-1.5 flex flex-col gap-1">
                           <span className="flex items-center gap-1.5 text-sm text-muted-foreground font-body">
                             <Clock size={14} /> {event.time}
@@ -255,9 +255,9 @@ const EventsCalendarSection = () => {
                           <CalendarHeart size={16} className="text-blush-dark" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-body text-sm font-semibold text-foreground truncate">
+                          <h3 className="font-body text-sm font-semibold text-foreground truncate">
                             {event.title}
-                          </h4>
+                          </h3>
                           <p className="text-xs text-muted-foreground font-body">
                             {event.date.toLocaleDateString("en-AE", {
                               weekday: "short",

@@ -88,6 +88,10 @@ const Events = () => {
         <meta property="og:title" content="Women's Events in Dubai & the UAE — Fempower" />
         <meta property="og:url" content={CANONICAL} />
         <meta property="og:type" content="website" />
+        <meta
+          property="og:description"
+          content="Every upcoming Fempower event in one place: roundtables, beach walks and meetups for women across Dubai and the UAE, with dates, venues and prices."
+        />
       </Helmet>
 
       {itemListJsonLd && (
