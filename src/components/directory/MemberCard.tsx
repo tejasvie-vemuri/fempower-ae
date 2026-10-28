@@ -3,11 +3,13 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { MemberProfile } from "@/lib/memberProfile";
 import { MemberAvatar } from "@/components/directory/MemberAvatar";
+import { MemberBadges } from "@/components/directory/MemberBadges";
+import type { BadgeKey } from "@/lib/directoryEngagement";
 
 const initials = (name: string) =>
   name.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]?.toUpperCase()).join("");
 
-export const MemberCard = ({ member, onClick }: { member: MemberProfile; onClick: () => void }) => {
+export const MemberCard = ({ member, onClick, badges = [], isNew = false }: { member: MemberProfile; onClick: () => void; badges?: BadgeKey[]; isNew?: boolean }) => {
   return (
     <Card
       onClick={onClick}
@@ -37,8 +39,26 @@ export const MemberCard = ({ member, onClick }: { member: MemberProfile; onClick
         </div>
       </div>
 
+      {(isNew || badges.length > 0) && (
+        <div className="flex flex-wrap gap-1.5 -mt-1">
+          {isNew && (
+            <span className="inline-flex items-center rounded-full bg-primary text-primary-foreground px-2 py-0.5 text-[10px] font-body font-semibold uppercase tracking-widest">
+              New
+            </span>
+          )}
+          <MemberBadges badges={badges} />
+        </div>
+      )}
+
       {member.bio && (
         <p className="text-sm font-body text-foreground/75 leading-relaxed line-clamp-2">{member.bio}</p>
+      )}
+
+      {(member.ask_me_about?.length ?? 0) > 0 && (
+        <p className="text-sm font-body text-foreground">
+          <span className="text-xs uppercase tracking-widest text-blush-dark font-semibold">Ask me about </span>
+          {member.ask_me_about!.join(" · ")}
+        </p>
       )}
 
       {(member.industry || member.looking_for.length > 0) && (
