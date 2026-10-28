@@ -22,6 +22,7 @@ import {
 } from "@/lib/memberProfile";
 import { cn } from "@/lib/utils";
 import TestimonialSubmitDialog from "@/components/TestimonialSubmitDialog";
+import { profileCompleteness, nextProfileNudge } from "@/lib/directoryEngagement";
 
 const TagInput = ({ value, onChange, placeholder, max = 15 }: {
   value: string[]; onChange: (v: string[]) => void; placeholder?: string; max?: number;
