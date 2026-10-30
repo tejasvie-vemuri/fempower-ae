@@ -6,7 +6,7 @@ describe("event promo codes", () => {
   it("supports event-specific codes", () => expect(() => promoQuote({ ...rule, event_id: "other" }, "event", 2900, "AED", false)).toThrow("another event"));
   it("supports all-event codes", () => expect(promoQuote(rule, "any-event", 2900, "AED", false).discount_cents).toBe(580));
   it("rejects expired codes", () => expect(() => promoQuote({ ...rule, expires_at: "2026-10-25T16:00:00Z" }, "event", 2900, "AED", false, Date.parse("2026-10-25T16:34:00Z"))).toThrow("expired"));
-  it("rejects guest use of members-only codes", () => expect(() => promoQuote({ ...rule, members_only: true }, "event", 2900, "AED", false)).toThrow("approved members"));
+  it("rejects guest use of members-only codes", () => expect(() => promoQuote({ ...rule, members_only: true }, "event", 2900, "AED", false)).toThrow("Invalid or inactive"));
   it("allows approved members to use members-only codes", () => expect(promoQuote({ ...rule, members_only: true }, "event", 2900, "AED", true).total_cents).toBe(2320));
   it("caps discounts at the total", () => expect(promoQuote({ ...rule, discount_type: "fixed", discount_value: 5000 }, "event", 2900, "AED", false).total_cents).toBe(0));
   it("rejects inactive codes", () => expect(() => promoQuote({ ...rule, is_active: false }, "event", 2900, "AED", false)).toThrow("inactive"));
