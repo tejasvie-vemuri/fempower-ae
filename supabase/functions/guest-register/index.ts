@@ -128,9 +128,6 @@ Deno.serve(async (req) => {
       }
       return json({ error: "A booking with this email is already in progress. Please check your email or contact us to change it." }, 409);
     }
-    if (existingReg) {
-      return json({ error: "This email can't be used to book this event again. Please contact us." }, 409);
-    }
 
     const quote = await resolvePromo(admin, body.promo_code, ev, quantity, null);
     const isFree = quote.total_cents === 0;
@@ -156,9 +153,20 @@ Deno.serve(async (req) => {
       payment_provider: isFree ? null : "ziina",
     };
 
-    let registrationId: string | null = null;
+    // Only a closed (cancelled/refunded/failed) booking may be reused here.
+    let registrationId: string | null = existingReg?.id ?? null;
     let ticketCode: string | null = null;
-    {
+    if (registrationId) {
+      const { data: upd, error: updErr } = await admin
+        .from("registrations")
+        .update(payload)
+        .eq("id", registrationId)
+        .not("status", "in", "(confirmed,pending)")
+        .select("id, ticket_code")
+        .single();
+      if (updErr) return json({ error: "Could not update booking" }, 500);
+      ticketCode = upd.ticket_code;
+    } else {
       const { data: ins, error: insErr } = await admin
         .from("registrations")
         .insert(payload)
