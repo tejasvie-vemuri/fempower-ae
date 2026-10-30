@@ -204,7 +204,7 @@ const AdminMembers = () => {
         },
       });
       if (emailErr) {
-        console.error("[spotlight-story-request] invoke failed", { requestId: row.id, recipient, idempotencyKey, error: emailErr.message });
+        console.error("[spotlight-story-request] invoke failed", { requestId: row.id, idempotencyKey, error: emailErr.message });
         toast({ title: "Request saved, email failed", description: emailErr.message, variant: "destructive" });
       } else {
         console.log("[spotlight-story-request] invoke ok", { requestId: row.id, idempotencyKey });

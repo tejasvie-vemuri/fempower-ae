@@ -559,7 +559,6 @@ function StoryRequestsTab() {
         // separately writes a row to email_send_log for the Supabase-side trail.
         console.error("[spotlight-story-request] invoke failed", {
           requestId: row.id,
-          recipient: profile.email,
           idempotencyKey,
           error: emailErr.message,
         });
@@ -604,7 +603,6 @@ function StoryRequestsTab() {
     if (emailErr) {
       console.error("[spotlight-story-request] resend failed", {
         requestId: r.id,
-        recipient: profile.email,
         idempotencyKey,
         error: emailErr.message,
       });
