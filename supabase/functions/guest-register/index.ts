@@ -113,12 +113,20 @@ Deno.serve(async (req) => {
 
     const { data: existingReg } = await admin
       .from("registrations")
-      .select("id, status")
+      .select("id, status, payment_checkout_url")
       .eq("event_id", ev.id)
       .ilike("guest_email", email)
       .maybeSingle();
     if (existingReg?.status === "confirmed") {
       return json({ error: "You are already registered with this email" }, 400);
+    }
+    // Never let an unauthenticated caller overwrite a booking that already
+    // exists for this email. Resume the original checkout instead.
+    if (existingReg && existingReg.status === "pending") {
+      if (existingReg.payment_checkout_url) {
+        return json({ redirect_url: existingReg.payment_checkout_url, registration_id: existingReg.id });
+      }
+      return json({ error: "A booking with this email is already in progress. Please check your email or contact us to change it." }, 409);
     }
 
     const quote = await resolvePromo(admin, body.promo_code, ev, quantity, null);
@@ -145,16 +153,18 @@ Deno.serve(async (req) => {
       payment_provider: isFree ? null : "ziina",
     };
 
-    let registrationId = existingReg?.id ?? null;
+    // Only a closed (cancelled/refunded/failed) booking may be reused here.
+    let registrationId: string | null = existingReg?.id ?? null;
     let ticketCode: string | null = null;
     if (registrationId) {
       const { data: upd, error: updErr } = await admin
         .from("registrations")
         .update(payload)
         .eq("id", registrationId)
+        .not("status", "in", "(confirmed,pending)")
         .select("id, ticket_code")
         .single();
-      if (updErr) return json({ error: updErr.message }, 500);
+      if (updErr) return json({ error: "Could not update booking" }, 500);
       ticketCode = upd.ticket_code;
     } else {
       const { data: ins, error: insErr } = await admin

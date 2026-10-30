@@ -1101,6 +1101,31 @@ function checkRateLimit(key: string): boolean {
   return true
 }
 
+/** Resolve the verified signed-in user id from the bearer token, or null for visitors. */
+async function verifiedUserId(req: Request): Promise<string | null> {
+  const auth = req.headers.get("Authorization") ?? "";
+  if (!auth.startsWith("Bearer ")) return null;
+  try {
+    const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/auth/v1/user`, {
+      headers: { Authorization: auth, apikey: Deno.env.get("SUPABASE_ANON_KEY") ?? "" },
+    });
+    if (!res.ok) return null;
+    const u = await res.json();
+    return typeof u?.id === "string" ? u.id : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Keep only user/assistant text turns so callers cannot inject system or tool roles. */
+function sanitizeMessages(raw: unknown): { role: "user" | "assistant"; content: string }[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
+    .slice(-40)
+    .map((m) => ({ role: m.role, content: String(m.content).slice(0, 8000) }));
+}
+
 /** Verify the caller is a signed-in admin (used by the eval harness mode). */
 async function requireAdmin(
   req: Request,
@@ -1164,7 +1189,14 @@ serve(async (req) => {
 
   try {
     const payload = await req.json();
-    const { messages, userProfile, checklistHistory, saveChecklists, bucketKey, rulesetSlug } = payload;
+    const { userProfile, checklistHistory, saveChecklists, bucketKey, rulesetSlug } = payload;
+    const messages = sanitizeMessages(payload?.messages);
+    if (payload?.mode !== "eval" && (!messages.length || messages[messages.length - 1].role !== "user")) {
+      return new Response(JSON.stringify({ error: "A message is required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const callerUserId = payload?.mode === "eval" ? null : await verifiedUserId(req);
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -1334,7 +1366,7 @@ serve(async (req) => {
           ruleset_id: ruleset?.id ?? null,
           ruleset_slug: ruleset?.slug ?? null,
           source: "production",
-          user_id: userProfile?.user_id ?? null,
+          user_id: callerUserId,
           user_message: (lastUser?.content ?? "").slice(0, 2000),
           reply: clean.slice(0, 6000),
           score: result.score,

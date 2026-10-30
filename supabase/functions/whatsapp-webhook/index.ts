@@ -26,6 +26,20 @@ async function sendWhatsAppMessage(to: string, body: string, phoneNumberId: stri
   }
 }
 
+/** Verify Meta's X-Hub-Signature-256 HMAC over the raw body using the app secret. */
+async function verifyMetaSignature(raw: string, header: string | null): Promise<boolean> {
+  const secret = Deno.env.get("WHATSAPP_APP_SECRET");
+  if (!secret || !header?.startsWith("sha256=")) return false;
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(raw)));
+  const expected = Array.from(sig).map((b) => b.toString(16).padStart(2, "0")).join("");
+  const given = header.slice(7).toLowerCase();
+  if (given.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ given.charCodeAt(i);
+  return diff === 0;
+}
+
 Deno.serve(async (req) => {
   const url = new URL(req.url);
 
@@ -49,7 +63,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const payload = await req.json();
+    const raw = await req.text();
+    if (!(await verifyMetaSignature(raw, req.headers.get("x-hub-signature-256")))) {
+      return new Response("Forbidden", { status: 403 });
+    }
+    const payload = JSON.parse(raw);
     const change = payload?.entry?.[0]?.changes?.[0]?.value;
     const message = change?.messages?.[0];
 

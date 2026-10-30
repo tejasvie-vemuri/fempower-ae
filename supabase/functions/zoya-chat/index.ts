@@ -33,7 +33,18 @@ Deno.serve(async (req) => {
     }
     const userId = userData.user.id;
 
-    const { messages, assistantName, preferredName } = await req.json();
+    const body = await req.json();
+    const { assistantName, preferredName } = body ?? {};
+    // Only user/assistant text turns; never let callers inject system/tool roles.
+    const messages = (Array.isArray(body?.messages) ? body.messages : [])
+      .filter((m: any) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
+      .slice(-40)
+      .map((m: any) => ({ role: m.role as "user" | "assistant", content: String(m.content).slice(0, 8000) }));
+    if (!messages.length || messages[messages.length - 1].role !== "user") {
+      return new Response(JSON.stringify({ error: "A message is required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const result = await runZoyaBrain({
       db,

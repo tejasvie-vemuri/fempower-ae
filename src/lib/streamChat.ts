@@ -1,4 +1,4 @@
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
+import { supabase, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
 
 const CHAT_URL = `${SUPABASE_URL}/functions/v1/fempower-coach`;
 
@@ -39,11 +39,14 @@ export async function streamChat({
   onDone: () => void;
   onError: (err: string) => void;
 }) {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData.session?.access_token ?? SUPABASE_PUBLISHABLE_KEY;
   const resp = await fetch(CHAT_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+      apikey: SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ messages, userProfile, checklistHistory, saveChecklists, bucketKey }),
   });

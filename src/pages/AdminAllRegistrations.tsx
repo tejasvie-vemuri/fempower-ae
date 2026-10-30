@@ -1,3 +1,4 @@
+import { toCsv } from "@/lib/csv";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -275,16 +276,7 @@ const AdminAllRegistrations = () => {
         ];
       }),
     ];
-    const csv = rows
-      .map((row) =>
-        row
-          .map((cell) => {
-            const s = String(cell ?? "");
-            return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-          })
-          .join(","),
-      )
-      .join("\n");
+    const csv = toCsv(rows);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

@@ -1,3 +1,4 @@
+import { toCsv } from "@/lib/csv";
 import { useEffect, useMemo, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -277,16 +278,7 @@ const AdminTestimonials = () => {
         days ?? "",
       ];
     });
-    const csv = [headers, ...rows]
-      .map((row) =>
-        row
-          .map((cell) => {
-            const s = String(cell ?? "").replace(/"/g, '""');
-            return /[",\n]/.test(s) ? `"${s}"` : s;
-          })
-          .join(","),
-      )
-      .join("\n");
+    const csv = toCsv([headers, ...rows]);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

@@ -10,10 +10,11 @@ export interface PromoRule {
 }
 
 export function promoQuote(rule: PromoRule | null, eventId: string, subtotal: number, currency: string, isMember: boolean, now = Date.now()) {
-  if (!rule || !rule.is_active) throw new Error("Invalid or inactive promo code");
+  // Members-only codes look exactly like unknown codes to non-members, so
+  // anonymous callers can't discover them or their discount.
+  if (!rule || !rule.is_active || (rule.members_only && !isMember)) throw new Error("Invalid or inactive promo code");
   if (rule.expires_at && new Date(rule.expires_at).getTime() <= now) throw new Error("This promo code has expired");
   if (rule.event_id && rule.event_id !== eventId) throw new Error("This promo code is for another event");
-  if (rule.members_only && !isMember) throw new Error("This promo code is for approved members only — please sign in");
   if (subtotal <= 0) throw new Error("Promo codes apply to paid events only");
   if (rule.discount_type === "fixed" && currency.toUpperCase() !== "AED") throw new Error("This promo code applies to AED tickets only");
   const discount = Math.min(subtotal, rule.discount_type === "percentage" ? Math.round(subtotal * rule.discount_value / 100) : rule.discount_value);
