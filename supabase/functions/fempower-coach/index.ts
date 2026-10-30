@@ -1191,7 +1191,7 @@ serve(async (req) => {
     const payload = await req.json();
     const { userProfile, checklistHistory, saveChecklists, bucketKey, rulesetSlug } = payload;
     const messages = sanitizeMessages(payload?.messages);
-    if (!messages.length || messages[messages.length - 1].role !== "user") {
+    if (payload?.mode !== "eval" && (!messages.length || messages[messages.length - 1].role !== "user")) {
       return new Response(JSON.stringify({ error: "A message is required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
