@@ -67,5 +67,14 @@ export function eventHtml(template: string, event: EventPreviewData, jsonLd: Rec
     }),
     `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>`,
   ];
-  return replaceHeadTags(template, tags);
+  const city = /abu dhabi/i.test(event.location || "") ? "Abu Dhabi" : /sharjah/i.test(event.location || "") ? "Sharjah" : "Dubai";
+  const keywords = [
+    event.title, `${event.title} ${city}`, `women events ${city}`, `women community ${city}`,
+    event.price_cents === 0 ? `free events for women ${city}` : `workshops for women ${city}`,
+    event.location, `things to do in ${city} for women`, "women events UAE", "Fempower",
+  ].filter(Boolean).map((k) => escapeEventHtml(String(k))).join(", ");
+  const geo = escapeEventHtml(`${event.location ? event.location + ", " : ""}${city}, United Arab Emirates`);
+  return replaceHeadTags(template, tags)
+    .replace(/<meta name="keywords"[^>]*>/, `<meta name="keywords" content="${keywords}" />`)
+    .replace(/<meta name="geo.placename"[^>]*>/, `<meta name="geo.placename" content="${geo}" />`);
 }

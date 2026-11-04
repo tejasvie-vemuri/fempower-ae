@@ -68,7 +68,9 @@ const EventJsonLd = ({
       name: location || "United Arab Emirates",
       address: {
         "@type": "PostalAddress",
-        addressLocality: location || "Dubai",
+        streetAddress: location || undefined,
+        addressLocality: /abu dhabi/i.test(location || "") ? "Abu Dhabi" : /sharjah/i.test(location || "") ? "Sharjah" : "Dubai",
+        addressRegion: /abu dhabi/i.test(location || "") ? "Abu Dhabi" : /sharjah/i.test(location || "") ? "Sharjah" : "Dubai",
         addressCountry: "AE",
       },
     },
