@@ -413,6 +413,11 @@ const FempowerCoach = () => {
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
+    if (!user?.id) {
+      setMessages((prev) => [...prev, { role: "user", content: text.trim() }, { role: "assistant", content: "I'd love to help! Please [sign in](/auth) (it's free) so we can chat." }]);
+      setInput("");
+      return;
+    }
     const userMsg: Msg = { role: "user", content: text.trim() };
     // Remember which checklist this conversation is about, so "send to a
     // friend" shares the page for the flow she actually just did.
