@@ -8,3 +8,4 @@
 - Directory matching, badges, "new this week" and profile completeness rules live in `src/lib/directoryEngagement.ts` (tested); badge facts (including admin-given awards) come from the member-only `get_member_badges` function so registration rows stay private; only admins can write badge awards.
 - Finances page nets refunded tickets on both sides (collected when paid, refunded when returned) because refund flows only change registration status and leave `amount_paid_cents` unchanged — counting them only as refunds would understate net.
 - Every event registration collects a phone number: guests via the guest form, signed-in members via a required field saved to `profiles.phone` before registration completes.
+- Every confirmed event registration emails the admin (Tejasvie) with form answers, member status, event, amount paid and coupon; registration forms ask for a WhatsApp number.

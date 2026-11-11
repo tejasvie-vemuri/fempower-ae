@@ -322,7 +322,7 @@ const EventDetail = () => {
     const phoneValue = memberPhone.trim();
     if (!PHONE_RE.test(phoneValue)) {
       track("event_register_failed", { ...funnel, reason: "phone_invalid" });
-      toast.error("Please enter a valid phone number");
+      toast.error("Please enter a valid WhatsApp number");
       document.getElementById("member-phone")?.focus();
       return;
     }
@@ -459,7 +459,7 @@ const EventDetail = () => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))
       return toast.error("Please enter a valid email address");
     if (!/^\+?[0-9][0-9\s-]{6,19}$/.test(phone))
-      return toast.error("Please enter a valid phone number");
+      return toast.error("Please enter a valid WhatsApp number");
     if (!/^https?:\/\/([a-z]{2,3}\.)?linkedin\.com\/.+$/i.test(linkedin))
       return toast.error("Please enter your LinkedIn profile URL (linkedin.com/in/…)");
 
@@ -746,7 +746,7 @@ const EventDetail = () => {
                 <div className="border border-border rounded-lg p-4 bg-card/50 space-y-4">
                   {user && (
                     <div className="space-y-1">
-                      <Label htmlFor="member-phone">Phone number</Label>
+                      <Label htmlFor="member-phone">WhatsApp number</Label>
                       <Input
                         id="member-phone"
                         type="tel"
@@ -758,7 +758,7 @@ const EventDetail = () => {
                         disabled={acting}
                       />
                       <p className="text-xs text-muted-foreground">
-                        So we can reach you about the event.
+                        So we can reach you on WhatsApp about the event.
                       </p>
                     </div>
                   )}
@@ -1027,7 +1027,7 @@ const EventDetail = () => {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="guest-phone">Phone number</Label>
+                        <Label htmlFor="guest-phone">WhatsApp number</Label>
                         <Input
                           id="guest-phone"
                           type="tel"
