@@ -85,6 +85,13 @@
       "when": 1793213504491,
       "tag": "0011_restrict_reference_tables_and_event_covers_listing",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794410167323,
+      "tag": "0012_restrict_reference_tables",
+      "breakpoints": true
     }
   ]
 }

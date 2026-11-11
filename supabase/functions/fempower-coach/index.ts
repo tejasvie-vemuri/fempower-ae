@@ -1197,6 +1197,11 @@ serve(async (req) => {
       });
     }
     const callerUserId = payload?.mode === "eval" ? null : await verifiedUserId(req);
+    if (payload?.mode !== "eval" && !callerUserId) {
+      return new Response(JSON.stringify({ error: "Please sign in to chat with Zara." }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
