@@ -719,6 +719,17 @@ const EventDetail = () => {
               </div>
             )}
 
+            {event.agenda && (
+              <div className="border border-border rounded-xl p-5 bg-card/50">
+                <h2 className="font-heading text-xl text-primary mb-3">
+                  What to expect
+                </h2>
+                <div className="whitespace-pre-line text-sm text-foreground/80">
+                  {event.agenda}
+                </div>
+              </div>
+            )}
+
             <EventResources
               eventId={event.id}
               isRegistered={myReg?.status === "confirmed"}
