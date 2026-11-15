@@ -60,6 +60,7 @@ interface EventData {
   status: string;
   waitlist_enabled: boolean;
   members_only: boolean;
+  agenda: string | null;
   attendee_questions: unknown;
   enabled_default_questions: string[] | null;
 }
@@ -715,6 +716,17 @@ const EventDetail = () => {
             {event.description && (
               <div className="prose prose-sm max-w-none whitespace-pre-line text-foreground/80">
                 {event.description}
+              </div>
+            )}
+
+            {event.agenda && (
+              <div className="border border-border rounded-xl p-5 bg-card/50">
+                <h2 className="font-heading text-xl text-primary mb-3">
+                  What to expect
+                </h2>
+                <div className="whitespace-pre-line text-sm text-foreground/80">
+                  {event.agenda}
+                </div>
               </div>
             )}
 
