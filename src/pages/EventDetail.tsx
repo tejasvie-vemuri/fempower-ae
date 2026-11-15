@@ -60,6 +60,7 @@ interface EventData {
   status: string;
   waitlist_enabled: boolean;
   members_only: boolean;
+  agenda: string | null;
   attendee_questions: unknown;
   enabled_default_questions: string[] | null;
 }

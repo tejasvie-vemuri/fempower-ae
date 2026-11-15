@@ -934,6 +934,7 @@ export type Database = {
       }
       events: {
         Row: {
+          agenda: string | null
           attendee_questions: Json
           capacity: number
           cover_image_url: string | null
@@ -956,6 +957,7 @@ export type Database = {
           waitlist_enabled: boolean
         }
         Insert: {
+          agenda?: string | null
           attendee_questions?: Json
           capacity?: number
           cover_image_url?: string | null
@@ -978,6 +980,7 @@ export type Database = {
           waitlist_enabled?: boolean
         }
         Update: {
+          agenda?: string | null
           attendee_questions?: Json
           capacity?: number
           cover_image_url?: string | null

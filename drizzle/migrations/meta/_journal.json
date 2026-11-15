@@ -92,6 +92,13 @@
       "when": 1794410167323,
       "tag": "0012_restrict_reference_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794773995914,
+      "tag": "0013_add_event_agenda",
+      "breakpoints": true
     }
   ]
 }
