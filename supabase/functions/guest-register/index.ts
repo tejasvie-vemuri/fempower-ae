@@ -4,6 +4,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
   createPaymentIntent,
+  getPaymentIntent,
   getPublicSiteUrl,
   getZiinaTestMode,
 } from "../_shared/ziina.ts";
@@ -113,20 +114,39 @@ Deno.serve(async (req) => {
 
     const { data: existingReg } = await admin
       .from("registrations")
-      .select("id, status, payment_checkout_url")
+      .select("id, status, payment_checkout_url, payment_intent_id, guest_phone")
       .eq("event_id", ev.id)
       .ilike("guest_email", email)
       .maybeSingle();
     if (existingReg?.status === "confirmed") {
       return json({ error: "You are already registered with this email" }, 400);
     }
-    // Never let an unauthenticated caller overwrite a booking that already
-    // exists for this email. Resume the original checkout instead.
+    // An unpaid booking may only be re-quoted (new promo code / seats) by the
+    // same guest: email AND WhatsApp number must match. Otherwise resume the
+    // original checkout so strangers can't overwrite someone else's booking.
+    let reusePending = false;
     if (existingReg && existingReg.status === "pending") {
-      if (existingReg.payment_checkout_url) {
-        return json({ redirect_url: existingReg.payment_checkout_url, registration_id: existingReg.id });
+      const digits = (v: unknown) => String(v ?? "").replace(/\D/g, "");
+      const sameGuest = digits(existingReg.guest_phone) !== "" &&
+        digits(existingReg.guest_phone) === digits(phone);
+      if (!sameGuest) {
+        if (existingReg.payment_checkout_url) {
+          return json({ redirect_url: existingReg.payment_checkout_url, registration_id: existingReg.id });
+        }
+        return json({ error: "A booking with this email is already in progress. Please use the same WhatsApp number or contact us to change it." }, 409);
       }
-      return json({ error: "A booking with this email is already in progress. Please check your email or contact us to change it." }, 409);
+      // Never replace a checkout that was actually paid.
+      if (existingReg.payment_intent_id) {
+        try {
+          const prev = await getPaymentIntent(existingReg.payment_intent_id);
+          if (prev?.status === "completed") {
+            return json({ error: "Your earlier payment went through and is being confirmed. Please check your email shortly." }, 409);
+          }
+        } catch {
+          return json({ error: "Could not check your earlier checkout. Please try again in a minute." }, 503);
+        }
+      }
+      reusePending = true;
     }
 
     const quote = await resolvePromo(admin, body.promo_code, ev, quantity, null);
@@ -153,15 +173,13 @@ Deno.serve(async (req) => {
       payment_provider: isFree ? null : "ziina",
     };
 
-    // Only a closed (cancelled/refunded/failed) booking may be reused here.
+    // Reuse a closed booking, or the same guest's own unpaid one.
     let registrationId: string | null = existingReg?.id ?? null;
     let ticketCode: string | null = null;
     if (registrationId) {
-      const { data: upd, error: updErr } = await admin
-        .from("registrations")
-        .update(payload)
-        .eq("id", registrationId)
-        .not("status", "in", "(confirmed,pending)")
+      let q = admin.from("registrations").update(payload).eq("id", registrationId);
+      q = reusePending ? q.eq("status", "pending") : q.not("status", "in", "(confirmed,pending)");
+      const { data: upd, error: updErr } = await q
         .select("id, ticket_code")
         .single();
       if (updErr) return json({ error: "Could not update booking" }, 500);
