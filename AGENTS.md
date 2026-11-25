@@ -9,3 +9,4 @@
 - Finances page nets refunded tickets on both sides (collected when paid, refunded when returned) because refund flows only change registration status and leave `amount_paid_cents` unchanged — counting them only as refunds would understate net.
 - Every event registration collects a phone number: guests via the guest form, signed-in members via a required field saved to `profiles.phone` before registration completes.
 - Every confirmed event registration emails the admin (Tejasvie) with form answers, member status, event, amount paid and coupon; registration forms ask for a WhatsApp number.
+- Directory smart search and topic chips use `matchesSearch`/`topTopics` in `src/lib/directoryEngagement.ts` (tested), filtering approved profiles in-app because the community is a few hundred members; "You've met at" uses the member-only `get_shared_events` function so other bookings stay private.

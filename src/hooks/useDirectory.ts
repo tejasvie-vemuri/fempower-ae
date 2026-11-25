@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { MemberProfile } from "@/lib/memberProfile";
+import { matchesSearch } from "@/lib/directoryEngagement";
 
 export interface DirectoryFilters {
   search: string;
@@ -29,9 +30,16 @@ export const useDirectory = (filters: DirectoryFilters) => {
     if (filters.industry) q = q.eq("industry", filters.industry);
     if (filters.city) q = q.ilike("city", filters.city);
     if (filters.lookingFor) q = q.contains("looking_for", [filters.lookingFor]);
+    // Smart search: every word must match name, profession, company, industry,
+    // city, bio or tags. The community is a few hundred members, so filter in-app.
     if (filters.search.trim()) {
-      const term = `%${filters.search.trim()}%`;
-      q = q.or(`name.ilike.${term},role.ilike.${term},company.ilike.${term},bio.ilike.${term}`);
+      const { data, error } = await q.limit(1000);
+      if (error) { console.error(error); setLoading(false); return; }
+      const rows = ((data ?? []) as MemberProfile[]).filter((m) => matchesSearch(m, filters.search));
+      setItems(rows);
+      setHasMore(false);
+      setLoading(false);
+      return;
     }
 
     const from = pageIdx * PAGE_SIZE;

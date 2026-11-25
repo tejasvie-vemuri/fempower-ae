@@ -99,6 +99,13 @@
       "when": 1794773995914,
       "tag": "0013_add_event_agenda",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1795620081919,
+      "tag": "0014_shared_events_function",
+      "breakpoints": true
     }
   ]
 }

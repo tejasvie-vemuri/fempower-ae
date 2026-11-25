@@ -20,7 +20,7 @@ import { track } from "@/lib/analytics";
 import { PalmDivider, DuneWave, CrescentStar } from "@/components/GulfDecoratives";
 import { ProfileProgressCard, SuggestedMembers, NewThisWeek } from "@/components/directory/DirectoryHighlights";
 import { useMemberBadges } from "@/hooks/useMemberBadges";
-import { badgesFor, isNewMember } from "@/lib/directoryEngagement";
+import { badgesFor, isNewMember, topTopics } from "@/lib/directoryEngagement";
 
 const Directory = () => {
   const [searchParams] = useSearchParams();
@@ -28,6 +28,7 @@ const Directory = () => {
   const { items, loading, hasMore, loadMore } = useDirectory(filters);
   const [selected, setSelected] = useState<MemberProfile | null>(null);
   const [cities, setCities] = useState<string[]>([]);
+  const [topics, setTopics] = useState<{ label: string; count: number }[]>([]);
   const [totalCount, setTotalCount] = useState<number | null>(null);
   const { profile } = useMemberProfile();
   const badgeFacts = useMemberBadges([...items.map((m) => m.user_id), ...(selected ? [selected.user_id] : [])]);
@@ -39,11 +40,12 @@ const Directory = () => {
   useEffect(() => {
     (async () => {
       const [{ data: cityRows }, { count }] = await Promise.all([
-        supabase.from("member_profiles").select("city").eq("status", "approved").not("city", "is", null),
+        supabase.from("member_profiles").select("city, industry, expertise_tags, ask_me_about").eq("status", "approved"),
         supabase.from("member_profiles").select("*", { count: "exact", head: true }).eq("status", "approved"),
       ]);
       const set = Array.from(new Set((cityRows ?? []).map((r: any) => r.city).filter(Boolean))).sort();
       setCities(set);
+      setTopics(topTopics((cityRows ?? []) as any[]));
       setTotalCount(count ?? null);
     })();
   }, []);
@@ -157,6 +159,7 @@ const Directory = () => {
             <DirectoryFiltersBar
               filters={filters}
               cities={cities}
+              topics={topics}
               onChange={(next) => {
                 const facetChanged =
                   next.industry !== filters.industry ||

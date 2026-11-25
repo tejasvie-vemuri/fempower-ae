@@ -219,3 +219,38 @@ export const suggestMembers = <T extends Matchable>(me: Matchable, pool: T[], co
 export const NEW_MEMBER_DAYS = 7;
 export const isNewMember = (approvedAt: string | null, now: Date = new Date()) =>
   !!approvedAt && now.getTime() - new Date(approvedAt).getTime() <= NEW_MEMBER_DAYS * 86400000;
+
+/** Fields one search box looks across: name, profession, company, industry, city, bio and tags. */
+export type Searchable = Partial<Pick<MemberProfile, "name" | "role" | "company" | "industry" | "city" | "bio" | "expertise_tags" | "interests" | "ask_me_about" | "looking_for">>;
+
+const searchText = (m: Searchable) =>
+  [m.name, m.role, m.company, m.industry, m.city, m.bio, ...(m.expertise_tags ?? []), ...(m.interests ?? []), ...(m.ask_me_about ?? []), ...(m.looking_for ?? [])]
+    .filter(Boolean).join(" ").toLowerCase();
+
+/** Every word typed must appear somewhere in her profile ("marketing dubai mentor"). */
+export const matchesSearch = (m: Searchable, query: string) => {
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return true;
+  const text = searchText(m);
+  return words.every((w) => text.includes(w));
+};
+
+/** Most common industries and tags across members, for quick topic chips. Needs 2+ members. */
+export const topTopics = (members: Searchable[], limit = 10, min = 2) => {
+  const counts = new Map<string, { label: string; count: number }>();
+  for (const m of members) {
+    const seen = new Set<string>();
+    for (const raw of [m.industry, ...(m.expertise_tags ?? []), ...(m.ask_me_about ?? [])]) {
+      const label = raw?.trim();
+      if (!label) continue;
+      const key = label.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const cur = counts.get(key) ?? { label, count: 0 };
+      cur.count++;
+      counts.set(key, cur);
+    }
+  }
+  return [...counts.values()].filter((t) => t.count >= min)
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label)).slice(0, limit);
+};

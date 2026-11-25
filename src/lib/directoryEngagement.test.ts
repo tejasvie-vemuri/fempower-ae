@@ -44,3 +44,21 @@ describe("directory engagement rules", () => {
     expect(profileCompleteness({})).toBe(0);
   });
 });
+
+import { matchesSearch, topTopics } from "./directoryEngagement";
+describe("member discovery search", () => {
+  const m = { name: "Sara Ali", role: "Brand Strategist", company: "Noon", industry: "Marketing", city: "Dubai", ask_me_about: ["Personal branding"], looking_for: ["Mentoring"] };
+  it("every typed word must match somewhere in her profile", () => {
+    expect(matchesSearch(m, "marketing dubai mentor")).toBe(true);
+    expect(matchesSearch(m, "SARA noon")).toBe(true);
+    expect(matchesSearch(m, "marketing abu")).toBe(false);
+  });
+  it("topic chips count each member once and need at least 2 members", () => {
+    const t = topTopics([
+      { industry: "Tech", expertise_tags: ["tech", "AI"] },
+      { industry: "Tech", ask_me_about: ["AI"] },
+      { industry: "Finance" },
+    ]);
+    expect(t).toEqual([{ label: "AI", count: 2 }, { label: "Tech", count: 2 }]);
+  });
+});

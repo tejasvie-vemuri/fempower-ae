@@ -2619,6 +2619,15 @@ export type Database = {
           wings_completed: number
         }[]
       }
+      get_shared_events: {
+        Args: { _other_user_id: string }
+        Returns: {
+          event_id: string
+          slug: string
+          starts_at: string
+          title: string
+        }[]
+      }
       get_testimonials_public: {
         Args: never
         Returns: {

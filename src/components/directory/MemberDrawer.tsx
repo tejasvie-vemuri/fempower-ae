@@ -6,6 +6,25 @@ import type { MemberProfile } from "@/lib/memberProfile";
 import { MemberAvatar } from "@/components/directory/MemberAvatar";
 import { MemberBadges } from "@/components/directory/MemberBadges";
 import type { BadgeKey } from "@/lib/directoryEngagement";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+
+type SharedEvent = { event_id: string; title: string; slug: string; starts_at: string };
+const useSharedEvents = (otherId?: string) => {
+  const [events, setEvents] = useState<SharedEvent[]>([]);
+  useEffect(() => {
+    setEvents([]);
+    if (!otherId) return;
+    let cancelled = false;
+    supabase.rpc("get_shared_events", { _other_user_id: otherId }).then(({ data }) => {
+      if (!cancelled) setEvents((data ?? []) as SharedEvent[]);
+    });
+    return () => { cancelled = true; };
+  }, [otherId]);
+  return events;
+};
+
 
 const initials = (name: string) =>
   name.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]?.toUpperCase()).join("");
@@ -21,6 +40,7 @@ export const MemberDrawer = ({
   onOpenChange: (open: boolean) => void;
   badges?: BadgeKey[];
 }) => {
+  const sharedEvents = useSharedEvents(member?.user_id);
   if (!member) return null;
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -97,6 +117,20 @@ export const MemberDrawer = ({
               <div className="flex flex-wrap gap-1.5">
                 {member.interests.map(t => <Badge key={t} variant="outline">{t}</Badge>)}
               </div>
+            </div>
+          )}
+
+          {sharedEvents.length > 0 && (
+            <div className="rounded-xl bg-blush-light/60 p-3">
+              <h4 className="text-xs uppercase tracking-widest text-blush-dark font-semibold mb-1">You've met at</h4>
+              <ul className="text-sm space-y-0.5">
+                {sharedEvents.map(e => (
+                  <li key={e.event_id}>
+                    <Link to={`/events/${e.slug}`} className="underline underline-offset-2 hover:text-blush-dark">{e.title}</Link>
+                    <span className="text-muted-foreground"> · {new Date(e.starts_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Dubai" })}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
