@@ -13,4 +13,5 @@
 # She Moves Mountains group hike (12 Dec)
 - [x] Create the event from the poster: AED 100, transport and refreshments included, venue TBD, 15 places, waitlist on.
 - [x] Publish so the hike page, /events listing and sitemap entry appear on fempowerae.com.
-- [ ] Verify the live hike page preview and booking flow after publish.
+- [x] Verify the live hike page preview and booking flow after publish.
+- [x] Fix event-page times to use the event's own timezone (hike showed 01:00 AM instead of 5:00 AM).

@@ -10,3 +10,4 @@
 - Every event registration collects a phone number: guests via the guest form, signed-in members via a required field saved to `profiles.phone` before registration completes.
 - Every confirmed event registration emails the admin (Tejasvie) with form answers, member status, event, amount paid and coupon; registration forms ask for a WhatsApp number.
 - Directory smart search and topic chips use `matchesSearch`/`topTopics` in `src/lib/directoryEngagement.ts` (tested), filtering approved profiles in-app because the community is a few hundred members; "You've met at" uses the member-only `get_shared_events` function so other bookings stay private.
+- Event dates and times are formatted with the event's own timezone through `eventTimezone` in `src/lib/eventMetadata.ts`, never the viewer's local timezone, so a Dubai morning start renders the same for every visitor.
