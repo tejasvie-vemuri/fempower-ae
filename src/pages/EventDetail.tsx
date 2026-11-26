@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import EventJsonLd from "@/components/EventJsonLd";
-import { eventMetadata } from "@/lib/eventMetadata";
+import { eventMetadata, eventTimezone } from "@/lib/eventMetadata";
 import EventPromoCode, { type AppliedPromo } from "@/components/EventPromoCode";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -593,15 +593,19 @@ const EventDetail = () => {
   }
 
   const startDate = new Date(event.starts_at);
+  const eventTz = eventTimezone(event.timezone);
   const fmtDate = startDate.toLocaleDateString("en-AE", {
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: eventTz,
   });
   const fmtTime = startDate.toLocaleTimeString("en-AE", {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: true,
+    timeZone: eventTz,
   });
 
   const spotsLeft =

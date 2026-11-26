@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { eventMetadata, type EventPreviewData } from "./eventMetadata";
+import { eventMetadata, eventTimezone, type EventPreviewData } from "./eventMetadata";
 
 const event: EventPreviewData = {
   slug: "when-ai-does-the-work-who-decides", title: "When AI does the work, Who Decides?",
@@ -25,5 +25,18 @@ describe("event preview data", () => {
   it("resolves event assets against the actual public domain", () => {
     expect(eventMetadata(event).image).toBe("https://fempowerae.com/event-poster.jpg");
     expect(eventMetadata({ ...event, cover_image_url: "javascript:alert(1)" }).image).toBeNull();
+  });
+  it("falls back to Dubai for missing or unusable timezones", () => {
+    expect(eventTimezone("Asia/Dubai")).toBe("Asia/Dubai");
+    expect(eventTimezone(null)).toBe("Asia/Dubai");
+    expect(eventTimezone("Mars/Phobos")).toBe("Asia/Dubai");
+  });
+  it("shows a 5:00 am Dubai hike as 5:00 am, not the viewer's local hour", () => {
+    const hike = { ...event, starts_at: "2026-12-12T01:00:00Z" };
+    const shown = new Date(hike.starts_at).toLocaleTimeString("en-AE", {
+      hour: "2-digit", minute: "2-digit", hour12: true, timeZone: eventTimezone(hike.timezone),
+    });
+    expect(shown.toLowerCase()).toBe("05:00 am");
+    expect(eventMetadata(hike).description).toContain("12 Dec 2026, 5:00 am");
   });
 });

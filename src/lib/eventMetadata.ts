@@ -14,14 +14,20 @@ export interface EventPreviewData {
   members_only?: boolean;
 }
 
+/** Events are always shown in their own timezone; bad values fall back to Dubai. */
+export function eventTimezone(timezone?: string | null) {
+  const tz = timezone || "Asia/Dubai";
+  try {
+    new Intl.DateTimeFormat("en-GB", { timeZone: tz });
+    return tz;
+  } catch {
+    return "Asia/Dubai";
+  }
+}
+
 export function eventMetadata(event: EventPreviewData) {
   const date = new Date(event.starts_at);
-  let timezone = event.timezone || "Asia/Dubai";
-  try {
-    new Intl.DateTimeFormat("en-GB", { timeZone: timezone });
-  } catch {
-    timezone = "Asia/Dubai";
-  }
+  const timezone = eventTimezone(event.timezone);
   const when = date.toLocaleString("en-GB", {
     weekday: "short", day: "numeric", month: "short", year: "numeric",
     hour: "numeric", minute: "2-digit", hour12: true, timeZone: timezone,
