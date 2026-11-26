@@ -9,3 +9,8 @@
 - [x] Send each confirmed attendee one reminder around 24 hours before the event; skip cancelled bookings.
 - [x] Deploy and verify template rendering, secure scheduled invocation, timing, and deduplication tests.
 - [ ] Verify delivery for a real upcoming attendee — blocked: no confirmed upcoming registrations currently exist; no registration or payment was fabricated.
+
+# She Moves Mountains group hike (12 Dec)
+- [x] Create the event from the poster: AED 100, transport and refreshments included, venue TBD, 15 places, waitlist on.
+- [x] Publish so the hike page, /events listing and sitemap entry appear on fempowerae.com.
+- [ ] Verify the live hike page preview and booking flow after publish.
